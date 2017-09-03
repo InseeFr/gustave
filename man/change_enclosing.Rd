@@ -4,7 +4,7 @@
 \alias{change_enclosing}
 \title{change_enclosing}
 \usage{
-change_enclosing(fun, envir = environment(fun))
+change_enclosing(FUN, envir = environment(FUN))
 }
 \description{
 change_enclosing
