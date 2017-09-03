@@ -1,13 +1,66 @@
 
-#' Create a variance estimation wrapper
+#' Define a variance estimation wrapper
 
+#' @description Given a variance estimation \emph{function} (specific to a 
+#'   survey), \code{define_variance_wrapper} defines a variance estimation 
+#'   \emph{wrapper} easier to use (e.g. automatic domain estimation, 
+#'   linearization).
+#'   
+#' @param variance_function An R function, with input a data matrix (\code{y} by
+#'   default,  see \code{data_arg_name}) and possibly other arguments
+#'   (parameters affecting the estimation of variance), and output a one-row
+#'   matrix.
+#' @param data_arg_name A character vector of length 1 indicating the name of
+#'   the data matrix argument in the variance function. \code{"y"} by default.
+#' @param objects_to_include A character vector indicating the name of
+#'   additional R objects to include within the variance wrapper. These objects
+#'   are to be used to carry out the variance estimation.
+#' @param objects_to_include_from The environment to which the additional R
+#'   objects belong.
+#' @param default_id The default identifier in the survey dataset.
+#' @param reference_id The reference identifier of the responding units in the
+#'   survey. It is compared with \code{default_id} to check whether some
+#'   observations are missing or not. Observations are reordered according to
+#'   \code{reference_id}.
+#' @param reference_weight The weight to be used to compute point estimates.
+#'   \code{reference_id} and \code{reference_weight} must be consistent with one
+#'   another (same length, same position for the same observations).
+#' @param default_stat A character vector of length 1 indicating the default
+#'   statistic to compute when none is specified. \code{"total"} by default.
+#' @param default_alpha A numerical vector of length 1 indicating the default
+#'   threshold for confidence interval derivation. \code{0.05} by default.
+#'   
+#' @details Defining variance estimation wrappers is the \strong{key feature} of
+#'   the \code{gustave} package.
+#'   
+#'   Analytical variance estimation is often difficult to carry out by 
+#'   non-specialists owing to the complexity of the underlying sampling 
+#'   methodology. This complexity yields complex \emph{variance estimation 
+#'   functions} which are most often only used by the methodologists who
+#'   actually wrote them. A \emph{variance estimation wrapper} is an
+#'   intermediate function that is "wrapped around" the (complex) variance
+#'   estimation function in order to provide the non-specialist with
+#'   user-friendly features: \itemize{ \item checks for consistency between the
+#'   provided dataset and the survey characteristics \item factor discretization
+#'   \item domain estimation \item linearization of complex statistics (see
+#'   \code{define_linearization_wrapper})}
+#'   
+#'   \code{define_variance_wrapper} allows the methodologist to define a
+#'   variance estimation wrapper around a given variance estimation function and
+#'   set its default parameters. The produced variance estimation wrapper will
+#'   be stand-alone in the sense that it can contain additional data which would
+#'   be necessary to carry out the variance estimation (see
+#'   \code{objects_to_include} and \code{objects_to_include_from} parameters).
+#'   
+#' @seealso \code{\link{define_linearization_wrapper}}
 #' @export define_variance_wrapper
 #' @import Matrix
 
 define_variance_wrapper <- function(
-  variance_function = NULL, data_arg_name = "y", objects_to_include = NULL
+  variance_function = NULL, data_arg_name = "y"
+  , objects_to_include = NULL, objects_to_include_from = parent.frame()
   , default_id = NULL, reference_id = NULL, reference_weight = NULL
-  , default_stat = "total", default_alpha = 0.05, envir = parent.frame()
+  , default_stat = "total", default_alpha = 0.05
 ){
 
   # Step 1 : Creating the variance estimation wrapper
@@ -30,7 +83,7 @@ define_variance_wrapper <- function(
       id <- eval(id, eval_data)
       id_match <- match(id, reference_id)
       if(anyNA(id_match))
-        stop("Some values of the id variable \"", deparse(substitute(id)), "\" do not match with the values of the reference id variable.", call. = FALSE)
+        stop("Some values of the id variable \"", deparse(substitute(id)), "\" do not match the values of the reference id variable.", call. = FALSE)
       w <- reference_weight[id_match]
     }else{
       id_match <- 1:length(w)
@@ -131,7 +184,7 @@ define_variance_wrapper <- function(
   assign_all(objects = ls(asNamespace("gustave")), to = e1, from = asNamespace("gustave"))
   e2 <- new.env(parent = e1)
   assign_all(objects = c("reference_id", "reference_weight", "data_arg_name", "variance_function"), to = e2, from = environment())
-  assign_all(objects = objects_to_include, to = e2, from = envir)
+  assign_all(objects = objects_to_include, to = e2, from = objects_to_include_from)
   variance_wrapper <- change_enclosing(variance_wrapper, envir = e2)
 
   variance_wrapper <- structure(variance_wrapper, class = c("function", "gustave_variance_wrapper"))
