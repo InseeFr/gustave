@@ -55,6 +55,7 @@
 #' @seealso \code{\link{define_linearization_wrapper}} \code{\link{varDT}}
 #' 
 #' @examples # Let's consider a survey drawn with a one-stage unequal 
+#' probability sampling and neither non-réponse nor calibration.
 #' set.seed(1)
 #' N <- 1000
 #' n <- 20
