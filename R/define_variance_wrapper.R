@@ -52,15 +52,94 @@
 #'   be necessary to carry out the variance estimation (see
 #'   \code{objects_to_include} and \code{objects_to_include_from} parameters).
 #'   
-#' @seealso \code{\link{define_linearization_wrapper}}
+#' @seealso \code{\link{define_linearization_wrapper}} \code{\link{varDT}}
+#' 
+#' @examples # Let's consider a survey drawn with a one-stage unequal 
+#' probability sampling and neither non-réponse nor calibration.
+#' set.seed(1)
+#' N <- 1000
+#' n <- 20
+#' frame <- data.frame(id = 1:N, pik = runif(N))
+#' frame$pik <- frame$pik * n / sum(frame$pik)
+#' # pik is the first-order probability of inclusion of the sampling design
+#' sum(frame$pik) # 100
+#'
+#' # Let's draw the sample with sampling::UPmaxentropy()
+#' library(sampling)
+#' sample <- frame[as.logical(UPmaxentropy(frame$pik)), ]
+#' 
+#' # The information collected for the sampled units
+#' # (variable var and var2) is stored in data.frame survey
+#' survey <- data.frame(
+#'   id = sample$id
+#'   , var1 = 10 + rnorm(n)
+#'   , var2 = letters[sample.int(3, n, replace = TRUE)]
+#'   , var3 = 5 + rnorm(n)
+#' )
+#' 
+#' # Sorting sample and survey data
+#' sample <- sample[order(sample$id), ]
+#' survey <- survey[order(survey$id), ]
+#' 
+#' # Definition of the variance function
+#' variance_function <- function(y){
+#'   result <- varDT(y = y, pik = sample$pik)
+#'   return(list(var = result))
+#' }
+#' variance_function(y = survey$var1) # 2288724
+#' 
+#' # Definition of the variance wrapper
+#' variance_wrapper <- define_variance_wrapper(
+#'   variance_function = variance_function
+#'   , default_id = "id"
+#'   , reference_id = sample$id
+#'   , reference_weight = 1 / sample$pik
+#'   , objects_to_include = "sample"
+#' )
+#' 
+#' ### Testing the variance wrapper
+#' 
+#' # Better display for results
+#' variance_wrapper(survey, var1)
+#' 
+#' # Discretization of qualitative variables
+#' variance_wrapper(survey, var2)
+#' # On-the-fly recoding
+#' variance_wrapper(survey, var2 == "a") 
+#' 
+#' # 1-domain estimation
+#' variance_wrapper(survey, var1, where = var2 == "a") 
+#' # Multiple domains estimation
+#' variance_wrapper(survey, var1, by = var2) 
+#' 
+#' # Mean linearization
+#' variance_wrapper(survey, mean(var1)) 
+#' # Ratio linearization
+#' variance_wrapper(survey, ratio(var2 == "a", var2 %in% c("a", "b"))) 
+#' 
+#' # Multiple variables at a time
+#' variance_wrapper(survey, var1, var3)
+#' variance_wrapper(survey, mean(var1), total(var3))
+#' # Flexible syntax for where and by arguments
+#' # (similar to the aes() function in ggplot2)
+#' variance_wrapper(survey, where = var2 == "c"
+#'   , mean(var1), total(var3)
+#' )
+#' variance_wrapper(survey, where = var2 == "c"
+#'   , mean(var1), total(var3, where = var2 == "a")
+#' )
+#' variance_wrapper(survey, where = var2 == "c"
+#'   , mean(var1), total(var3, where = NULL)
+#' )
+#' 
 #' @export define_variance_wrapper
 #' @import Matrix
 
 define_variance_wrapper <- function(
   variance_function = NULL, data_arg_name = "y"
-  , objects_to_include = NULL, objects_to_include_from = parent.frame()
   , default_id = NULL, reference_id = NULL, reference_weight = NULL
   , default_stat = "total", default_alpha = 0.05
+  , objects_to_include = NULL, objects_to_include_from = parent.frame()
 ){
 
   # Step 1 : Creating the variance estimation wrapper
@@ -80,7 +159,7 @@ define_variance_wrapper <- function(
     reference_id <- eval(reference_id)
     reference_weight <- eval(reference_weight)
     if(!is.null(reference_id)){
-      id <- eval(id, eval_data)
+      id <- if(is.character(id)) eval_data[, id] else eval(id, eval_data)      
       id_match <- match(id, reference_id)
       if(anyNA(id_match))
         stop("Some values of the id variable \"", deparse(substitute(id)), "\" do not match the values of the reference id variable.", call. = FALSE)

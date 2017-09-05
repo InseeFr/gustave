@@ -111,7 +111,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
     if(!is.null(by)) x <- block_matrix(x, by)$y
 
     # Checking for colinearity
-    if(isTRUE(colinearity.check) || (is.null(colinearity.check) && det(t(x) %*% x) == 0)){
+    if(isTRUE(colinearity.check) || (is.null(colinearity.check) && Matrix::det(t(x) %*% x) == 0)){
       t <- as.vector(is.na(stats::lm(rep(1, NROW(x)) ~ . - 1, data = as.data.frame(as.matrix(x)))$coef))
       if(any(t)) warning("Some variables in x where discarted due to colinearity.")
       x <- x[, !t]
@@ -336,7 +336,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, colinearity.
     }
 
     # Checking for colinearity
-    if(isTRUE(colinearity.check) || (is.null(colinearity.check) && det(t(x) %*% x) == 0)){
+    if(isTRUE(colinearity.check) || (is.null(colinearity.check) && Matrix::det(t(x) %*% x) == 0)){
       t <- as.vector(is.na(stats::lm(rep(1, NROW(x)) ~ . - 1, data = as.data.frame(as.matrix(x)))$coef))
       t2 <- sumby(!t, bycol)
       x <- x[, !t]
@@ -348,7 +348,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, colinearity.
     A <- t(x / pik)
     ck <- (1 - pik) * n / pmax(n - p, 1)
     u <- A %*% Matrix::Diagonal(x = ck) %*% t(A)
-    inv <- methods::as(if(det(u) != 0) solve(u) else MASS::ginv(as.matrix(u)),"TsparseMatrix")
+    inv <- methods::as(if(Matrix::det(u) != 0) solve(u) else MASS::ginv(as.matrix(u)),"TsparseMatrix")
 
   }else list2env(precalc, envir = environment())
 
@@ -361,7 +361,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, colinearity.
     if(is.null(w)) w <- rep(1, length(pik))
     z <- y / pik
     zhat <- t(A) %*% inv %*% (A %*% Matrix::Diagonal(x = ck) %*% z)
-    return(colSums(ck * w * (z - zhat)^2))
+    return(Matrix::colSums(ck * w * (z - zhat)^2))
   }
 
 }

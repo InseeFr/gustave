@@ -76,7 +76,7 @@ standard_preparation <- function(..., by = NULL, where = NULL, tech_args, allow_
   fac <- sapply(d[[1]]$data, function(i) is.character(i) || is.factor(i))
   if(sum(fac) > 0){
     if(allow_factor && length(d[[1]]$data) == 1){
-      t <- t(Matrix::fac2sparse(d[[1]]$data[[1]], giveCsparse = FALSE))
+      t <- Matrix::t(Matrix::fac2sparse(d[[1]]$data[[1]], giveCsparse = FALSE))
       # TODO: get rid of Matrix dependency at this point
       if(any(na <- is.na(d[[1]]$data[[1]]))) t[na, , drop = FALSE] <- NA
       d <- lapply(1:NCOL(t), function(i){

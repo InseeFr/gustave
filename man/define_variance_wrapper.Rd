@@ -5,9 +5,9 @@
 \title{Define a variance estimation wrapper}
 \usage{
 define_variance_wrapper(variance_function = NULL, data_arg_name = "y",
-  objects_to_include = NULL, objects_to_include_from = parent.frame(),
   default_id = NULL, reference_id = NULL, reference_weight = NULL,
-  default_stat = "total", default_alpha = 0.05)
+  default_stat = "total", default_alpha = 0.05, objects_to_include = NULL,
+  objects_to_include_from = parent.frame())
 }
 \arguments{
 \item{variance_function}{An R function, with input a data matrix (\code{y} by
@@ -17,13 +17,6 @@ matrix.}
 
 \item{data_arg_name}{A character vector of length 1 indicating the name of
 the data matrix argument in the variance function. \code{"y"} by default.}
-
-\item{objects_to_include}{A character vector indicating the name of
-additional R objects to include within the variance wrapper. These objects
-are to be used to carry out the variance estimation.}
-
-\item{objects_to_include_from}{The environment to which the additional R
-objects belong.}
 
 \item{default_id}{The default identifier in the survey dataset.}
 
@@ -41,6 +34,13 @@ statistic to compute when none is specified. \code{"total"} by default.}
 
 \item{default_alpha}{A numerical vector of length 1 indicating the default
 threshold for confidence interval derivation. \code{0.05} by default.}
+
+\item{objects_to_include}{A character vector indicating the name of
+additional R objects to include within the variance wrapper. These objects
+are to be used to carry out the variance estimation.}
+
+\item{objects_to_include_from}{The environment to which the additional R
+objects belong.}
 }
 \description{
 Given a variance estimation \emph{function} (specific to a 
@@ -71,6 +71,86 @@ Defining variance estimation wrappers is the \strong{key feature} of
   be necessary to carry out the variance estimation (see
   \code{objects_to_include} and \code{objects_to_include_from} parameters).
 }
+\examples{
+# Let's consider a survey drawn with a one-stage unequal 
+probability sampling and neither non-réponse nor calibration.
+set.seed(1)
+N <- 1000
+n <- 20
+frame <- data.frame(id = 1:N, pik = runif(N))
+frame$pik <- frame$pik * n / sum(frame$pik)
+# pik is the first-order probability of inclusion of the sampling design
+sum(frame$pik) # 100
+
+# Let's draw the sample with sampling::UPmaxentropy()
+library(sampling)
+sample <- frame[as.logical(UPmaxentropy(frame$pik)), ]
+
+# The information collected for the sampled units
+# (variable var and var2) is stored in data.frame survey
+survey <- data.frame(
+  id = sample$id
+  , var1 = 10 + rnorm(n)
+  , var2 = letters[sample.int(3, n, replace = TRUE)]
+  , var3 = 5 + rnorm(n)
+)
+
+# Sorting sample and survey data
+sample <- sample[order(sample$id), ]
+survey <- survey[order(survey$id), ]
+
+# Definition of the variance function
+variance_function <- function(y){
+  result <- varDT(y = y, pik = sample$pik)
+  return(list(var = result))
+}
+variance_function(y = survey$var1) # 2288724
+
+# Definition of the variance wrapper
+variance_wrapper <- define_variance_wrapper(
+  variance_function = variance_function
+  , default_id = "id"
+  , reference_id = sample$id
+  , reference_weight = 1 / sample$pik
+  , objects_to_include = "sample"
+)
+
+### Testing the variance wrapper
+
+# Better display for results
+variance_wrapper(survey, var1)
+
+# Discretization of qualitative variables
+variance_wrapper(survey, var2)
+# On-the-fly recoding
+variance_wrapper(survey, var2 == "a") 
+
+# 1-domain estimation
+variance_wrapper(survey, var1, where = var2 == "a") 
+# Multiple domains estimation
+variance_wrapper(survey, var1, by = var2) 
+
+# Mean linearization
+variance_wrapper(survey, mean(var1)) 
+# Ratio linearization
+variance_wrapper(survey, ratio(var2 == "a", var2 \%in\% c("a", "b"))) 
+
+# Multiple variables at a time
+variance_wrapper(survey, var1, var3)
+variance_wrapper(survey, mean(var1), total(var3))
+# Flexible syntax for where and by arguments
+# (similar to the aes() function in ggplot2)
+variance_wrapper(survey, where = var2 == "c"
+  , mean(var1), total(var3)
+)
+variance_wrapper(survey, where = var2 == "c"
+  , mean(var1), total(var3, where = var2 == "a")
+)
+variance_wrapper(survey, where = var2 == "c"
+  , mean(var1), total(var3, where = NULL)
+)
+
+}
 \seealso{
-\code{\link{define_linearization_wrapper}}
+\code{\link{define_linearization_wrapper}} \code{\link{varDT}}
 }
