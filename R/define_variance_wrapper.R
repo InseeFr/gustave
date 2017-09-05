@@ -62,7 +62,7 @@
 #' frame <- data.frame(id = 1:N, pik = runif(N))
 #' frame$pik <- frame$pik * n / sum(frame$pik)
 #' # pik is the first-order probability of inclusion of the sampling design
-#' sum(frame$pik) # 100
+#' sum(frame$pik) # n
 #'
 #' # Let's draw the sample with sampling::UPmaxentropy()
 #' library(sampling)
