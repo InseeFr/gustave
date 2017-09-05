@@ -73,7 +73,7 @@ Defining variance estimation wrappers is the \strong{key feature} of
 }
 \examples{
 # Let's consider a survey drawn with a one-stage unequal 
-probability sampling and neither non-réponse nor calibration.
+# probability sampling and neither non-response nor calibration.
 set.seed(1)
 N <- 1000
 n <- 20
