@@ -7,28 +7,31 @@
 #'   linearization).
 #'   
 #' @param variance_function An R function, with input a data matrix (\code{y} by
-#'   default,  see \code{data_arg_name}) and possibly other arguments
-#'   (parameters affecting the estimation of variance), and output a one-row
+#'   default,  see \code{data_arg_name}) and possibly other arguments 
+#'   (parameters affecting the estimation of variance), and output a one-row 
 #'   matrix.
-#' @param data_arg_name A character vector of length 1 indicating the name of
+#' @param data_arg_name A character vector of length 1 indicating the name of 
 #'   the data matrix argument in the variance function. \code{"y"} by default.
-#' @param objects_to_include A character vector indicating the name of
-#'   additional R objects to include within the variance wrapper. These objects
-#'   are to be used to carry out the variance estimation.
-#' @param objects_to_include_from The environment to which the additional R
-#'   objects belong.
-#' @param default_id The default identifier in the survey dataset.
-#' @param reference_id The reference identifier of the responding units in the
-#'   survey. It is compared with \code{default_id} to check whether some
-#'   observations are missing or not. Observations are reordered according to
-#'   \code{reference_id}.
-#' @param reference_weight The weight to be used to compute point estimates.
+#' @param default_id A character vector of length 1 containing the name of the 
+#'   identifying variable in the survey file. It can also be an unevaluated 
+#'   expression (using substitute()) to be evaluated within the survey file.
+#' @param reference_id A vector containing the ids of all the responding units 
+#'   of the survey. It is compared with \code{default_id} to check whether some 
+#'   observations are missing or not in the survey file. Observations are
+#'   reordered according to \code{reference_id}.
+#' @param reference_weight A vector of weights to be used to compute point 
+#'   estimates (i.e. the final weights disseminated with the survey data). 
 #'   \code{reference_id} and \code{reference_weight} must be consistent with one
 #'   another (same length, same position for the same observations).
-#' @param default_stat A character vector of length 1 indicating the default
+#' @param default_stat A character vector of length 1 indicating the default 
 #'   statistic to compute when none is specified. \code{"total"} by default.
-#' @param default_alpha A numerical vector of length 1 indicating the default
+#' @param default_alpha A numerical vector of length 1 indicating the default 
 #'   threshold for confidence interval derivation. \code{0.05} by default.
+#' @param objects_to_include A character vector indicating the name of 
+#'   additional R objects to include within the variance wrapper. These objects 
+#'   are to be used to carry out the variance estimation.
+#' @param objects_to_include_from The environment to which the additional R 
+#'   objects belong.
 #'   
 #' @details Defining variance estimation wrappers is the \strong{key feature} of
 #'   the \code{gustave} package.
@@ -36,20 +39,20 @@
 #'   Analytical variance estimation is often difficult to carry out by 
 #'   non-specialists owing to the complexity of the underlying sampling 
 #'   methodology. This complexity yields complex \emph{variance estimation 
-#'   functions} which are most often only used by the methodologists who
-#'   actually wrote them. A \emph{variance estimation wrapper} is an
-#'   intermediate function that is "wrapped around" the (complex) variance
-#'   estimation function in order to provide the non-specialist with
-#'   user-friendly features: \itemize{ \item checks for consistency between the
+#'   functions} which are most often only used by the methodologists who 
+#'   actually wrote them. A \emph{variance estimation wrapper} is an 
+#'   intermediate function that is "wrapped around" the (complex) variance 
+#'   estimation function in order to provide the non-specialist with 
+#'   user-friendly features: \itemize{ \item checks for consistency between the 
 #'   provided dataset and the survey characteristics \item factor discretization
-#'   \item domain estimation \item linearization of complex statistics (see
+#'   \item domain estimation \item linearization of complex statistics (see 
 #'   \code{define_linearization_wrapper})}
 #'   
-#'   \code{define_variance_wrapper} allows the methodologist to define a
+#'   \code{define_variance_wrapper} allows the methodologist to define a 
 #'   variance estimation wrapper around a given variance estimation function and
-#'   set its default parameters. The produced variance estimation wrapper will
+#'   set its default parameters. The produced variance estimation wrapper will 
 #'   be stand-alone in the sense that it can contain additional data which would
-#'   be necessary to carry out the variance estimation (see
+#'   be necessary to carry out the variance estimation (see 
 #'   \code{objects_to_include} and \code{objects_to_include_from} parameters).
 #'   
 #' @seealso \code{\link{define_linearization_wrapper}} \code{\link{varDT}}
@@ -68,8 +71,8 @@
 #' library(sampling)
 #' sample <- frame[as.logical(UPmaxentropy(frame$pik)), ]
 #' 
-#' # The information collected for the sampled units
-#' # (variable var and var2) is stored in data.frame survey
+#' # The data collected for the sampled units (variables var1, 
+#' # var2 and var3) is stored in the data.frame survey
 #' survey <- data.frame(
 #'   id = sample$id
 #'   , var1 = 10 + rnorm(n)
@@ -91,10 +94,10 @@
 #' # Definition of the variance wrapper
 #' variance_wrapper <- define_variance_wrapper(
 #'   variance_function = variance_function
-#'   , default_id = "id"
-#'   , reference_id = sample$id
-#'   , reference_weight = 1 / sample$pik
-#'   , objects_to_include = "sample"
+#'   , default_id = "id" # Name of the default id variable in the survey file
+#'   , reference_id = sample$id # Reference vector of ids
+#'   , reference_weight = 1 / sample$pik # Reference vector or weights
+#'   , objects_to_include = "sample" # Additional object used in the variance function
 #' )
 #' 
 #' ### Testing the variance wrapper
