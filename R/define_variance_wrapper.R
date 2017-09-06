@@ -8,13 +8,14 @@
 #'   
 #' @param variance_function An R function, with input a data matrix (\code{y} by
 #'   default,  see \code{data_arg_name}) and possibly other arguments 
-#'   (parameters affecting the estimation of variance), and output a one-row 
-#'   matrix.
+#'   (parameters affecting the estimation of variance), and output a numeric 
+#'   vector of estimated variances (or a list whose first element is a numeric
+#'   vector of estimated variances).
 #' @param data_arg_name A character vector of length 1 indicating the name of 
 #'   the data matrix argument in the variance function. \code{"y"} by default.
 #' @param default_id A character vector of length 1 containing the name of the 
 #'   identifying variable in the survey file. It can also be an unevaluated 
-#'   expression (using substitute()) to be evaluated within the survey file.
+#'   expression (using \code{substitute()}) to be evaluated within the survey file.
 #' @param reference_id A vector containing the ids of all the responding units 
 #'   of the survey. It is compared with \code{default_id} to check whether some 
 #'   observations are missing or not in the survey file. Observations are
@@ -52,12 +53,39 @@
 #'   variance estimation wrapper around a given variance estimation function and
 #'   set its default parameters. The produced variance estimation wrapper will 
 #'   be stand-alone in the sense that it can contain additional data which would
-#'   be necessary to carry out the variance estimation (see 
 #'   \code{objects_to_include} and \code{objects_to_include_from} parameters).
 #'   
+#' @return An R function that makes the estimation of variance based on the provided 
+#' variance function easier. Its parameters are:
+#'   \itemize{
+#'    \item \code{data}: the survey data where the interest variables are stored
+#'    \item \code{...}: one or more calls to a linearization wrapper (see examples
+#'    and \code{\link{define_linearization_wrapper}})
+#'    \item \code{where}: a logical vector indicating a domain on which the variance
+#'    estimation is conducted
+#'    \item \code{by}: a qualitative variable whose levels are used to define domains
+#'    on which the variance estimation is conducted
+#'    \item \code{stat}: a character vector of size 1 indicating the linearization
+#'    wrapper to use when none is specified. Its default value depends on
+#'    the value of \code{default_stat} in \code{define_variance_wrapper}
+#'    \item \code{alpha}: a numeric vector of size 1 indicating the threshold
+#'    for confidence interval derivation. Its default value depends on
+#'    the value of \code{default_alpha} in \code{define_variance_wrapper}
+#'    \item \code{id}: a character vector of size 1 containing the name of
+#'    the identifying variable in the survey file. It can also be an 
+#'    unevaluated expression (using \code{substitute()}) to be evaluated within
+#'    the survey file. Its default value depends on the value of 
+#'    \code{default_id} in \code{define_variance_wrapper}
+#'    \item \code{envir}: an environment containing a binding to \code{data}
+#'  }
+#' 
+#' @author Martin Chevalier (Insee)
+#'    
 #' @seealso \code{\link{define_linearization_wrapper}} \code{\link{varDT}}
 #' 
-#' @examples # Let's consider a survey drawn with a one-stage unequal 
+#' @examples ### Survey setup
+#' 
+#' # Let's consider a survey drawn with a one-stage unequal 
 #' # probability sampling and neither non-response nor calibration.
 #' set.seed(1)
 #' N <- 1000
@@ -84,23 +112,30 @@
 #' sample <- sample[order(sample$id), ]
 #' survey <- survey[order(survey$id), ]
 #' 
+#' 
+#' ### Definition of the variance wrapper
+#' 
 #' # Definition of the variance function
-#' variance_function <- function(y){
-#'   result <- varDT(y = y, pik = sample$pik)
-#'   return(list(var = result))
-#' }
-#' variance_function(y = survey$var1) # 2288724
+#' variance_function <- function(y) varDT(y = y, pik = sample$pik)
+#' variance_function(survey$var1)
 #' 
 #' # Definition of the variance wrapper
 #' variance_wrapper <- define_variance_wrapper(
 #'   variance_function = variance_function
-#'   , default_id = "id" # Name of the default id variable in the survey file
-#'   , reference_id = sample$id # Reference vector of ids
-#'   , reference_weight = 1 / sample$pik # Reference vector or weights
-#'   , objects_to_include = "sample" # Additional object used in the variance function
+#'   , default_id = "id"
+#'   , reference_id = sample$id
+#'   , reference_weight = 1 / sample$pik
+#'   , objects_to_include = "sample"
 #' )
 #' 
-#' ### Testing the variance wrapper
+#' # The data.frame sample is embedded within variance_wrapper
+#' ls(environment(variance_wrapper))
+#' str(environment(variance_wrapper)$sample)
+#' # Note : variance_wrapper is a closure 
+#' # (http://adv-r.had.co.nz/Functional-programming.html#closures)
+#' 
+#' 
+#' ### Functionalities of the variance wrapper
 #' 
 #' # Better display for results
 #' variance_wrapper(survey, var1)
@@ -145,6 +180,8 @@ define_variance_wrapper <- function(
   , objects_to_include = NULL, objects_to_include_from = parent.frame()
 ){
 
+  if(!("package:Matrix" %in% search())) attachNamespace("Matrix")
+  
   # Step 1 : Creating the variance estimation wrapper
   variance_wrapper <- function(
     data, ..., by = NULL, where = NULL, stat = NULL, alpha = NULL
@@ -218,23 +255,28 @@ define_variance_wrapper <- function(
     }
 
     # Step 1.5 : Calling the variance estimation function
-    # and reorganizing the results
+    d$estimation$variance_function <- variance_function
     variance_function_args <- c(
       stats::setNames(list(d$estimation$data), data_arg_name)
       , lapply(setdiff(names(formals(variance_function)), data_arg_name), get, envir = execution_envir)
     )
-    d$estimation$result <- suppressMessages(do.call(variance_function, variance_function_args))
-    d$estimation$variance_function <- variance_function
+    r <- suppressMessages(do.call(variance_function, variance_function_args))
+    if(is.data.frame(r)) r <- as.matrix(r)
+    if(!is.list(r)) r <- list(var = r)
+    d$estimation$result <- r
+    
+    
+    # Step 1.6 Reorganizing the results of the estimation
     k <- 0;
     d$display <- lapply(seq_along(d$display), function(i) c(d$display[[i]]
       , list(var = lapply(d$preparation[[i]]$lin, function(j){
-        t <- d$estimation$result$var[(k + 1):(k + NCOL(j))]
+        t <- d$estimation$result[[1]][(k + 1):(k + NCOL(j))]
         assign("k", (k + NCOL(j)), envir = execution_envir)
         return(t)
       }))
     ))
 
-    # Step 1.6 : Displaying the results if requested (the default)
+    # Step 1.7 : Displaying the results if requested (the default)
     if(display){
       d <- lapply(d$display, function(i) i$fun(i, alpha = alpha))
       names <- unique(do.call(base::c, lapply(d, names)))

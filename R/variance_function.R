@@ -188,15 +188,11 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'   when \code{varDT} is used on the second stage of a two-stage sampling
 #'   design applying the Rao (1975) formula.
 #'   
-#' @section Difference with \code{varest}:
+#' @section Difference with \code{varest} from package \code{sampling}:
 #'   
 #'   \code{varDT} differs from \code{sampling::varest} in several ways: 
 #'   \itemize{ \item The formula implemented in \code{varDT} is more general and
-#'   encompasses balanced sampling. \item \code{varDT} does not natively
-#'   implements the calibration estimator (i.e. the sampling variance estimator
-#'   that takes into account the effect of calibration). In the context of the
-#'   \code{gustave} package, \code{\link{rescal}} could be called before 
-#'   \code{varDT} in order to achieve the same result. \item Even in its reduced
+#'   encompasses balanced sampling. \item Even in its reduced
 #'   form (without balancing variables), the formula implemented in \code{varDT}
 #'   slightly differs from the one implemented in \code{sampling::varest}.
 #'   Caron, Deville and Sautory (1998, pp. 7-8) compares the two estimators
@@ -204,9 +200,13 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'   \item \code{varDT} introduces several optimizations: \itemize{ \item
 #'   matrixwise operations allow to estimate variance on several interest
 #'   variables at once \item Matrix::TsparseMatrix capability and the native
-#'   integration of stratification induce significant performance gains. \item
+#'   integration of stratification yield significant performance gains. \item
 #'   the ability to precalculate some time-consuming operations speeds up the
-#'   estimation at execution time. } }
+#'   estimation at execution time. } \item \code{varDT} does not natively
+#'   implements the calibration estimator (i.e. the sampling variance estimator
+#'   that takes into account the effect of calibration). In the context of the
+#'   \code{gustave} package, \code{\link{rescal}} could be called before 
+#'   \code{varDT} in order to achieve the same result.}
 #'   
 #'   
 #' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a

@@ -12,15 +12,16 @@ define_variance_wrapper(variance_function = NULL, data_arg_name = "y",
 \arguments{
 \item{variance_function}{An R function, with input a data matrix (\code{y} by
 default,  see \code{data_arg_name}) and possibly other arguments 
-(parameters affecting the estimation of variance), and output a one-row 
-matrix.}
+(parameters affecting the estimation of variance), and output a numeric 
+vector of estimated variances (or a list whose first element is a numeric
+vector of estimated variances).}
 
 \item{data_arg_name}{A character vector of length 1 indicating the name of 
 the data matrix argument in the variance function. \code{"y"} by default.}
 
 \item{default_id}{A character vector of length 1 containing the name of the 
 identifying variable in the survey file. It can also be an unevaluated 
-expression (using substitute()) to be evaluated within the survey file.}
+expression (using \code{substitute()}) to be evaluated within the survey file.}
 
 \item{reference_id}{A vector containing the ids of all the responding units 
 of the survey. It is compared with \code{default_id} to check whether some 
@@ -44,6 +45,31 @@ are to be used to carry out the variance estimation.}
 
 \item{objects_to_include_from}{The environment to which the additional R 
 objects belong.}
+}
+\value{
+An R function that makes the estimation of variance based on the provided 
+variance function easier. Its parameters are:
+  \itemize{
+   \item \code{data}: the survey data where the interest variables are stored
+   \item \code{...}: one or more calls to a linearization wrapper (see examples
+   and \code{\link{define_linearization_wrapper}})
+   \item \code{where}: a logical vector indicating a domain on which the variance
+   estimation is conducted
+   \item \code{by}: a qualitative variable whose levels are used to define domains
+   on which the variance estimation is conducted
+   \item \code{stat}: a character vector of size 1 indicating the linearization
+   wrapper to use when none is specified. Its default value depends on
+   the value of \code{default_stat} in \code{define_variance_wrapper}
+   \item \code{alpha}: a numeric vector of size 1 indicating the threshold
+   for confidence interval derivation. Its default value depends on
+   the value of \code{default_alpha} in \code{define_variance_wrapper}
+   \item \code{id}: a character vector of size 1 containing the name of
+   the identifying variable in the survey file. It can also be an 
+   unevaluated expression (using \code{substitute()}) to be evaluated within
+   the survey file. Its default value depends on the value of 
+   \code{default_id} in \code{define_variance_wrapper}
+   \item \code{envir}: an environment in which the \code{data} object is bound
+ }
 }
 \description{
 Given a variance estimation \emph{function} (specific to a 
@@ -71,10 +97,11 @@ Defining variance estimation wrappers is the \strong{key feature} of
   variance estimation wrapper around a given variance estimation function and
   set its default parameters. The produced variance estimation wrapper will 
   be stand-alone in the sense that it can contain additional data which would
-  be necessary to carry out the variance estimation (see 
   \code{objects_to_include} and \code{objects_to_include_from} parameters).
 }
 \examples{
+### Survey setup
+
 # Let's consider a survey drawn with a one-stage unequal 
 # probability sampling and neither non-response nor calibration.
 set.seed(1)
@@ -102,23 +129,30 @@ survey <- data.frame(
 sample <- sample[order(sample$id), ]
 survey <- survey[order(survey$id), ]
 
+
+### Definition of the variance wrapper
+
 # Definition of the variance function
-variance_function <- function(y){
-  result <- varDT(y = y, pik = sample$pik)
-  return(list(var = result))
-}
+variance_function <- function(y) varDT(y = y, pik = sample$pik)
 variance_function(y = survey$var1) # 2288724
 
 # Definition of the variance wrapper
 variance_wrapper <- define_variance_wrapper(
   variance_function = variance_function
-  , default_id = "id" # Name of the default id variable in the survey file
-  , reference_id = sample$id # Reference vector of ids
-  , reference_weight = 1 / sample$pik # Reference vector or weights
-  , objects_to_include = "sample" # Additional object used in the variance function
+  , default_id = "id"
+  , reference_id = sample$id
+  , reference_weight = 1 / sample$pik
+  , objects_to_include = "sample"
 )
 
-### Testing the variance wrapper
+# The data.frame sample is embedded within variance_wrapper
+ls(environment(variance_wrapper))
+str(environment(variance_wrapper)$sample)
+# Note : variance_wrapper is a closure 
+# (http://adv-r.had.co.nz/Functional-programming.html#closures)
+
+
+### Functionalities of the variance wrapper
 
 # Better display for results
 variance_wrapper(survey, var1)
@@ -156,4 +190,7 @@ variance_wrapper(survey, where = var2 == "c"
 }
 \seealso{
 \code{\link{define_linearization_wrapper}} \code{\link{varDT}}
+}
+\author{
+Martin Chevalier (Insee)
 }

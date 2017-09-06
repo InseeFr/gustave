@@ -5,8 +5,7 @@ context("define_variance_wrapper - Function and data defined in globalenv()")
 source("data.R")
 
 variance_function_test <- function(y, eurostat = FALSE){
-  require(Matrix)
-  list(var = if(!eurostat) abs(colSums(y)) else 0)
+  return(if(!eurostat) abs(colSums(y)) else 0)
 }
 
 test_that("varwrap_test can be defined", {
@@ -20,7 +19,6 @@ test_that("varwrap_test can be defined", {
 
 # ls(environment(varwrap_test))
 # varwrap_test(data = survey, total(quali))
-
 
 test_that("varwrap_test works", {
   expect_error(
@@ -36,7 +34,6 @@ prepare_test <- function(){
   a <- 1
 
   variance_function_test <- function(y, eurostat = FALSE){
-    require(Matrix)
     list(var = a + abs(colSums(y)))
   }
   define_variance_wrapper(
