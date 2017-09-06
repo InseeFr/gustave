@@ -12,7 +12,7 @@
 #'   element is a numeric vector of estimated variances).
 #' @param default_id A character vector of length 1 containing the name of the 
 #'   identifying variable in the survey file. It can also be an unevaluated 
-#'   expression (using \code{substitute()}) to be evaluated within the survey file.
+#'   expression (using \code{substitute}) to be evaluated within the survey file.
 #' @param reference_id A vector containing the ids of all the responding units 
 #'   of the survey. It is compared with \code{default_id} to check whether some 
 #'   observations are missing or not in the survey file. Observations are
@@ -36,7 +36,7 @@
 #'   
 #'   Analytical variance estimation is often difficult to carry out by 
 #'   non-specialists owing to the complexity of the underlying sampling 
-#'   methodology. This complexity yields complex \emph{variance estimation 
+#'   and estimation methodology. This complexity yields complex \emph{variance estimation 
 #'   functions} which are most often only used by the methodologists who 
 #'   actually wrote them. A \emph{variance estimation wrapper} is an 
 #'   intermediate function that is "wrapped around" the (complex) variance 
@@ -120,23 +120,24 @@
 #' 
 #' # Definition of the variance wrapper
 #' variance_wrapper <- define_variance_wrapper(
-#'   variance_function = function(d) varDT(y = d, pik = sample$pik)
+#'   variance_function = function(y) varDT(y = y, pik = sample$pik)
 #'   , default_id = "id"
 #'   , reference_id = sample$id
 #'   , reference_weight = 1 / sample$pik
 #'   , objects_to_include = "sample"
 #' )
 #' 
-#' # The data.frame sample is embedded within variance_wrapper
+#' # The data.frame "sample" is embedded within the function 
+#' # variance_wrapper
 #' ls(environment(variance_wrapper))
 #' str(environment(variance_wrapper)$sample)
 #' # Note : variance_wrapper is a closure 
 #' # (http://adv-r.had.co.nz/Functional-programming.html#closures)
 #' 
 #' 
-#' ### Functionalities of the variance wrapper
+#' ### Features of the variance wrapper
 #' 
-#' # Better display for results
+#' # Better display of results
 #' variance_wrapper(survey, var1)
 #' 
 #' # Discretization of qualitative variables
@@ -173,8 +174,9 @@
 #' @import Matrix
 
 define_variance_wrapper <- function(
-  variance_function = NULL, reference_id = NULL, reference_weight = NULL
-  , default_id = NULL, default_stat = "total", default_alpha = 0.05
+  variance_function = NULL
+  , default_id = NULL, reference_id = NULL, reference_weight = NULL
+  , default_stat = "total", default_alpha = 0.05
   , objects_to_include = NULL, objects_to_include_from = parent.frame()
 ){
 

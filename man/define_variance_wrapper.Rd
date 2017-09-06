@@ -4,8 +4,8 @@
 \alias{define_variance_wrapper}
 \title{Define a variance estimation wrapper}
 \usage{
-define_variance_wrapper(variance_function = NULL, reference_id = NULL,
-  reference_weight = NULL, default_id = NULL, default_stat = "total",
+define_variance_wrapper(variance_function = NULL, default_id = NULL,
+  reference_id = NULL, reference_weight = NULL, default_stat = "total",
   default_alpha = 0.05, objects_to_include = NULL,
   objects_to_include_from = parent.frame())
 }
@@ -14,6 +14,10 @@ define_variance_wrapper(variance_function = NULL, reference_id = NULL,
 other arguments (e.g. parameters affecting the estimation of variance), 
 and output a numeric vector of estimated variances (or a list whose first 
 element is a numeric vector of estimated variances).}
+
+\item{default_id}{A character vector of length 1 containing the name of the 
+identifying variable in the survey file. It can also be an unevaluated 
+expression (using \code{substitute}) to be evaluated within the survey file.}
 
 \item{reference_id}{A vector containing the ids of all the responding units 
 of the survey. It is compared with \code{default_id} to check whether some 
@@ -24,10 +28,6 @@ reordered according to \code{reference_id}.}
 estimates (i.e. the final weights disseminated with the survey data). 
 \code{reference_id} and \code{reference_weight} must be consistent with one
 another (same length, same position for the same observations).}
-
-\item{default_id}{A character vector of length 1 containing the name of the 
-identifying variable in the survey file. It can also be an unevaluated 
-expression (using \code{substitute()}) to be evaluated within the survey file.}
 
 \item{default_stat}{A character vector of length 1 indicating the default 
 statistic to compute when none is specified. \code{"total"} by default.}
@@ -79,7 +79,7 @@ Defining variance estimation wrappers is the \strong{key feature} of
   
   Analytical variance estimation is often difficult to carry out by 
   non-specialists owing to the complexity of the underlying sampling 
-  methodology. This complexity yields complex \emph{variance estimation 
+  and estimation methodology. This complexity yields complex \emph{variance estimation 
   functions} which are most often only used by the methodologists who 
   actually wrote them. A \emph{variance estimation wrapper} is an 
   intermediate function that is "wrapped around" the (complex) variance 
@@ -136,23 +136,24 @@ varDT(y = survey$var1, pik = sample$pik)
 
 # Definition of the variance wrapper
 variance_wrapper <- define_variance_wrapper(
-  variance_function = function(d) varDT(y = d, pik = sample$pik)
+  variance_function = function(y) varDT(y = y, pik = sample$pik)
   , default_id = "id"
   , reference_id = sample$id
   , reference_weight = 1 / sample$pik
   , objects_to_include = "sample"
 )
 
-# The data.frame sample is embedded within variance_wrapper
+# The data.frame "sample" is embedded within the function 
+# variance_wrapper
 ls(environment(variance_wrapper))
 str(environment(variance_wrapper)$sample)
 # Note : variance_wrapper is a closure 
 # (http://adv-r.had.co.nz/Functional-programming.html#closures)
 
 
-### Functionalities of the variance wrapper
+### Features of the variance wrapper
 
-# Better display for results
+# Better display of results
 variance_wrapper(survey, var1)
 
 # Discretization of qualitative variables
