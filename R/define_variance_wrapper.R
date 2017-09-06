@@ -6,13 +6,10 @@
 #'   \emph{wrapper} easier to use (e.g. automatic domain estimation, 
 #'   linearization).
 #'   
-#' @param variance_function An R function, with input a data matrix (\code{y} by
-#'   default,  see \code{data_arg_name}) and possibly other arguments 
-#'   (parameters affecting the estimation of variance), and output a numeric 
-#'   vector of estimated variances (or a list whose first element is a numeric
-#'   vector of estimated variances).
-#' @param data_arg_name A character vector of length 1 indicating the name of 
-#'   the data matrix argument in the variance function. \code{"y"} by default.
+#' @param variance_function An R function, with input a data matrix and possibly 
+#'   other arguments (e.g. parameters affecting the estimation of variance), 
+#'   and output a numeric vector of estimated variances (or a list whose first 
+#'   element is a numeric vector of estimated variances).
 #' @param default_id A character vector of length 1 containing the name of the 
 #'   identifying variable in the survey file. It can also be an unevaluated 
 #'   expression (using \code{substitute()}) to be evaluated within the survey file.
@@ -87,20 +84,22 @@
 #' 
 #' # Let's consider a survey drawn with a one-stage unequal 
 #' # probability sampling and neither non-response nor calibration.
+#' N <- 1000 # Size of the population
+#' n <- 20 # Size of the sample
+#' 
+#' # Randomly generating a sampling frame and first-order 
+#' # probabilities of inclusion
 #' set.seed(1)
-#' N <- 1000
-#' n <- 20
 #' frame <- data.frame(id = 1:N, pik = runif(N))
 #' frame$pik <- frame$pik * n / sum(frame$pik)
-#' # pik is the first-order probability of inclusion of the sampling design
 #' sum(frame$pik) # n
 #'
-#' # Let's draw the sample with sampling::UPmaxentropy()
+#' # Drawing the sample with sampling::UPmaxentropy()
 #' library(sampling)
 #' sample <- frame[as.logical(UPmaxentropy(frame$pik)), ]
 #' 
-#' # The data collected for the sampled units (variables var1, 
-#' # var2 and var3) is stored in the data.frame survey
+#' # Randomly generating the data that would have been collected
+#' # on the field and storing it in the "survey" data.frame 
 #' survey <- data.frame(
 #'   id = sample$id
 #'   , var1 = 10 + rnorm(n)
@@ -108,20 +107,20 @@
 #'   , var3 = 5 + rnorm(n)
 #' )
 #' 
-#' # Sorting sample and survey data
+#' # Sorting the "sample" and "survey" objects by id
 #' sample <- sample[order(sample$id), ]
 #' survey <- survey[order(survey$id), ]
 #' 
 #' 
 #' ### Definition of the variance wrapper
 #' 
-#' # Definition of the variance function
-#' variance_function <- function(y) varDT(y = y, pik = sample$pik)
-#' variance_function(survey$var1)
+#' # Using the varDT function for estimating the variance
+#' # (see gustave::varDT)
+#' varDT(y = survey$var1, pik = sample$pik)
 #' 
 #' # Definition of the variance wrapper
 #' variance_wrapper <- define_variance_wrapper(
-#'   variance_function = variance_function
+#'   variance_function = function(d) varDT(y = d, pik = sample$pik)
 #'   , default_id = "id"
 #'   , reference_id = sample$id
 #'   , reference_weight = 1 / sample$pik
@@ -174,9 +173,8 @@
 #' @import Matrix
 
 define_variance_wrapper <- function(
-  variance_function = NULL, data_arg_name = "y"
-  , default_id = NULL, reference_id = NULL, reference_weight = NULL
-  , default_stat = "total", default_alpha = 0.05
+  variance_function = NULL, reference_id = NULL, reference_weight = NULL
+  , default_id = NULL, default_stat = "total", default_alpha = 0.05
   , objects_to_include = NULL, objects_to_include_from = parent.frame()
 ){
 
@@ -257,8 +255,8 @@ define_variance_wrapper <- function(
     # Step 1.5 : Calling the variance estimation function
     d$estimation$variance_function <- variance_function
     variance_function_args <- c(
-      stats::setNames(list(d$estimation$data), data_arg_name)
-      , lapply(setdiff(names(formals(variance_function)), data_arg_name), get, envir = execution_envir)
+      list(d$estimation$data)
+      , lapply(names(formals(variance_function))[-1], get, envir = execution_envir)
     )
     r <- suppressMessages(do.call(variance_function, variance_function_args))
     if(is.data.frame(r)) r <- as.matrix(r)
@@ -300,14 +298,14 @@ define_variance_wrapper <- function(
   }else{
     formals(variance_wrapper) <- formals(variance_wrapper)[names(formals(variance_wrapper)) != "id"]
   }
-  formals(variance_wrapper) <- c(formals(variance_wrapper), formals(variance_function)[setdiff(names(formals(variance_function)), data_arg_name)])
+  formals(variance_wrapper) <- c(formals(variance_wrapper), formals(variance_function)[names(formals(variance_function))[-1]])
   rm(default_id, default_stat, default_alpha)
 
   # Step 3 : Including objects in variance_wrapper
   e1 <- new.env(parent = globalenv())
   assign_all(objects = ls(asNamespace("gustave")), to = e1, from = asNamespace("gustave"))
   e2 <- new.env(parent = e1)
-  assign_all(objects = c("reference_id", "reference_weight", "data_arg_name", "variance_function"), to = e2, from = environment())
+  assign_all(objects = c("reference_id", "reference_weight", "variance_function"), to = e2, from = environment())
   assign_all(objects = objects_to_include, to = e2, from = objects_to_include_from)
   variance_wrapper <- change_enclosing(variance_wrapper, envir = e2)
 

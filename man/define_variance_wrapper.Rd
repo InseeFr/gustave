@@ -4,24 +4,16 @@
 \alias{define_variance_wrapper}
 \title{Define a variance estimation wrapper}
 \usage{
-define_variance_wrapper(variance_function = NULL, data_arg_name = "y",
-  default_id = NULL, reference_id = NULL, reference_weight = NULL,
-  default_stat = "total", default_alpha = 0.05, objects_to_include = NULL,
+define_variance_wrapper(variance_function = NULL, reference_id = NULL,
+  reference_weight = NULL, default_id = NULL, default_stat = "total",
+  default_alpha = 0.05, objects_to_include = NULL,
   objects_to_include_from = parent.frame())
 }
 \arguments{
-\item{variance_function}{An R function, with input a data matrix (\code{y} by
-default,  see \code{data_arg_name}) and possibly other arguments 
-(parameters affecting the estimation of variance), and output a numeric 
-vector of estimated variances (or a list whose first element is a numeric
-vector of estimated variances).}
-
-\item{data_arg_name}{A character vector of length 1 indicating the name of 
-the data matrix argument in the variance function. \code{"y"} by default.}
-
-\item{default_id}{A character vector of length 1 containing the name of the 
-identifying variable in the survey file. It can also be an unevaluated 
-expression (using \code{substitute()}) to be evaluated within the survey file.}
+\item{variance_function}{An R function, with input a data matrix and possibly 
+other arguments (e.g. parameters affecting the estimation of variance), 
+and output a numeric vector of estimated variances (or a list whose first 
+element is a numeric vector of estimated variances).}
 
 \item{reference_id}{A vector containing the ids of all the responding units 
 of the survey. It is compared with \code{default_id} to check whether some 
@@ -32,6 +24,10 @@ reordered according to \code{reference_id}.}
 estimates (i.e. the final weights disseminated with the survey data). 
 \code{reference_id} and \code{reference_weight} must be consistent with one
 another (same length, same position for the same observations).}
+
+\item{default_id}{A character vector of length 1 containing the name of the 
+identifying variable in the survey file. It can also be an unevaluated 
+expression (using \code{substitute()}) to be evaluated within the survey file.}
 
 \item{default_stat}{A character vector of length 1 indicating the default 
 statistic to compute when none is specified. \code{"total"} by default.}
@@ -68,7 +64,7 @@ variance function easier. Its parameters are:
    unevaluated expression (using \code{substitute()}) to be evaluated within
    the survey file. Its default value depends on the value of 
    \code{default_id} in \code{define_variance_wrapper}
-   \item \code{envir}: an environment in which the \code{data} object is bound
+   \item \code{envir}: an environment containing a binding to \code{data}
  }
 }
 \description{
@@ -104,20 +100,22 @@ Defining variance estimation wrappers is the \strong{key feature} of
 
 # Let's consider a survey drawn with a one-stage unequal 
 # probability sampling and neither non-response nor calibration.
+N <- 1000 # Size of the population
+n <- 20 # Size of the sample
+
+# Randomly generating a sampling frame and first-order 
+# probabilities of inclusion
 set.seed(1)
-N <- 1000
-n <- 20
 frame <- data.frame(id = 1:N, pik = runif(N))
 frame$pik <- frame$pik * n / sum(frame$pik)
-# pik is the first-order probability of inclusion of the sampling design
 sum(frame$pik) # n
 
-# Let's draw the sample with sampling::UPmaxentropy()
+# Drawing the sample with sampling::UPmaxentropy()
 library(sampling)
 sample <- frame[as.logical(UPmaxentropy(frame$pik)), ]
 
-# The data collected for the sampled units (variables var1, 
-# var2 and var3) is stored in the data.frame survey
+# Randomly generating the data that would have been collected
+# on the field and storing it in the "survey" data.frame 
 survey <- data.frame(
   id = sample$id
   , var1 = 10 + rnorm(n)
@@ -125,20 +123,20 @@ survey <- data.frame(
   , var3 = 5 + rnorm(n)
 )
 
-# Sorting sample and survey data
+# Sorting the "sample" and "survey" objects by id
 sample <- sample[order(sample$id), ]
 survey <- survey[order(survey$id), ]
 
 
 ### Definition of the variance wrapper
 
-# Definition of the variance function
-variance_function <- function(y) varDT(y = y, pik = sample$pik)
-variance_function(y = survey$var1) # 2288724
+# Using the varDT function for estimating the variance
+# (see gustave::varDT)
+varDT(y = survey$var1, pik = sample$pik)
 
 # Definition of the variance wrapper
 variance_wrapper <- define_variance_wrapper(
-  variance_function = variance_function
+  variance_function = function(d) varDT(y = d, pik = sample$pik)
   , default_id = "id"
   , reference_id = sample$id
   , reference_weight = 1 / sample$pik
