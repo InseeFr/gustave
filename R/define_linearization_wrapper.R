@@ -4,9 +4,9 @@
 #'
 define_linearization_wrapper <- function(
   linearization_function
-  , arg_type = list(data = "y", weight = "w", param = NULL)
-  , no_domain_splitting = NULL
   , allow_factor = FALSE
+  , arg_type = list(data = "y", weight = "weight", param = NULL)
+  , arg_not_affected_by_domain = NULL
   , display_function = standard_display_function
 ){
   
@@ -14,23 +14,24 @@ define_linearization_wrapper <- function(
   in_arg_type_not_in_variance_function <- setdiff(unlist(arg_type), names(formals(linearization_function)))
   in_variance_function_not_in_arg_type <- setdiff(names(formals(linearization_function)), unlist(arg_type))
   if(length(in_arg_type_not_in_variance_function) > 0 | length(in_variance_function_not_in_arg_type) > 0) stop(
-    "variance_function arguments and arg_type value are not consistent:"
-    , if(length(in_arg_type_not_in_variance_function) > 0) paste("\n  -", paste(in_arg_type_not_in_variance_function, collapse = ", "), "in arg_type but not in variance_function arguments") else ""
-    , if(length(in_variance_function_not_in_arg_type) > 0) paste("\n  -", paste(in_variance_function_not_in_arg_type, collapse = ", "), "in variance_function arguments but not in arg_type") else ""
+    "linearization_function arguments and arg_type value are not consistent:"
+    , if(length(in_arg_type_not_in_variance_function) > 0) paste("\n  -", paste(in_arg_type_not_in_variance_function, collapse = ", "), "in arg_type but not in linearization_function arguments") else ""
+    , if(length(in_variance_function_not_in_arg_type) > 0) paste("\n  -", paste(in_variance_function_not_in_arg_type, collapse = ", "), "in linearization_function arguments but not in arg_type") else ""
     , call. = FALSE
   )
+  # TODO: controlling arg_not_affected_by_domain
   if(is.null(arg_type$weight))
     stop("A weight argument must be provided in order to create a linearization wrapper.")
-  
+
   # Step 1 : Creating the linearization wrapper
   linearization_wrapper <- function(by = NULL, where = NULL, technical_arg){
-
+    
     # Step 1.1 : Capture and modify the call
     call <- match.call(expand.dots = TRUE)
     call_list <- as.list(call)[-1]
     call_list$technical_arg <- c(technical_arg, list(
       allow_factor = allow_factor, arg_type = arg_type
-      , no_domain_splitting = no_domain_splitting
+      , arg_not_affected_by_domain = arg_not_affected_by_domain
     ))
     
     # Step 1.2 : Proceeed to standard preparation
@@ -39,7 +40,7 @@ define_linearization_wrapper <- function(
       preparation = i
       , display = list(metadata = list(standard = data.frame(
         label = technical_arg$label
-        , call = paste(deparse(call[names(call) != "technical_arg" | sapply(call, is.null)], width.cutoff = 500L), collapse = "")
+        , call = paste(deparse(call[!(names(call) %in% c("technical_arg", arg_type$weight)) | sapply(call, is.null)], width.cutoff = 500L), collapse = "")
         , mod = i$metadata$mod, by = i$metadata$by
         , stringsAsFactors = FALSE
       )))
@@ -59,15 +60,12 @@ define_linearization_wrapper <- function(
   }
 
   # Step 2 : Modify linearization_wrapper formals
-  formals(linearization_wrapper) <- c(
-    formals(linearization_function)[setdiff(names(formals(linearization_function)), arg_type$weight)]
-    , formals(linearization_wrapper)
-  )
+  formals(linearization_wrapper) <- c(formals(linearization_function), formals(linearization_wrapper))
 
   # Step 3 : Include additional objects
   e <- new.env(parent = globalenv())
   assign_all(objects = "standard_preparation", to = e, from = asNamespace("gustave"))
-  assign_all(objects = c("linearization_function", "arg_type", "allow_factor", "no_domain_splitting", "display_function"), to = e, from = environment())
+  assign_all(objects = c("linearization_function", "arg_type", "allow_factor", "arg_not_affected_by_domain", "display_function"), to = e, from = environment())
   linearization_wrapper <- change_enclosing(linearization_wrapper, envir = e)
   linearization_wrapper <- structure(linearization_wrapper, class = c("function", "gustave_linearization_wrapper"))
 
@@ -82,13 +80,10 @@ standard_preparation <- function(..., by = NULL, where = NULL, technical_arg){
   expr <- eval(substitute(alist(...)))
   d <- list(list(
     data = lapply(expr[names(expr) %in% technical_arg$arg_type$data], eval, eval_data)
-    , weight = stats::setNames(
-      rep(list(eval(technical_arg$w, technical_arg$execution_envir)), length(technical_arg$arg_type$weight))
-      , technical_arg$arg_type$weight
-    )
+    , weight = lapply(expr[names(expr) %in% technical_arg$arg_type$weight], eval, eval_data)
     , param = if(any(names(expr) %in% technical_arg$arg_type$param)) expr[names(expr) %in% technical_arg$arg_type$param] else NULL
   ))
-  
+
   # Step 2 : Handling factors and character variables in data
   fac <- sapply(d[[1]]$data, function(i) is.character(i) || is.factor(i))
   if(sum(fac) > 0){
@@ -127,10 +122,10 @@ standard_preparation <- function(..., by = NULL, where = NULL, technical_arg){
     lapply(d, function(j) list(
       # data = lapply(j$data, `[`, bypos[[i]])
       data = lapply(stats::setNames(seq_along(j$data), names(j$data)), function(k){
-        if(names(j$data)[k] %in% technical_arg$no_domain_splitting) j$data[[k]] else j$data[[k]][bypos[[i]]]
+        if(names(j$data)[k] %in% technical_arg$arg_not_affected_by_domain) j$data[[k]] else j$data[[k]][bypos[[i]]]
       })
       , weight = lapply(stats::setNames(seq_along(j$weight), names(j$weight)), function(k){
-        if(names(j$weight)[k] %in% technical_arg$no_domain_splitting) j$weight[[k]] else j$weight[[k]][bypos[[i]]]
+        if(names(j$weight)[k] %in% technical_arg$arg_not_affected_by_domain) j$weight[[k]] else j$weight[[k]][bypos[[i]]]
       }), param = j$param
       , metadata = c(j$metadata, list(
         by = if(byNULL) NA else names(bypos)[i]

@@ -10,8 +10,8 @@ test_that("variance_wrapper can be defined", {
       variance_function = function(y, eurostat = FALSE){
         return(if(!eurostat) abs(colSums(y)) else 0)
       }
-      , default_id = "id3"
-      , reference_id = ref$idref, reference_weight = ref$wref
+      , default_id = "id3", default_weight = "w3"
+      , reference_id = ref$idref
     )
     , regexp = NA)
 })
@@ -37,8 +37,8 @@ prepare_test <- function(){
   }
   define_variance_wrapper(
     variance_function = variance_function_test
-    , default_id = substitute(id3), default_stat = "mean"
-    , reference_id = ref$idref, reference_weight = ref$wref
+    , default_id = "id3", default_stat = "mean"
+    , reference_id = ref$idref, default_weight = "w3"
     , objects_to_include = c("a", "ref")
   )
 }

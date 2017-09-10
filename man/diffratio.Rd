@@ -4,7 +4,7 @@
 \alias{diffratio}
 \title{TODO}
 \usage{
-diffratio(num1, denom1, num2, denom2, by = NULL, where = NULL,
+diffratio(num1, denom1, num2, denom2, weight, by = NULL, where = NULL,
   technical_arg)
 }
 \description{

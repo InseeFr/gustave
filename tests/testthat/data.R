@@ -14,5 +14,5 @@ survey <- data.frame(
 survey$quantiNA <- ifelse(runif(n) > 0.9, NA, survey$quanti)
 survey$qualiNA <- as.factor(ifelse(runif(n) > 0.9, NA, survey$quali))
 survey$byNA <- ifelse(runif(n) > 0.9, NA, survey$bynoNA)
-survey <- survey[sample.int(floor(n/2)), ]
+# survey <- survey[sample.int(floor(n/2)), ]
 ref <- list(idref = idref3, wref = wref3)

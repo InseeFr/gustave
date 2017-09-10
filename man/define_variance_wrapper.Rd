@@ -5,7 +5,7 @@
 \title{Define a variance estimation wrapper}
 \usage{
 define_variance_wrapper(variance_function = NULL, default_id = NULL,
-  reference_id = NULL, reference_weight = NULL, default_stat = "total",
+  reference_id = NULL, default_weight = NULL, default_stat = "total",
   default_alpha = 0.05, objects_to_include = NULL,
   objects_to_include_from = parent.frame())
 }
@@ -24,11 +24,6 @@ of the survey. It is compared with \code{default_id} to check whether some
 observations are missing or not in the survey file. Observations are
 reordered according to \code{reference_id}.}
 
-\item{reference_weight}{A vector of weights to be used to compute point 
-estimates (i.e. the final weights disseminated with the survey data). 
-\code{reference_id} and \code{reference_weight} must be consistent with one
-another (same length, same position for the same observations).}
-
 \item{default_stat}{A character vector of length 1 indicating the default 
 statistic to compute when none is specified. \code{"total"} by default.}
 
@@ -41,6 +36,11 @@ are to be used to carry out the variance estimation.}
 
 \item{objects_to_include_from}{The environment to which the additional R 
 objects belong.}
+
+\item{reference_weight}{A vector of weights to be used to compute point 
+estimates (i.e. the final weights disseminated with the survey data). 
+\code{reference_id} and \code{reference_weight} must be consistent with one
+another (same length, same position for the same observations).}
 }
 \value{
 An R function that makes the estimation of variance based on the provided 
@@ -118,6 +118,7 @@ sample <- frame[as.logical(UPmaxentropy(frame$pik)), ]
 # on the field and storing it in the "survey" data.frame 
 survey <- data.frame(
   id = sample$id
+  , weight = 1 / sample$pik
   , var1 = 10 + rnorm(n)
   , var2 = letters[sample.int(3, n, replace = TRUE)]
   , var3 = 5 + rnorm(n)*2
@@ -137,9 +138,8 @@ varDT(y = survey$var1, pik = sample$pik)
 # Definition of the variance wrapper
 variance_wrapper <- define_variance_wrapper(
   variance_function = function(y) varDT(y = y, pik = sample$pik)
-  , default_id = "id"
+  , default_id = "id", default_weight = "weight"
   , reference_id = sample$id
-  , reference_weight = 1 / sample$pik
   , objects_to_include = "sample"
 )
 
@@ -155,8 +155,6 @@ str(environment(variance_wrapper)$sample)
 
 # Better display of results
 variance_wrapper(survey, var1)
-
-variance_wrapper(survey, arpr(var3), by = var2)
 
 # Discretization of qualitative variables
 variance_wrapper(survey, var2)

@@ -102,6 +102,7 @@
 #' # on the field and storing it in the "survey" data.frame 
 #' survey <- data.frame(
 #'   id = sample$id
+#'   , weight = 1 / sample$pik
 #'   , var1 = 10 + rnorm(n)
 #'   , var2 = letters[sample.int(3, n, replace = TRUE)]
 #'   , var3 = 5 + rnorm(n)*2
@@ -121,9 +122,8 @@
 #' # Definition of the variance wrapper
 #' variance_wrapper <- define_variance_wrapper(
 #'   variance_function = function(y) varDT(y = y, pik = sample$pik)
-#'   , default_id = "id"
+#'   , default_id = "id", default_weight = "weight"
 #'   , reference_id = sample$id
-#'   , reference_weight = 1 / sample$pik
 #'   , objects_to_include = "sample"
 #' )
 #' 
@@ -139,8 +139,6 @@
 #' 
 #' # Better display of results
 #' variance_wrapper(survey, var1)
-#' 
-#' variance_wrapper(survey, arpr(var3), by = var2)
 #' 
 #' # Discretization of qualitative variables
 #' variance_wrapper(survey, var2)
@@ -177,7 +175,8 @@
 
 define_variance_wrapper <- function(
   variance_function = NULL
-  , default_id = NULL, reference_id = NULL, reference_weight = NULL
+  , default_id = NULL, reference_id = NULL
+  , default_weight = NULL
   , default_stat = "total", default_alpha = 0.05
   , objects_to_include = NULL, objects_to_include_from = parent.frame()
 ){
@@ -186,7 +185,7 @@ define_variance_wrapper <- function(
   
   # Step 1 : Creating the variance estimation wrapper
   variance_wrapper <- function(
-    data, ..., by = NULL, where = NULL, stat = NULL, alpha = NULL
+    data, ..., weight = NULL, by = NULL, where = NULL, stat = NULL, alpha = NULL
     , display = TRUE, id = NULL, w = NULL, envir = parent.frame()
   ){
 
@@ -196,39 +195,42 @@ define_variance_wrapper <- function(
     substitute_data <- substitute(data)
     eval_data <- eval(substitute_data, evaluation_envir)
 
-    # Step 1.1 : Controlling identifiers and deriving the weights
-    # to use for point estimates and linearizations
+    # Step 1.1 : Controlling identifiers
     reference_id <- eval(reference_id)
-    reference_weight <- eval(reference_weight)
-    if(!is.null(reference_id)){
-      id <- if(is.character(id)) eval_data[, id] else eval(id, eval_data)      
-      id_match <- match(id, reference_id)
-      if(anyNA(id_match))
-        stop("Some values of the id variable \"", deparse(substitute(id)), "\" do not match the values of the reference id variable.", call. = FALSE)
-      w <- reference_weight[id_match]
-    }else{
-      id_match <- 1:length(w)
-      if(is.null((substitute(w)))) stop("A weight must be provided (using argument w). ")
-      w <- eval(substitute(w), eval_data)
-    }
+    if(is.null(reference_id))
+      stop("A reference_id must be provided in order to define a variance estimation wrapper.", call. = FALSE)
+    id <- if(is.character(id)) eval_data[, id] else eval(id, eval_data)      
+    id_match <- match(id, reference_id)
+    in_reference_id_not_in_id <- setdiff(reference_id, id)
+    if(length(in_reference_id_not_in_id) > 0)
+      warning("Some observations from the survey appear to be missing. The variance estimation function may produce unexpected results.", call. = FALSE)
+    in_id_not_in_reference_id <- setdiff(id, reference_id)
+    if(length(in_id_not_in_reference_id) > 0)
+      stop("Some observations do not belong to the survey.", call. = FALSE)
 
-    # Step 1.2 : Specifying default values for stat, by and where arguments
+    # Step 1.2 : Specifying default values for stat, weight, by and where arguments
     l <- eval(substitute(alist(...)))
     l <- lapply(l, function(i){
       if(is.symbol(i) || !("gustave_linearization_wrapper" %in% class(eval(i[[1]]))))
         i <- as.call(c(as.symbol(stat), i))
       i <- as.list(i)
+      for(j in environment(eval(i[[1]]))$arg_type$weight){
+        if(!(j %in% names(i))) i[[j]] <- if(is.character(weight)) as.symbol(weight) else weight
+      }
       if(!("by" %in% names(i))) i$by <- substitute(by, execution_envir)
       if(!("where" %in% names(i))) i$where <- substitute(where, execution_envir)
       as.call(i)
     })
-
+    # TODO: keep track of the non-automatically assigned weight arguments
+    # in order to display them in the call columns of the output (see
+    # define_linearization_wrapper, about row 44).
+  
     # Step 1.3 : Calling the linearization wrappers
     labels <- if(!is.null(names(l))) names(l) else rep(NA, length(l))
     labels[labels %in% ""] <- NA
     d <- unlist(lapply(seq_along(l), function(i){
       linearization_wrapper_call <- as.call(c(as.list(l[[i]]), list(technical_arg = list(
-        data = substitute_data, w = quote(w), label = labels[i]
+        data = substitute_data, label = labels[i]
         , evaluation_envir = evaluation_envir, execution_envir = execution_envir
       ))))
       eval(linearization_wrapper_call, envir = execution_envir)
@@ -238,7 +240,7 @@ define_variance_wrapper <- function(
       , estimation = NULL
       , display = lapply(d, `[[`, "display")
     )
-
+    
     # Step 1.4 : Building up the sparse matrix to be used in the estimation
     d$estimation$data <- {
       data <- lapply(d$preparation, function(k){
@@ -294,22 +296,18 @@ define_variance_wrapper <- function(
   }
 
   # Step 2 : Modifying variance_wrapper arguments depending on the context
-  formals(variance_wrapper)$stat <- default_stat
-  formals(variance_wrapper)$alpha <- default_alpha
-  if(!is.null(reference_id)){
-    formals(variance_wrapper)$id <- substitute(default_id)
-    formals(variance_wrapper) <- formals(variance_wrapper)[names(formals(variance_wrapper)) != "w"]
-  }else{
-    formals(variance_wrapper) <- formals(variance_wrapper)[names(formals(variance_wrapper)) != "id"]
-  }
+  if(!is.null(default_stat)) formals(variance_wrapper)$stat <- default_stat
+  if(!is.null(default_alpha)) formals(variance_wrapper)$alpha <- default_alpha
+  if(!is.null(default_weight)) formals(variance_wrapper)$weight <- substitute(default_weight)
+  if(!is.null(default_id)) formals(variance_wrapper)$id <- substitute(default_id)
   formals(variance_wrapper) <- c(formals(variance_wrapper), formals(variance_function)[names(formals(variance_function))[-1]])
-  rm(default_id, default_stat, default_alpha)
+  rm(default_id, default_stat, default_alpha, default_weight)
 
   # Step 3 : Including objects in variance_wrapper
   e1 <- new.env(parent = globalenv())
   assign_all(objects = ls(asNamespace("gustave")), to = e1, from = asNamespace("gustave"))
   e2 <- new.env(parent = e1)
-  assign_all(objects = c("reference_id", "reference_weight", "variance_function"), to = e2, from = environment())
+  assign_all(objects = c("reference_id", "variance_function"), to = e2, from = environment())
   assign_all(objects = objects_to_include, to = e2, from = objects_to_include_from)
   variance_wrapper <- change_enclosing(variance_wrapper, envir = e2)
 
