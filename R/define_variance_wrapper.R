@@ -104,7 +104,7 @@
 #'   id = sample$id
 #'   , var1 = 10 + rnorm(n)
 #'   , var2 = letters[sample.int(3, n, replace = TRUE)]
-#'   , var3 = 5 + rnorm(n)
+#'   , var3 = 5 + rnorm(n)*2
 #' )
 #' 
 #' # Sorting the "sample" and "survey" objects by id
@@ -139,6 +139,8 @@
 #' 
 #' # Better display of results
 #' variance_wrapper(survey, var1)
+#' 
+#' variance_wrapper(survey, arpr(var3), by = var2)
 #' 
 #' # Discretization of qualitative variables
 #' variance_wrapper(survey, var2)

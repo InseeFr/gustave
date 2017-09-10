@@ -2,10 +2,14 @@ Package: gustave
 Type: Package
 Title: Gustave: a User-oriented Statistical Toolkit for Analytical Variance Estimation
 Imports:
-    Matrix,
-    methods,
-    stats,
+  Matrix,
+  methods,
+  stats,
 	MASS
+Suggests: 
+  testthat,
+  sampling,
+  vardpoor
 Depends:
     R (>= 3.2.1)
 Version: 0.2.1
@@ -17,6 +21,3 @@ Collate: 'utils.R' 'define_linearization_wrapper.R' 'linearization_wrapper.R' 'd
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
-Suggests: 
-    testthat,
-    sampling

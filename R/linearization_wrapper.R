@@ -41,3 +41,13 @@ diffratio <- define_linearization_wrapper(
     return(list(lin = list(lin), metadata = list(est = est)))
   }
 )
+
+#' TODO
+arpr <- define_linearization_wrapper(
+  linearization_function = function(inc, w){
+    require(vardpoor)
+    r <- linarpr(Y = inc, weight = w)
+    return(list(lin = list(r$lin$lin_arpr), metadata = list(est = r$val$arpr)))
+  }
+)
+
