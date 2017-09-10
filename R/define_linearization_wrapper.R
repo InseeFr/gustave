@@ -5,6 +5,7 @@
 define_linearization_wrapper <- function(
   linearization_function
   , arg_type = list(data = "y", weight = "w", param = NULL)
+  , no_domain_splitting = NULL
   , allow_factor = FALSE
   , display_function = standard_display_function
 ){
@@ -27,7 +28,10 @@ define_linearization_wrapper <- function(
     # Step 1.1 : Capture and modify the call
     call <- match.call(expand.dots = TRUE)
     call_list <- as.list(call)[-1]
-    call_list$technical_arg <- c(technical_arg, list(allow_factor = allow_factor, arg_type = arg_type))
+    call_list$technical_arg <- c(technical_arg, list(
+      allow_factor = allow_factor, arg_type = arg_type
+      , no_domain_splitting = no_domain_splitting
+    ))
     
     # Step 1.2 : Proceeed to standard preparation
     preparation <- do.call(standard_preparation, call_list)
@@ -50,7 +54,7 @@ define_linearization_wrapper <- function(
         , display = list(metadata = c(i$display$metadata, t$metadata), fun = display_function)
       )
     })
-
+    
     return(d)
   }
 
@@ -63,7 +67,7 @@ define_linearization_wrapper <- function(
   # Step 3 : Include additional objects
   e <- new.env(parent = globalenv())
   assign_all(objects = "standard_preparation", to = e, from = asNamespace("gustave"))
-  assign_all(objects = c("linearization_function", "arg_type", "allow_factor", "display_function"), to = e, from = environment())
+  assign_all(objects = c("linearization_function", "arg_type", "allow_factor", "no_domain_splitting", "display_function"), to = e, from = environment())
   linearization_wrapper <- change_enclosing(linearization_wrapper, envir = e)
   linearization_wrapper <- structure(linearization_wrapper, class = c("function", "gustave_linearization_wrapper"))
 
@@ -121,9 +125,13 @@ standard_preparation <- function(..., by = NULL, where = NULL, technical_arg){
   bypos <- split(1:n, by, drop = TRUE)
   d <- unlist(lapply(seq_along(bypos), function(i){
     lapply(d, function(j) list(
-      data = lapply(j$data, `[`, bypos[[i]])
-      , weight = lapply(j$weight, `[`, bypos[[i]])
-      , param = j$param
+      # data = lapply(j$data, `[`, bypos[[i]])
+      data = lapply(stats::setNames(seq_along(j$data), names(j$data)), function(k){
+        if(names(j$data)[k] %in% technical_arg$no_domain_splitting) j$data[[k]] else j$data[[k]][bypos[[i]]]
+      })
+      , weight = lapply(stats::setNames(seq_along(j$weight), names(j$weight)), function(k){
+        if(names(j$weight)[k] %in% technical_arg$no_domain_splitting) j$weight[[k]] else j$weight[[k]][bypos[[i]]]
+      }), param = j$param
       , metadata = c(j$metadata, list(
         by = if(byNULL) NA else names(bypos)[i]
         , bypos = bypos[[i]]

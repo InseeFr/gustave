@@ -5,8 +5,8 @@
 \title{TODO}
 \usage{
 define_linearization_wrapper(linearization_function, arg_type = list(data =
-  "y", weight = "w", param = NULL), allow_factor = FALSE,
-  display_function = standard_display_function)
+  "y", weight = "w", param = NULL), no_domain_splitting = NULL,
+  allow_factor = FALSE, display_function = standard_display_function)
 }
 \description{
 TODO
