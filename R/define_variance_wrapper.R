@@ -227,7 +227,7 @@ define_variance_wrapper <- function(
     labels <- if(!is.null(names(l))) names(l) else rep(NA, length(l))
     labels[labels %in% ""] <- NA
     d <- unlist(lapply(seq_along(l), function(i){
-      linearization_wrapper_call <- as.call(c(as.list(l[[i]]), list(tech_args = list(
+      linearization_wrapper_call <- as.call(c(as.list(l[[i]]), list(technical_arg = list(
         data = substitute_data, w = quote(w), label = labels[i]
         , evaluation_envir = evaluation_envir, execution_envir = execution_envir
       ))))

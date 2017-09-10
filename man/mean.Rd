@@ -4,7 +4,7 @@
 \alias{mean}
 \title{TODO}
 \usage{
-mean(y, by = NULL, where = NULL, tech_args)
+mean(y, by = NULL, where = NULL, technical_arg)
 }
 \description{
 TODO

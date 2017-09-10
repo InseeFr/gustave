@@ -4,7 +4,7 @@
 \alias{arpr}
 \title{TODO}
 \usage{
-arpr(inc, by = NULL, where = NULL, tech_args)
+arpr(inc, local = TRUE, by = NULL, where = NULL, technical_arg)
 }
 \description{
 TODO

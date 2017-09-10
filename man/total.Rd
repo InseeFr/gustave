@@ -4,7 +4,7 @@
 \alias{total}
 \title{TODO}
 \usage{
-total(y, by = NULL, where = NULL, tech_args)
+total(y, by = NULL, where = NULL, technical_arg)
 }
 \description{
 TODO

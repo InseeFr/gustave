@@ -4,7 +4,7 @@
 \alias{ratio}
 \title{TODO}
 \usage{
-ratio(num, denom, by = NULL, where = NULL, tech_args)
+ratio(num, denom, by = NULL, where = NULL, technical_arg)
 }
 \description{
 TODO

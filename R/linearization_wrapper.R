@@ -19,6 +19,7 @@ ratio <- define_linearization_wrapper(
     lin <- (num - ratio * denom ) / total_denom
     return(list(lin = list(lin), metadata = list(est = ratio)))
   }
+  , arg_type = list(data = c("num", "denom") , weight = "w")
 )
 
 #' TODO
@@ -40,14 +41,16 @@ diffratio <- define_linearization_wrapper(
     est <- ratio1$metadata$est - ratio2$metadata$est
     return(list(lin = list(lin), metadata = list(est = est)))
   }
+  , arg_type = list(data = c("num1", "denom1", "num2", "denom2") , weight = "w")
 )
 
 #' TODO
 arpr <- define_linearization_wrapper(
-  linearization_function = function(inc, w){
+  linearization_function = function(inc, w, local = TRUE){
     require(vardpoor)
     r <- linarpr(Y = inc, weight = w)
     return(list(lin = list(r$lin$lin_arpr), metadata = list(est = r$val$arpr)))
   }
+  , arg_type = list(data = "inc" , weight = "w", param = "local")
 )
 
