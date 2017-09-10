@@ -4,10 +4,9 @@
 \alias{define_linearization_wrapper}
 \title{TODO}
 \usage{
-define_linearization_wrapper(linearization_function, allow_factor = FALSE,
-  arg_type = list(data = "y", weight = "weight", param = NULL),
-  arg_not_affected_by_domain = NULL,
-  display_function = standard_display_function)
+define_linearization_wrapper(linearization_function, arg_type = list(data =
+  "y", weight = "weight", param = NULL), arg_not_affected_by_domain = NULL,
+  allow_factor = FALSE, display_function = standard_display_function)
 }
 \description{
 TODO

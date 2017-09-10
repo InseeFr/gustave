@@ -21,8 +21,8 @@ variance_wrapper <- define_variance_wrapper(
   variance_function = function(y, eurostat = FALSE){
     return(if(!eurostat) abs(colSums(y)) else 0)
   }
-  , default_id = "id3", default_weight = "w3"
   , reference_id = ref$idref
+  , default = list(id = "id3", weight = "w3")
   , objects_to_include = "linearization_wrapper_test"
 )
 

@@ -10,21 +10,22 @@
 #'   other arguments (e.g. parameters affecting the estimation of variance), 
 #'   and output a numeric vector of estimated variances (or a list whose first 
 #'   element is a numeric vector of estimated variances).
-#' @param default_id A character vector of length 1 containing the name of the 
-#'   identifying variable in the survey file. It can also be an unevaluated 
-#'   expression (using \code{substitute}) to be evaluated within the survey file.
 #' @param reference_id A vector containing the ids of all the responding units 
-#'   of the survey. It is compared with \code{default_id} to check whether some 
-#'   observations are missing or not in the survey file. Observations are
-#'   reordered according to \code{reference_id}.
-#' @param reference_weight A vector of weights to be used to compute point 
-#'   estimates (i.e. the final weights disseminated with the survey data). 
-#'   \code{reference_id} and \code{reference_weight} must be consistent with one
-#'   another (same length, same position for the same observations).
-#' @param default_stat A character vector of length 1 indicating the default 
-#'   statistic to compute when none is specified. \code{"total"} by default.
-#' @param default_alpha A numerical vector of length 1 indicating the default 
-#'   threshold for confidence interval derivation. \code{0.05} by default.
+#'   of the survey. It is compared with \code{default$id} to check whether some 
+#'   observations are missing in the survey file. Observations are reordered 
+#'   according to \code{reference_id}.
+#' @param default a named list specifying the default values for: \itemize{
+#'   \item \code{id}: the name of the default identifying variable in the survey 
+#'   file. It can also be an unevaluated expression (enclosed in \code{substitute()}) to be 
+#'   evaluated within the survey file.
+#'   \item \code{weight}: the name of the default weight variable in the survey file. 
+#'   It can also be an unevaluated expression (enclosed in \code{substitute()}) to be 
+#'   evaluated within the survey file.
+#'   \item \code{stat}: the name of the default statitic to compute when none is specified. 
+#'   It is set to \code{"total"} by default.
+#'   \item \code{alpha}: the default threshold for confidence interval derivation. 
+#'   It is set to \code{0.05} by default.
+#' }
 #' @param objects_to_include A character vector indicating the name of 
 #'   additional R objects to include within the variance wrapper. These objects 
 #'   are to be used to carry out the variance estimation.
@@ -122,8 +123,8 @@
 #' # Definition of the variance wrapper
 #' variance_wrapper <- define_variance_wrapper(
 #'   variance_function = function(y) varDT(y = y, pik = sample$pik)
-#'   , default_id = "id", default_weight = "weight"
 #'   , reference_id = sample$id
+#'   , default = list(id = "id", weight = "weight")
 #'   , objects_to_include = "sample"
 #' )
 #' 
@@ -174,14 +175,16 @@
 #' @import Matrix
 
 define_variance_wrapper <- function(
-  variance_function = NULL
-  , default_id = NULL, reference_id = NULL
-  , default_weight = NULL
-  , default_stat = "total", default_alpha = 0.05
+  variance_function, reference_id
+  , default = list(stat = "total", alpha = 0.05)
   , objects_to_include = NULL, objects_to_include_from = parent.frame()
 ){
 
   if(!("package:Matrix" %in% search())) attachNamespace("Matrix")
+  
+  # Step 0 : Work with default argument
+  if(is.null(default$stat) && !("stat" %in% names(default))) default$stat <- "total"
+  if(is.null(default$alpha) && !("alpha" %in% names(default))) default$alpha <- 0.05
   
   # Step 1 : Creating the variance estimation wrapper
   variance_wrapper <- function(
@@ -197,8 +200,6 @@ define_variance_wrapper <- function(
 
     # Step 1.1 : Controlling identifiers
     reference_id <- eval(reference_id)
-    if(is.null(reference_id))
-      stop("A reference_id must be provided in order to define a variance estimation wrapper.", call. = FALSE)
     id <- if(is.character(id)) eval_data[, id] else eval(id, eval_data)      
     id_match <- match(id, reference_id)
     in_reference_id_not_in_id <- setdiff(reference_id, id)
@@ -296,18 +297,17 @@ define_variance_wrapper <- function(
   }
 
   # Step 2 : Modifying variance_wrapper arguments depending on the context
-  if(!is.null(default_stat)) formals(variance_wrapper)$stat <- default_stat
-  if(!is.null(default_alpha)) formals(variance_wrapper)$alpha <- default_alpha
-  if(!is.null(default_weight)) formals(variance_wrapper)$weight <- substitute(default_weight)
-  if(!is.null(default_id)) formals(variance_wrapper)$id <- substitute(default_id)
+  if(!is.null(default$id)) formals(variance_wrapper)$id <- substitute(default$id)
+  if(!is.null(default$weight)) formals(variance_wrapper)$weight <- substitute(default$weight)
+  if(!is.null(default$stat)) formals(variance_wrapper)$stat <- default$stat
+  if(!is.null(default$alpha)) formals(variance_wrapper)$alpha <- default$alpha
   formals(variance_wrapper) <- c(formals(variance_wrapper), formals(variance_function)[names(formals(variance_function))[-1]])
-  rm(default_id, default_stat, default_alpha, default_weight)
 
   # Step 3 : Including objects in variance_wrapper
   e1 <- new.env(parent = globalenv())
   assign_all(objects = ls(asNamespace("gustave")), to = e1, from = asNamespace("gustave"))
   e2 <- new.env(parent = e1)
-  assign_all(objects = c("reference_id", "variance_function"), to = e2, from = environment())
+  assign_all(objects = c("variance_function", "reference_id"), to = e2, from = environment())
   assign_all(objects = objects_to_include, to = e2, from = objects_to_include_from)
   variance_wrapper <- change_enclosing(variance_wrapper, envir = e2)
 
