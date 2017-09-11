@@ -46,11 +46,25 @@ diffratio <- define_linearization_wrapper(
 
 #' TODO
 arpr <- define_linearization_wrapper(
-  linearization_function = function(inc, weight, local = TRUE){
+  linearization_function = function(y, weight, percentage = 60, order_quant = 50L){
     require(vardpoor)
-    r <- linarpr(Y = inc, weight = weight)
+    r <- linarpr(Y = y, weight = weight, percentage = percentage, order_quant = order_quant)
     return(list(lin = list(r$lin$lin_arpr), metadata = list(est = r$val$arpr)))
   }
-  , arg_type = list(data = "inc" , weight = "weight", param = "local")
+  , arg_type = list(data = "y", weight = "weight", param = c("percentage", "order_quant"))
 )
+
+#' TODO
+gini <- define_linearization_wrapper(
+  linearization_function = function(y, weight){
+    require(vardpoor)
+    r <- lingini(Y = y, weight = weight)
+    return(list(lin = list(r$lin$lin_gini), metadata = list(est = r$value$Gini)))
+  }
+  , arg_type = list(data = "y", weight = "weight", param = NULL)
+)
+# TODO: test whether there is a permutation in lingini()$lin
+
+
+
 
