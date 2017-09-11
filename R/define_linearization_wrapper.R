@@ -1,6 +1,5 @@
 #' TODO
 #' @export define_linearization_wrapper
-#' @import Matrix
 #'
 define_linearization_wrapper <- function(
   linearization_function
@@ -10,20 +9,23 @@ define_linearization_wrapper <- function(
   , display_function = standard_display_function
 ){
   
-  # Step 0 : Control arguments type
-  in_arg_type_not_in_variance_function <- setdiff(unlist(arg_type), names(formals(linearization_function)))
-  in_variance_function_not_in_arg_type <- setdiff(names(formals(linearization_function)), unlist(arg_type))
-  if(length(in_arg_type_not_in_variance_function) > 0 | length(in_variance_function_not_in_arg_type) > 0) stop(
-    "linearization_function arguments and arg_type value are not consistent:"
-    , if(length(in_arg_type_not_in_variance_function) > 0) paste("\n  -", paste(in_arg_type_not_in_variance_function, collapse = ", "), "in arg_type but not in linearization_function arguments") else ""
-    , if(length(in_variance_function_not_in_arg_type) > 0) paste("\n  -", paste(in_variance_function_not_in_arg_type, collapse = ", "), "in linearization_function arguments but not in arg_type") else ""
+  # Step 0 : Control arguments consistency
+  inconsistent_arg <- list(
+    in_arg_type_not_in_linearization_function = setdiff(unlist(arg_type), names(formals(linearization_function)))
+    , in_linearization_function_not_in_arg_type = setdiff(names(formals(linearization_function)), unlist(arg_type))
+    , in_arg_not_affected_by_domain_not_in_linearization_function = setdiff(arg_not_affected_by_domain, names(formals(linearization_function)))
+  )
+  if(length(unlist(inconsistent_arg)) > 0) stop(
+    "Some arguments are inconsistent:"
+    , if(length(inconsistent_arg[[1]]) > 0) paste("\n  -", paste(inconsistent_arg[[1]], collapse = ", "), "in arg_type but not in linearization_function arguments") else ""
+    , if(length(inconsistent_arg[[2]]) > 0) paste("\n  -", paste(inconsistent_arg[[2]], collapse = ", "), "in linearization_function arguments but not in arg_type") else ""
+    , if(length(inconsistent_arg[[3]]) > 0) paste("\n  -", paste(inconsistent_arg[[3]], collapse = ", "), "in arg_not_affected_by_domain but not in linearization_function arguments") else ""
     , call. = FALSE
   )
-  # TODO: controlling arg_not_affected_by_domain
   if(is.null(arg_type$weight))
     stop("A weight argument must be provided in order to create a linearization wrapper.")
 
-  # Step 1 : Creating the linearization wrapper
+  # Step 1 : Create the linearization wrapper
   linearization_wrapper <- function(by = NULL, where = NULL, technical_arg){
     
     # Step 1.1 : Capture and modify the call
