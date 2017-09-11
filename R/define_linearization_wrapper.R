@@ -90,19 +90,22 @@ standard_preparation <- function(..., by = NULL, where = NULL, technical_arg){
   fac <- sapply(d[[1]]$data, function(i) is.character(i) || is.factor(i))
   if(sum(fac) > 0){
     if(technical_arg$allow_factor && length(d[[1]]$data) == 1){
-      t <- Matrix::t(Matrix::fac2sparse(d[[1]]$data[[1]], giveCsparse = FALSE))
-      # TODO: get rid of Matrix dependency at this point
-      if(any(na <- is.na(d[[1]]$data[[1]]))) t[na, , drop = FALSE] <- NA
-      d <- lapply(1:NCOL(t), function(i){
+      tmp <- d[[1]]$data[[1]]
+      na <- is.na(tmp)
+      if(is.character(tmp)) tmp <- as.factor(tmp)
+      levels <- levels(tmp)
+      tmp <- stats::model.matrix(~ . -1, data = stats::model.frame(~ ., data = tmp))
+      if(any(na)) tmp[na, , drop = FALSE] <- NA
+      d <- lapply(1:NCOL(tmp), function(i){
         list(
-          data = stats::setNames(list(c(t[, i])), names(d[[1]]$data))
+          data = stats::setNames(list(c(tmp[, i])), names(d[[1]]$data))
           , weight = d[[1]]$weight, param = d[[1]]$param
-          , metadata = list(mod = colnames(t)[i])
+          , metadata = list(mod = levels[i])
         )
       })
     }else stop("Character or factor variables aren't allowed.", call. = FALSE)
   }else d[[1]]$metadata$mod <- NA
-  
+
   # Step 3 : by and where arguments preparation
   n <- length(d[[1]]$data[[1]])
   byNULL <- is.null(substitute(by))
