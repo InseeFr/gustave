@@ -64,7 +64,7 @@ define_linearization_wrapper <- function(
   # Step 2 : Modify linearization_wrapper formals
   formals(linearization_wrapper) <- c(formals(linearization_function), formals(linearization_wrapper))
 
-  # Step 3 : Include additional objects
+  # Step 3 : Include aobjects in linearization_wrapper enclosing environment
   e <- new.env(parent = globalenv())
   assign_all(objects = "standard_preparation", to = e, from = asNamespace("gustave"))
   assign_all(objects = c("linearization_function", "arg_type", "allow_factor", "arg_not_affected_by_domain", "display_function"), to = e, from = environment())
@@ -125,7 +125,6 @@ standard_preparation <- function(..., by = NULL, where = NULL, technical_arg){
   bypos <- split(1:n, by, drop = TRUE)
   d <- unlist(lapply(seq_along(bypos), function(i){
     lapply(d, function(j) list(
-      # data = lapply(j$data, `[`, bypos[[i]])
       data = lapply(stats::setNames(seq_along(j$data), names(j$data)), function(k){
         if(names(j$data)[k] %in% technical_arg$arg_not_affected_by_domain) j$data[[k]] else j$data[[k]][bypos[[i]]]
       })
