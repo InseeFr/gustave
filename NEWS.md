@@ -11,3 +11,7 @@
 - Change the precalc structure in varDT
 - Normalize the treatment of weights
 - New linearization wrappers: gini() and arpr()
+
+# 0.2.2 (current master)
+
+- Minor bug fixes

@@ -91,14 +91,15 @@ standard_preparation <- function(..., by = NULL, where = NULL, technical_arg){
   if(sum(fac) > 0){
     if(technical_arg$allow_factor && length(d[[1]]$data) == 1){
       tmp <- d[[1]]$data[[1]]
-      na <- is.na(tmp)
       if(is.character(tmp)) tmp <- as.factor(tmp)
+      tmp <- droplevels(tmp)
       levels <- levels(tmp)
-      tmp <- stats::model.matrix(~ . -1, data = stats::model.frame(~ ., data = tmp))
-      if(any(na)) tmp[na, , drop = FALSE] <- NA
-      d <- lapply(1:NCOL(tmp), function(i){
+      tmp2 <- stats::model.matrix(~ . -1, data = stats::model.frame(~ ., data = tmp))
+      tmp3 <- matrix(NA, nrow = NROW(tmp), ncol = length(levels))
+      tmp3[as.integer(rownames(tmp2)), ] <- tmp2
+      d <- lapply(1:length(levels), function(i){
         list(
-          data = stats::setNames(list(c(tmp[, i])), names(d[[1]]$data))
+          data = stats::setNames(list(c(tmp3[, i])), names(d[[1]]$data))
           , weight = d[[1]]$weight, param = d[[1]]$param
           , metadata = list(mod = levels[i])
         )

@@ -26,7 +26,16 @@ variance_wrapper <- define_variance_wrapper(
   , objects_to_include = "linearization_wrapper_test"
 )
 
-expect_warning(
-  variance_wrapper(survey, by = quali, linearization_wrapper_test(Y = quanti, Y_thresh = quanti))
-  , regexp = NA
-)
+test_that("linearization_wrapper_test works", {
+  expect_warning(
+    variance_wrapper(survey, by = quali, linearization_wrapper_test(Y = quanti, Y_thresh = quanti))
+    , regexp = NA
+  ) 
+})
+
+test_that("qualitative variables with NA values are handled correctly", {
+  expect_error(
+    variance_wrapper(survey, quali)
+    , regexp = NA
+  ) 
+})
