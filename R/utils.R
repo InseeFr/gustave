@@ -14,9 +14,6 @@ block_matrix <- function(y, by){
   bycol <- if(is.factor(byrow)) as.factor(bycol) else methods::as(bycol, class(byrow))
   return(list(y = y, byrow = byrow, bycol = bycol))
 }
-# rowby <- as.factor(c(rep(1, 5), NA, rep(2, 8), rep(NA, 4)))
-# colby <- c(rep(1, 2), rep(2, 2))
-# all.equal(block_matrix(by = rowby, p = 10), block_matrix(y = Matrix(TRUE, ncol = 10, nrow = length(rowby)), by = rowby))
 
 
 #' Efficient sum by group using Matrix
@@ -35,7 +32,7 @@ sumby <- function(y, by, w = NULL){
   }
   by <- as.factor(by)
   x <- block_matrix(rep(TRUE, n), by)$y
-  r <- t(x) %*% y
+  r <- Matrix::t(x) %*% y
 
   if(isVector){
     r <- as.vector(r)
@@ -49,18 +46,6 @@ sumby <- function(y, by, w = NULL){
 
 }
 
-# set.seed(1); n <- 20000; p <- 10; H <- 600; y <- as(Matrix(rnorm(p*n),ncol=p),"TsparseMatrix"); by <- rep(1:H,n %/% H + 1)[1:n][sample.int(n)]; by <- as.factor(by); w <- rnorm(n)
-# library(microbenchmark)
-# microbenchmark(r <- sumby(y,by), times = 10)
-#
-#   n <- 4500000; y <- as.matrix(rnorm(n)); by <- sample(1:20000,n,replace = TRUE)
-#   library(microbenchmark)
-#   microbenchmark(
-#     sumby(y,by)
-#     , data.table(as.matrix(y))[,j=list(blabla=sum(V1)),by=by]
-#     , aggregate(as.matrix(y),list(by),sum)
-#     , times = 10L
-#   )
 
 
 #' Expand a matrix with zeros based on rownames matching
@@ -100,19 +85,3 @@ assign_all <- function(objects, to, from = parent.frame(), not_closure = c(list(
     }
   }
 }
-
-# assign_all <- function(objects, to, from = parent.frame(), not_closure = c(list(globalenv()), sys.frames())){
-#   for(n in objects){
-#     env_n <- environment(get_n <- get(n, where_n <- pryr::where(n, from)))
-#     if(!is.function(get_n)){
-#       assign(n, get_n, envir = to)
-#     }else{
-#       tmp <- new.env(parent = to)
-#       not_closure <- c(not_closure, where_n)
-#       is_closure <- !any(sapply(not_closure, identical, env_n))
-#       if(is_closure)
-#         assign_all(ls(env_n, all.names = TRUE), to = tmp, from = env_n, not_closure = not_closure)
-#       assign(n, change_enclosing(get_n, envir = tmp), envir = to)
-#     }
-#   }
-# }

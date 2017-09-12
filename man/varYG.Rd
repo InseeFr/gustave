@@ -2,12 +2,12 @@
 % Please edit documentation in R/variance_function.R
 \name{varYG}
 \alias{varYG}
-\title{TODO}
+\title{Sen-Yates-Grundy variance estimator}
 \usage{
 varYG(y = NULL, pikl)
 }
 \description{
-TODO
+Sen-Yates-Grundy variance estimator
 }
 \references{
 doc de travail M2015 3 Gros Moussallam p. 19

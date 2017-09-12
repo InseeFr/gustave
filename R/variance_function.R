@@ -118,14 +118,14 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
     }
 
     # Matrix inversion
-    inv <- solve(t(x) %*% Matrix::Diagonal(x = w) %*% x)
+    inv <- solve(Matrix::t(x) %*% Matrix::Diagonal(x = w) %*% x)
 
   }else list2env(precalc, envir = environment())
 
   if(is.null(y)){
     return(list(x = x, w = w, inv = inv))
   }else{
-    e <- y - x %*% ( inv  %*% (t(x) %*% Matrix::Diagonal(x = w) %*% y) )
+    e <- y - x %*% ( inv  %*% (Matrix::t(x) %*% Matrix::Diagonal(x = w) %*% y) )
     if(class(e) != class(y)) e <- methods::as(e, class(y))
     return(e)
   }
@@ -365,136 +365,14 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, colinearity.
   }
 
 }
-# Tests
-# set.seed(1); n <- 2332; q <- 1; p <- 14; H <- 22; y <- matrix(rnorm(q*n),ncol=q); pik <- runif(n); x <- matrix(rnorm(p*n),ncol=p); x <- cbind(x, x[, 1]); strata <- rep(1:H,n %/% H + 1)[1:n][sample.int(n)]; inv <- NULL; w <- NULL
-# precalc <- varDT(pik = pik, x = x, strata = strata)$precalc
-# t <- varDT(pik = pik, x = x, strata = strata)
-# microbenchmark(times = 10, varDT(y, pik = pik, x = x, strata = strata), varDT(y, precalc = precalc))
-# diago0 <- varDT(pik = pik, x = x, strata = strata)$diago
-# abs(varDT(y,pik,x = pik) - varD(y,pik))
-# abs(varDT(y,pik) - varDT(y,pik,strata = rep(1,NROW(y))))
-# abs(varDT(y,pik,strata = strata) - varDst(y,pik,strata))
-# abs(varDT(y,pik,x) - varDT2(y,pik,x))
-# varDT(y, pik, x = x, strata = strata, w = rnorm(n))
-
-# max(abs(varDT(y = NULL,pik,strata = strata)[[1]] - varDst(y = NULL,pik,strata = strata)))
-
-# set.seed(1); n <- 100; N <- 1000; pik <- rep(n/N,n); x <- pik; strata <- rep(1,n)
-# varDT(y = NULL,pik,x = x, strata = strata)
-
-
-# varDT(y,pik,x,strata = strata) / varDT(y,pik,strata = strata, x)
-
-# library(microbenchmark)
-# n <- 2600; q <- 1; p <- 15; H <- 22; y <- matrix(rnorm(q*n),ncol=q); pik <- runif(n); x <- matrix(c(pik,rnorm((p-1)*n)),ncol=p); strata <- rep(1:H,n %/% H + 1)[1:n][sample.int(n)]; inv <- NULL; w <- NULL
-# microbenchmark(varDT(y,pik, x = x, strata = strata), times = 10)
-# n <- 80000; q <- 100; p <- 1; H <- 2600; y <- matrix(rnorm(q*n),ncol=q); pik <- runif(n); x <- matrix(c(pik,rnorm((p-1)*n)),ncol=p); strata <- rep(1:H,n %/% H + 1)[1:n][sample.int(n)]; inv <- NULL; w <- NULL
-# microbenchmark(varDT(y,pik, strata = strata), times = 10)
-# n <- 20000; q <- 100; p <- 1; H <- 600; y <- matrix(rnorm(q*n),ncol=q); pik <- runif(n); x <- matrix(c(pik,rnorm((p-1)*n)),ncol=p); strata <- rep(1:H,n %/% H + 1)[1:n][sample.int(n)]; inv <- NULL; w <- NULL
-# inv <- varDT(y = NULL,pik)$inv
-# microbenchmark(varDT(y,pik,strata = strata,inv = inv),varDst(y,pik,strata = strata), times = 1)
 
 
 
-
-#' TODO
-#' @references Wolter, 2008, p. 53
-
-varCollapse <- function(y, group, strata = NULL){
-
-  if(is.null(strata)) Ygh <- y else{
-    Ygh <- sumby(y, by = strata)
-    m <- match(row.names(Ygh), strata)
-    group <- group[m]; strata <- strata[m]
-  }
-
-  n <- NROW(Ygh)
-  t <- sumby(cbind(matrix(1,nrow = n),Ygh),by=group)
-  m <- match(group,row.names(t))
-  Lg <- t[m,1]
-  Yg <- t[m,-1,drop = FALSE]
-
-  r <- colSums((Lg/(Lg-1))*(Ygh-Yg/Lg)^2)
-
-  return(r)
-
-}
-
-
-# Tests
-# set.seed(1)
-# n <- 20000
-# p <- 10
-# y <- matrix(rnorm(p*n),ncol=p)
-# pik <- rep(1,n)
-# strata <- sample(apply(expand.grid(letters,letters,letters),1,paste0,collapse = ""),n,replace = TRUE)
-# # strata <- sample.int(26^2,n,replace = TRUE)
-# w <- rbinom(n,500,0.5)
-# valid <- !duplicated(strata)
-# source("X:/HAB-Bases-UMS/MC/projets/#commun/R/collapse.R")
-# group <- collapse(strata,w,valid)
-#
-# microbenchmark(
-#   varC(y/w,group,strata = strata)
-#   , varCollapse(y/w,group,strata = strata)
-#   , times = 10
-# )
-
-#' TODO
-#' @references Wolter, 2007, pp. 298-353, v12
-
-varsys <- function(y, pik){
-  n <- nrow(as.matrix(y))
-  return(
-    ( (n - sum(pik)) / ( 2 * (n - 1)) ) *
-      colSums(
-        as.matrix(as.matrix(y)[-n,]/pik[-n] -
-                    as.matrix(y)[-1,]/pik[-1])^2
-        ,na.rm = T)
-  )
-}
-
-varsysst <- function(y, pik, strata=rep(1,nrow(as.matrix(y)))){
-
-  o <- order(strata);
-  pik <- pik[o]; strata <- strata[o]
-  p <- ncol(as.matrix(y))
-  y <- matrix(matrix(y,ncol=p)[o,],ncol=p)
-
-  id <- cumsum(!duplicated(strata))
-  H <- max(id)
-  f <- !duplicated(strata)
-  l <- rev(!duplicated(rev(strata)))
-
-  n <- c(which(f)[-1],length(strata) + 1) - which(f)
-  sumpik <- (cumsum(pik) - c(0,cumsum(pik)[which(l)][-H])[id])[l]
-
-  return(
-    colSums(
-      (n[id[-which(f)]] - sumpik[id[-which(f)]])/(2 * (n[id[-which(f)]] - 1)) *
-        ( matrix(matrix(matrix(y,ncol=p)[-which(l),],ncol=p)/pik[-which(l)],ncol=p) -
-            matrix(matrix(matrix(y,ncol=p)[-which(f),],ncol=p)/pik[-which(f)],ncol=p))^2
-    )
-  )
-}
-
-
-# y <- as.matrix(Y[,paste0("y",1:10),with = F]);strata <- Y$idzae;pik <- Y$piLog
-# strata <- rep(1,nrow(Y))
-#
-
-
-#' TODO
-
-varB <- function(y, pik){
-  return(colSums((1 - pik) * (as.matrix(y)/pik)^2))
-}
-
-#' TODO
+#' Sen-Yates-Grundy variance estimator
 #' @export
 #' @references doc de travail M2015 3 Gros Moussallam p. 19
 
-varYG <- function(y = NULL,pikl){
+varYG <- function(y = NULL, pikl){
   pik = diag(pikl)
   delta <- 1 - pik%*%t(pik)/pikl
   if(is.null(y)){
@@ -507,29 +385,3 @@ varYG <- function(y = NULL,pikl){
   }
 }
 
-# Banc de tests
-# N <- 100
-# n <- 10
-# y <- rnorm(n)
-# pik <- rep(n/N,n)
-# pikl <- matrix(rep((n*(n-1))/(N*(N-1))),ncol=n,nrow=10)
-# diag(pikl) <- pik
-# varYG(y, pikl = pikl)
-# varDT(y, pik = pik)
-#
-# y <- c(4,2)
-# pikl <- matrix(c(0.1111,0.1111,0,0,0.1111,1,0.3333,0.5556,0,0.3333,0.3333,0,0,0.5556,0,0.5556),ncol=4)[1:2,1:2]
-# pik <- diag(pikl)
-# varYG(y, pikl = pikl)
-# varD(y, pik = pik)
-
-
-#' TODO
-#' @export
-#' @references Doc de travail M2015 3 Gros Moussallam p.11. et p. 19 pour la version matricielle
-
-varGR <- function(y, alphakl, pikl = matrix(1, ncol = NCOL(alphakl), nrow = NROW(alphakl)), g = rep(0, NROW(alphakl))){
-  alphak <- diag(alphakl)
-  delta <- (alphakl - alphak %*% t(alphak)) / (alphakl * pikl)
-  return(colSums((y/alphak) * (delta %*% (y/alphak)) ) - colSums(delta)%*%((y/alphak)^2) + sum((g/diag(pikl))*(y/alphak)))
-}
