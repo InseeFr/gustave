@@ -69,3 +69,15 @@ test_that("varwrap_test works", {
 })
 
 
+context("define_variance_wrapper - Comparison to reference values")
+
+test_that("the estimated values are consistent with reference values", {
+  expect_equal(variance_wrapper(survey, total(quanti))[, 2], -8316.08, tolerance = 1e-2)
+  expect_equal(variance_wrapper(survey, total(quanti))[, 3], 6.242553, tolerance = 1e-6)
+  expect_equal(variance_wrapper(survey, total(quali))[, 3], c(449650, 450790, 449624), tolerance = 1e-0)
+  expect_equal(variance_wrapper(survey, total(quali))[, 4], c(333, 334, 333), tolerance = 1e-0)
+  expect_equal(variance_wrapper(survey, total(quanti), by = quali)[, 3], c(-11087.64, 31074.47, -28302.91), tolerance = 1e-2)
+  expect_equal(variance_wrapper(survey, total(quanti), by = quali)[, 4], c(8.501667, 23.339394, 21.080280), tolerance = 1e-6)
+})
+
+
