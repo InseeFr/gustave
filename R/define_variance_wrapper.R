@@ -180,8 +180,6 @@ define_variance_wrapper <- function(
   , objects_to_include = NULL, objects_to_include_from = parent.frame()
 ){
 
-  if(!("package:Matrix" %in% search())) attachNamespace("Matrix")
-  
   # Step 0 : Work with default argument
   if(is.null(default$stat) && !("stat" %in% names(default))) default$stat <- "total"
   if(is.null(default$alpha) && !("alpha" %in% names(default))) default$alpha <- 0.05
@@ -192,6 +190,8 @@ define_variance_wrapper <- function(
     , display = TRUE, id = NULL, w = NULL, envir = parent.frame()
   ){
 
+    if(!("package:Matrix" %in% search())) attachNamespace("Matrix")
+    
     # Step 1.0: Retrieve information about the environments,
     # the call and evaluate the data argument
     evaluation_envir <- envir
