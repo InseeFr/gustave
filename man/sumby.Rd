@@ -4,7 +4,7 @@
 \alias{sumby}
 \title{Efficient sum by group using Matrix}
 \usage{
-sumby(y, by = NULL, w = NULL, dense = FALSE)
+sumby(y, by, w = NULL)
 }
 \description{
 Efficient sum by group using Matrix

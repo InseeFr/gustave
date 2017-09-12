@@ -83,3 +83,17 @@ test_that("assign_all() works", {
 # })
 
 
+
+
+# set.seed(1); n <- 20000; p <- 10; H <- 600; y <- as(Matrix(rnorm(p*n),ncol=p),"TsparseMatrix"); by <- rep(1:H,n %/% H + 1)[1:n][sample.int(n)]; by <- as.factor(by); w <- rnorm(n)
+# library(microbenchmark)
+# microbenchmark(r <- sumby(y,by), times = 10)
+#
+#   n <- 4500000; y <- as.matrix(rnorm(n)); by <- sample(1:20000,n,replace = TRUE)
+#   library(microbenchmark)
+#   microbenchmark(
+#     sumby(y,by)
+#     , data.table(as.matrix(y))[,j=list(blabla=sum(V1)),by=by]
+#     , aggregate(as.matrix(y),list(by),sum)
+#     , times = 10L
+#   )
