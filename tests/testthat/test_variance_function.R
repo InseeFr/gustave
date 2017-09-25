@@ -22,6 +22,12 @@ test_that("varYG works", {
 })
 
 
+# x <- Matrix(rnorm(n*5), ncol = 5)
+# y <- matrix(y)
+# dimnames(y) <- list(letters[1:10], NULL)
+# rescal(y, x)
+
+
 
 # Tests
 # set.seed(1); n <- 2332; q <- 1; p <- 14; H <- 22; y <- matrix(rnorm(q*n),ncol=q); pik <- runif(n); x <- matrix(rnorm(p*n),ncol=p); x <- cbind(x, x[, 1]); strata <- rep(1:H,n %/% H + 1)[1:n][sample.int(n)]; inv <- NULL; w <- NULL
