@@ -1,3 +1,28 @@
+
+N <- 1000
+n <- 10
+pikl <- matrix(rep(n*(n - 1) / (N * (N - 1)), n^2), ncol = n)
+diag(pikl) <- rep(n/N, rep = n)
+y <- rnorm(n)
+
+test_that("varDT works", {
+  expect_error({
+    varDT(y, pik = diag(pikl))
+    precalcDT <- varDT(y = NULL, pik = diag(pikl))
+    varDT(y = y, precalc = precalcDT)
+  }, regexp = NA)
+})
+
+test_that("varYG works", {
+  expect_error({
+    varSYG(y, pikl = pikl)
+    precalcSYG <- varSYG(y = NULL, pikl = pikl)
+    varSYG(y = y, precalc = precalcSYG)
+  }, regexp = NA)
+})
+
+
+
 # Tests
 # set.seed(1); n <- 2332; q <- 1; p <- 14; H <- 22; y <- matrix(rnorm(q*n),ncol=q); pik <- runif(n); x <- matrix(rnorm(p*n),ncol=p); x <- cbind(x, x[, 1]); strata <- rep(1:H,n %/% H + 1)[1:n][sample.int(n)]; inv <- NULL; w <- NULL
 # precalc <- varDT(pik = pik, x = x, strata = strata)$precalc

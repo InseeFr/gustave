@@ -372,13 +372,15 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, colinearity.
 #' @export
 #' @references doc de travail M2015 3 Gros Moussallam p. 19
 
-varYG <- function(y = NULL, pikl){
-  pik = diag(pikl)
-  delta <- 1 - pik%*%t(pik)/pikl
+varSYG <- function (y = NULL, pikl, precalc = NULL){
+  if(is.null(precalc)){
+    pik = diag(pikl)
+    delta <- 1 - pik %*% t(pik)/pikl
+  }else list2env(precalc, envir = environment())
   if(is.null(y)){
-    diago <- - (1/pik^2)*rowSums(delta - diag(x = diag(delta)))
+    diago <- -(1/pik^2) * rowSums(delta - diag(x = diag(delta)))
     names(diago) <- row.names(pikl)
-    return(diago)
+    return(list(pikl = pikl, pik = pik, delta = delta, diago = diago))
   }else{
     var <- colSums((y/pik) * (delta %*% (y/pik)) - delta %*% (y/pik)^2)
     return(var)
