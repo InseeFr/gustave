@@ -2,9 +2,10 @@
 #' TODO
 total <- define_linearization_wrapper(
   linearization_function = function(y, weight){
-  y[na <- is.na(y)] <- 0
-  total <- sum(y * weight)
-  return(list(lin = list(y), metadata = list(est = total, na = na)))
+    na <- is.na(y)
+    y[na] <- 0
+    total <- sum(y * weight)
+    return(list(lin = list(y), metadata = list(est = total, n = sum(!na), N = sum(weight[!na]))))
   }
   , allow_factor = TRUE
 )
@@ -17,7 +18,7 @@ ratio <- define_linearization_wrapper(
     total_denom <- sum(denom * weight)
     ratio <- total_num / total_denom
     lin <- (num - ratio * denom ) / total_denom
-    return(list(lin = list(lin), metadata = list(est = ratio, na = na)))
+    return(list(lin = list(lin), metadata = list(est = ratio, n = sum(!na), N = sum(weight[!na]))))
   }
   , arg_type = list(data = c("num", "denom") , weight = "weight")
 )
@@ -39,7 +40,7 @@ diffratio <- define_linearization_wrapper(
     ratio2 <- environment(ratio)$linearization_function(num = num2, denom = denom2, weight = weight)
     lin <- ratio1$lin[[1]] - ratio2$lin[[1]]
     est <- ratio1$metadata$est - ratio2$metadata$est
-    return(list(lin = list(lin), metadata = list(est = est, na = na)))
+    return(list(lin = list(lin), metadata = list(est = est, n = sum(!na), N = sum(weight[!na]))))
   }
   , arg_type = list(data = c("num1", "denom1", "num2", "denom2") , weight = "weight")
 )
