@@ -12,7 +12,7 @@ Suggests:
   vardpoor
 Depends:
     R (>= 3.2.1)
-Version: 0.2.4
+Version: 0.2.5
 Author: person("Martin", "Chevalier", "martin.chevalier@insee.fr", role = c("aut", "cre"))
 Maintainer: Martin Chevalier <martin.chevalier@insee.fr>
 Description: Gustave: a User-oriented Statistical Toolkit for Analytical Variance Estimation.
