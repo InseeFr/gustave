@@ -5,7 +5,7 @@ total <- define_linearization_wrapper(
     na <- is.na(y)
     y[na] <- 0
     total <- sum(y * weight)
-    return(list(lin = list(y), metadata = list(est = total, n = sum(!na), N = sum(weight[!na]))))
+    return(list(lin = list(y), metadata = list(est = total)))
   }
   , allow_factor = TRUE
 )
@@ -14,11 +14,11 @@ total <- define_linearization_wrapper(
 ratio <- define_linearization_wrapper(
   linearization_function = function(num, denom, weight){
     na <- is.na(num) | is.na(denom); num[na] <- 0; denom[na] <- 0
-    total_num <- sum(num * weight)
-    total_denom <- sum(denom * weight)
-    ratio <- total_num / total_denom
-    lin <- (num - ratio * denom ) / total_denom
-    return(list(lin = list(lin), metadata = list(est = ratio, n = sum(!na), N = sum(weight[!na]))))
+    est_num <- sum(num * weight)
+    est_denom <- sum(denom * weight)
+    ratio <- est_num / est_denom
+    lin <- (num - ratio * denom ) / est_denom
+    return(list(lin = list(lin), metadata = list(est = ratio, est_num = est_num, est_denom = est_denom)))
   }
   , arg_type = list(data = c("num", "denom") , weight = "weight")
 )
