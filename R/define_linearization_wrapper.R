@@ -38,6 +38,7 @@ define_linearization_wrapper <- function(
     
     # Step 1.2 : Proceeed to standard preparation
     preparation <- do.call(standard_preparation, call_list)
+    if(is.null(preparation)) return(NULL)
     d <- lapply(preparation, function(i) list(
       preparation = i
       , display = list(metadata = list(standard = data.frame(
@@ -85,6 +86,7 @@ standard_preparation <- function(..., by = NULL, where = NULL, technical_arg){
     , weight = lapply(expr[names(expr) %in% technical_arg$arg_type$weight], eval, envir = eval_data, enclos = technical_arg$evaluation_envir)
     , param = if(any(names(expr) %in% technical_arg$arg_type$param)) expr[names(expr) %in% technical_arg$arg_type$param] else NULL
   ))
+  if(all(sapply(d[[1]]$data, is.null))) return(NULL)
 
   # Step 2 : Handling factors and character variables in data
   fac <- sapply(d[[1]]$data, function(i) is.character(i) || is.factor(i))

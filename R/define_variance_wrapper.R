@@ -237,6 +237,7 @@ define_variance_wrapper <- function(
       ))))
       eval(linearization_wrapper_call, envir = execution_envir)
     }), recursive = FALSE)
+    if(is.null(d)) stop("No variable to estimate variance on.", call. = FALSE)
     d <- list(
       preparation = lapply(d, `[[`, "preparation")
       , estimation = NULL

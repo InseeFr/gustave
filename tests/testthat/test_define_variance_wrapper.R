@@ -30,6 +30,12 @@ test_that("variance_wrapper works", {
     , regexp = NA)
 })
 
+test_that("variance_wrapper works also when NULL variable are used", {
+  expect_error(
+    variance_wrapper(survey, quanti, NULL)
+    , regexp = NA)
+})
+
 test_that("point estimates work for qualitative variables", {
   expect_equal(
     variance_wrapper(survey, total(quali))$est
