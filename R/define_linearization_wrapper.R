@@ -81,8 +81,8 @@ standard_preparation <- function(..., by = NULL, where = NULL, technical_arg){
   eval_data <- eval(technical_arg$data, technical_arg$evaluation_envir)
   expr <- eval(substitute(alist(...)))
   d <- list(list(
-    data = lapply(expr[names(expr) %in% technical_arg$arg_type$data], eval, eval_data)
-    , weight = lapply(expr[names(expr) %in% technical_arg$arg_type$weight], eval, eval_data)
+    data = lapply(expr[names(expr) %in% technical_arg$arg_type$data], eval, envir = eval_data, enclos = technical_arg$evaluation_envir)
+    , weight = lapply(expr[names(expr) %in% technical_arg$arg_type$weight], eval, envir = eval_data, enclos = technical_arg$evaluation_envir)
     , param = if(any(names(expr) %in% technical_arg$arg_type$param)) expr[names(expr) %in% technical_arg$arg_type$param] else NULL
   ))
 
