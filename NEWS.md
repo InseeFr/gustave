@@ -12,6 +12,19 @@
 - Normalize the treatment of weights
 - New linearization wrappers: gini() and arpr()
 
-# 0.2.2 (current master)
+# 0.2.2
 
 - Minor bug fixes
+
+# 0.2.3-0.2.5
+
+- Several attempts to output more metadata from linearization functions. 
+- At the end : ratio() gains two metadata slots, est_num and est_denom
+
+# 0.2.6 
+
+- Bug fix: evaluation of variables can occur eather in the data argument or in the evaluation environment (envir argument)
+
+# 0.2.7
+
+- Now linearization with all data parameters set to NULL are discarded from the estimation.
