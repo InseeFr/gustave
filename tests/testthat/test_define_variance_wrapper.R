@@ -32,7 +32,7 @@ test_that("variance_wrapper works", {
 
 test_that("variance_wrapper works also when NULL variable are used", {
   expect_error(
-    variance_wrapper(survey, quanti, NULL)
+    variance_wrapper(survey, quanti, by = byNA)
     , regexp = NA)
 })
 
@@ -78,12 +78,12 @@ test_that("varwrap_test works", {
 context("define_variance_wrapper - Comparison to reference values")
 
 test_that("the estimated values are consistent with reference values", {
-  expect_equal(variance_wrapper(survey, total(quanti))[, 2], -8316.08, tolerance = 1e-2)
-  expect_equal(variance_wrapper(survey, total(quanti))[, 3], 6.242553, tolerance = 1e-6)
-  expect_equal(variance_wrapper(survey, total(quali))[, 3], c(449650, 450790, 449624), tolerance = 1e-0)
-  expect_equal(variance_wrapper(survey, total(quali))[, 4], c(333, 334, 333), tolerance = 1e-0)
-  expect_equal(variance_wrapper(survey, total(quanti), by = quali)[, 3], c(-11087.64, 31074.47, -28302.91), tolerance = 1e-2)
-  expect_equal(variance_wrapper(survey, total(quanti), by = quali)[, 4], c(8.501667, 23.339394, 21.080280), tolerance = 1e-6)
+  expect_equal(variance_wrapper(survey, total(quanti))$est, -8316.08, tolerance = 1e-2)
+  expect_equal(variance_wrapper(survey, total(quanti))$variance, 6.242553, tolerance = 1e-6)
+  expect_equal(variance_wrapper(survey, total(quali))$est, c(449650, 450790, 449624), tolerance = 1e-0)
+  expect_equal(variance_wrapper(survey, total(quali))$variance, c(333, 334, 333), tolerance = 1e-0)
+  expect_equal(variance_wrapper(survey, total(quanti), by = quali)$est, c(-11087.64, 31074.47, -28302.91), tolerance = 1e-2)
+  expect_equal(variance_wrapper(survey, total(quanti), by = quali)$variance, c(8.501667, 23.339394, 21.080280), tolerance = 1e-6)
 })
 
 

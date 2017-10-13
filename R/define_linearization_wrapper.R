@@ -147,6 +147,7 @@ standard_preparation <- function(..., by = NULL, where = NULL, technical_arg){
 # standard_display_function()
 standard_display_function <- function(i, alpha){
   d <- i$metadata$standard
+  if(!is.null(i$metadata$n)) d$n <- i$metadata$n
   d$est <- i$metadata$est
   d$variance <- i$var[[1]]
   d$std <- sqrt(d$variance)
