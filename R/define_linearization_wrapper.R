@@ -156,5 +156,6 @@ standard_display_function <- function(i, alpha){
   d$upper <- d$est + stats::qnorm(1-alpha/2)*d$std
   return(d)
 }
+standard_display_function <- change_enclosing(standard_display_function, globalenv())
 
 
