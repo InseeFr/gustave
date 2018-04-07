@@ -23,7 +23,7 @@
 
 # 0.2.6 
 
-- Bug fix: evaluation of variables can occur eather in the data argument or in the evaluation environment (envir argument)
+- Bug fix: evaluation of variables can occur either in the data argument or in the evaluation environment (envir argument)
 
 # 0.2.7
 
