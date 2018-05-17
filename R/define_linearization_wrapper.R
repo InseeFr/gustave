@@ -2,11 +2,11 @@
 #' @export define_linearization_wrapper
 #'
 define_linearization_wrapper <- function(
-  linearization_function
-  , arg_type = list(data = "y", weight = "weight", param = NULL)
-  , arg_not_affected_by_domain = NULL
-  , allow_factor = FALSE
-  , display_function = standard_display_function
+  linearization_function, 
+  arg_type = list(data = "y", weight = "weight", param = NULL), 
+  arg_not_affected_by_domain = NULL, 
+  allow_factor = FALSE, 
+  display_function = standard_display_function
 ){
   
   # Step 0 : Control arguments consistency

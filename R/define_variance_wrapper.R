@@ -175,9 +175,9 @@
 #' @import Matrix
 
 define_variance_wrapper <- function(
-  variance_function, reference_id
-  , default = list(stat = "total", alpha = 0.05)
-  , objects_to_include = NULL, objects_to_include_from = parent.frame()
+  variance_function, reference_id, 
+  default = list(stat = "total", alpha = 0.05), 
+  objects_to_include = NULL, objects_to_include_from = parent.frame()
 ){
 
   # Step 0 : Work with default argument
@@ -186,8 +186,8 @@ define_variance_wrapper <- function(
   
   # Step 1 : Creating the variance estimation wrapper
   variance_wrapper <- function(
-    data, ..., weight = NULL, by = NULL, where = NULL, stat = NULL, alpha = NULL
-    , display = TRUE, id = NULL, w = NULL, envir = parent.frame()
+    data, ..., weight = NULL, by = NULL, where = NULL, stat = NULL, alpha = NULL,
+    display = TRUE, id = NULL, w = NULL, envir = parent.frame()
   ){
 
     if(!("package:Matrix" %in% search())) attachNamespace("Matrix")

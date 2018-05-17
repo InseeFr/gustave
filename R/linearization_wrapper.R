@@ -6,8 +6,8 @@ total <- define_linearization_wrapper(
     y[na] <- 0
     total <- sum(y * weight)
     return(list(lin = list(y), metadata = list(est = total, n = sum(!na))))
-  }
-  , allow_factor = TRUE
+  }, 
+  allow_factor = TRUE
 )
 
 #' TODO
@@ -19,16 +19,16 @@ ratio <- define_linearization_wrapper(
     ratio <- est_num / est_denom
     lin <- (num - ratio * denom ) / est_denom
     return(list(lin = list(lin), metadata = list(est = ratio, n = sum(!na), est_num = est_num, est_denom = est_denom)))
-  }
-  , arg_type = list(data = c("num", "denom") , weight = "weight")
+  }, 
+  arg_type = list(data = c("num", "denom") , weight = "weight")
 )
 
 #' TODO
 mean <- define_linearization_wrapper(
   linearization_function = function(y, weight){
     environment(ratio)$linearization_function(num = y, denom = rep(1, length(y)), weight = weight)
-  }
-  , allow_factor = TRUE
+  }, 
+  allow_factor = TRUE
 )
 
 #' TODO
@@ -41,8 +41,8 @@ diffratio <- define_linearization_wrapper(
     lin <- ratio1$lin[[1]] - ratio2$lin[[1]]
     est <- ratio1$metadata$est - ratio2$metadata$est
     return(list(lin = list(lin), metadata = list(est = est, n = sum(!na))))
-  }
-  , arg_type = list(data = c("num1", "denom1", "num2", "denom2") , weight = "weight")
+  }, 
+  arg_type = list(data = c("num1", "denom1", "num2", "denom2") , weight = "weight")
 )
 
 #' TODO
@@ -51,8 +51,8 @@ arpr <- define_linearization_wrapper(
     require(vardpoor)
     r <- linarpr(Y = y, weight = weight, percentage = percentage, order_quant = order_quant)
     return(list(lin = list(r$lin$lin_arpr), metadata = list(est = r$val$arpr)))
-  }
-  , arg_type = list(data = "y", weight = "weight", param = c("percentage", "order_quant"))
+  }, 
+  arg_type = list(data = "y", weight = "weight", param = c("percentage", "order_quant"))
 )
 
 #' TODO
@@ -61,8 +61,8 @@ gini <- define_linearization_wrapper(
     require(vardpoor)
     r <- lingini(Y = y, weight = weight)
     return(list(lin = list(r$lin$lin_gini), metadata = list(est = r$value$Gini)))
-  }
-  , arg_type = list(data = "y", weight = "weight", param = NULL)
+  }, 
+  arg_type = list(data = "y", weight = "weight", param = NULL)
 )
 # TODO: test whether there is a permutation in lingini()$lin
 
