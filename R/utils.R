@@ -1,22 +1,9 @@
-#' TODO
-block_matrix <- function(y, by){
-  # y <- as(Matrix(TRUE, ncol = 10, nrow = length(rowby)), "TsparseMatrix"); by <- rowby; p <- 2
-  # y <- x; by <- strata
-  byrow <- by
-  by <- as.factor(by)
-  H <- length(levels(by))
-  p <- NCOL(y)
-  if(!methods::is(y,"TsparseMatrix")) y <- methods::as(if(p == 1) as.matrix(y) else y, "TsparseMatrix")
-  y@j <- as.integer(((as.numeric(by) - 1) * p)[y@i + 1] + y@j)
-  y@Dim <- c(y@Dim[1], as.integer(y@Dim[2] * H))
-  if(any(is.na(by))){na <- is.na(y@j); y@x <- y@x[!na]; y@i <- y@i[!na]; y@j <- y@j[!na]}
-  bycol <- rep(levels(by), each = p)
-  bycol <- if(is.factor(byrow)) as.factor(bycol) else methods::as(bycol, class(byrow))
-  return(list(y = y, byrow = byrow, bycol = bycol))
-}
 
 
-#' Efficient sum by group using Matrix
+#' Efficient sum by group using the Matrix package
+#' 
+#' @description 
+#' 
 #' @export
 
 sumby <- function(y, by, w = NULL){
@@ -47,7 +34,6 @@ sumby <- function(y, by, w = NULL){
 }
 
 
-
 #' Expand a matrix with zeros based on rownames matching
 #' @export
 
@@ -60,14 +46,30 @@ add0 <- function(y, rownames){
 }
 
 
-#' change_enclosing
+
+
+# Unexported (and undocumented) functions
+
+block_matrix <- function(y, by){
+  # y <- as(Matrix(TRUE, ncol = 10, nrow = length(rowby)), "TsparseMatrix"); by <- rowby; p <- 2
+  # y <- x; by <- strata
+  byrow <- by
+  by <- as.factor(by)
+  H <- length(levels(by))
+  p <- NCOL(y)
+  if(!methods::is(y,"TsparseMatrix")) y <- methods::as(if(p == 1) as.matrix(y) else y, "TsparseMatrix")
+  y@j <- as.integer(((as.numeric(by) - 1) * p)[y@i + 1] + y@j)
+  y@Dim <- c(y@Dim[1], as.integer(y@Dim[2] * H))
+  if(any(is.na(by))){na <- is.na(y@j); y@x <- y@x[!na]; y@i <- y@i[!na]; y@j <- y@j[!na]}
+  bycol <- rep(levels(by), each = p)
+  bycol <- if(is.factor(byrow)) as.factor(bycol) else methods::as(bycol, class(byrow))
+  return(list(y = y, byrow = byrow, bycol = bycol))
+}
+
 
 change_enclosing <- function(FUN, envir = environment(FUN)){
   eval(parse(text = deparse(FUN)), envir = envir)
 }
-
-
-#' assign_all
 
 assign_all <- function(objects, to, from = parent.frame(), not_closure = c(list(globalenv()), sys.frames())){
   for(n in objects){

@@ -183,9 +183,6 @@ Caron N., Deville J.-C., Sautory O. (1998), \emph{Estimation de
   Rao, J.N.K (1975), "Unbiased variance estimation for multistage designs",
   \emph{Sankhya}, C n°37
 }
-\seealso{
-\code{\link{block_matrix}} \code{\link{rescal}}
-}
 \author{
 Martin Chevalier (Insee)
 }

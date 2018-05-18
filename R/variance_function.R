@@ -65,8 +65,6 @@
 #'   
 #' @author Martin Chevalier (Insee)
 #'
-#' @seealso \code{\link{block_matrix}} \code{\link{varDT}}
-#'
 #' @examples # Generating random data
 #' set.seed(1)
 #' n <- 100
@@ -221,8 +219,6 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'   of the variance estimator } }
 #'   
 #' @author Martin Chevalier (Insee)
-#'   
-#' @seealso \code{\link{block_matrix}} \code{\link{rescal}}
 #'   
 #' @references Caron N., Deville J.-C., Sautory O. (1998), \emph{Estimation de
 #'   précision de données issues d'enquêtes : document méthodologique sur le

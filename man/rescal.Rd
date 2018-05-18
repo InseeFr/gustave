@@ -110,9 +110,6 @@ identical(
 )
 
 }
-\seealso{
-\code{\link{block_matrix}} \code{\link{varDT}}
-}
 \author{
 Martin Chevalier (Insee)
 }
