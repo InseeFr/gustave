@@ -168,7 +168,7 @@ add0 <- function(y, rownames, remove = TRUE){
   compl <- setdiff(rownames, rownames(y))
   if(!is_sparse_y){
     r <- rbind(y, matrix(0, nrow = length(compl), ncol = NCOL(y), dimnames = list(compl)))
-    r <- as.data.frame(r)
+    if(is_data.frame_y) r <- as.data.frame(r)
   }else{
     r <- rbind(y, Matrix(0, nrow = length(compl), ncol = NCOL(y), dimnames = list(compl, NULL)))
     r <- methods::as(r, class_y)
