@@ -106,8 +106,8 @@ Defining variance estimation wrappers is the \strong{key feature} of
 
 # Diagonal term of the variance estimator for a stratified
 # simple random sampling
-diago <- varDT(y = NULL, 
-  pik = setNames(1 / ict_sample$w_sample, ict_sample$firm_id), 
+diago <- varDT(y = NULL,
+  pik = setNames(1 / ict_sample$w_sample, ict_sample$firm_id),
   strata = ict_sample$division
 )$diago
 
@@ -120,19 +120,18 @@ rownames(x) <- ict_survey$firm_id
 
 # Definition of a variance function
 variance_function <- function(y){
-
+  
   # Calibration
   y <- rescal(y, x = x)
   
   # Non-response and sampling
   y <- add0(y, rownames = ict_sample$firm_id) / ict_sample$prob
-  var_nr <- sum( (ict_sample$w_sample^2 - diago) * (1 - ict_sample$prob) * y^2)
+  var_nr <- colSums( (ict_sample$w_sample^2 - diago) * (1 - ict_sample$prob) * y^2 )
   
   # Sampling
   var_sampling <- varDT(y, pik = 1 / ict_sample$w_sample, strata = ict_sample$division)
   
   var_sampling + var_nr
-
 }
 
 # Test of the variance function
@@ -149,10 +148,10 @@ variance_wrapper <- define_variance_wrapper(
   objects_to_include = c("ict_sample", "x", "diago")
 )
 
-# The objects "firm_id", "x" and "diago" are embedded 
+# The objects "firm_id", "x" and "diago" are embedded
 # within the function variance_wrapper
 ls(environment(variance_wrapper))
-# Note : variance_wrapper is a closure 
+# Note : variance_wrapper is a closure
 # (http://adv-r.had.co.nz/Functional-programming.html#closures)
 
 # Step 3 : Features of the variance wrapper
@@ -165,7 +164,7 @@ library(magrittr)
 ict_survey \%>\% variance_wrapper(speed_quanti)
 
 # Mean linearization
-ict_survey \%>\% variance_wrapper(mean(speed_quanti)) 
+ict_survey \%>\% variance_wrapper(mean(speed_quanti))
 # Ratio linearization
 ict_survey \%>\% variance_wrapper(ratio(turnover, employees))
 
@@ -175,13 +174,13 @@ ict_survey \%>\% variance_wrapper(speed_quali)
 ict_survey \%>\% variance_wrapper(speed_quali == "Between 2 and 10 Mbs")
 
 # 1-domain estimation
-ict_survey \%>\% variance_wrapper(speed_quanti, where = division == "58") 
+ict_survey \%>\% variance_wrapper(speed_quanti, where = division == "58")
 # Multiple domains estimation
-ict_survey \%>\% variance_wrapper(speed_quanti, by = division) 
+ict_survey \%>\% variance_wrapper(speed_quanti, by = division)
 
 # Multiple variables at a time
-\dontrun{ict_survey \%>\% variance_wrapper( big_data, speed_quanti)}
-ict_survey \%>\% variance_wrapper(mean(speed_quanti), mean(big_data * 100))
+ict_survey \%>\% variance_wrapper(speed_quanti, big_data)
+ict_survey \%>\% variance_wrapper(speed_quanti, mean(big_data))
 # Flexible syntax for where and by arguments
 # (similar to the aes() function in ggplot2)
 ict_survey \%>\% variance_wrapper(where = division == "58", 
