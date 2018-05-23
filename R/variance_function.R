@@ -63,7 +63,7 @@
 #'   default). \item \code{inv}: the inverse of \code{t(x) \%*\%
 #'   Matrix::Diagonal(x = w) \%*\% x} } }
 #'   
-#' @author Martin Chevalier (Insee)
+#' @author Martin Chevalier (Insee, French Statistical Institute)
 #'
 #' @examples # Generating random data
 #' set.seed(1)
@@ -149,8 +149,8 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'   simple random sampling. Stratification is natively supported.
 #'   
 #' @param y A numerical matrix of the variable(s) whose variance of their total
-#'   is to be estimated. variable(s). May be a Matrix::TsparseMatrix.
-#' @param pik A numerical vector of first-order inclusion probabilties.
+#'   is to be estimated. May be a Matrix::TsparseMatrix.
+#' @param pik A numerical vector of first-order inclusion probabilities.
 #' @param x An optional numerical matrix of balancing variable(s). May be a
 #'   Matrix::TsparseMatrix.
 #' @param strata An optional categorical vector (factor or character) when
@@ -209,7 +209,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'   
 #'   
 #' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
-#'   numerical vector of sizz the number of columns of y. \item if \code{y} is
+#'   numerical vector of size the number of columns of y. \item if \code{y} is
 #'   \code{NULL} (precalculation step) : a list containing precalculated data:
 #'   \itemize{ \item \code{pik}: the numerical vector of first-order inclusion
 #'   probabilities. \item \code{A}: the numerical matrix denoted A in (Deville,
@@ -218,7 +218,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'   Matrix::Diagonal(x = ck) \%*\% t(A)} \item \code{diago}: the diagonal term
 #'   of the variance estimator } }
 #'   
-#' @author Martin Chevalier (Insee)
+#' @author Martin Chevalier (Insee, French Statistical Institute)
 #'   
 #' @references Caron N., Deville J.-C., Sautory O. (1998), \emph{Estimation de
 #'   précision de données issues d'enquêtes : document méthodologique sur le
@@ -234,13 +234,13 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'   Rao, J.N.K (1975), "Unbiased variance estimation for multistage designs",
 #'   \emph{Sankhya}, C n°37
 #'
-#' @examples require(sampling)
+#' @examples library(sampling)
 #' set.seed(1)
 #'
 #' # Simple random sampling case
 #' N <- 1000
 #' n <- 100
-#' y <- rnorm(N)[as.logical(sampling::srswor(n, N))]
+#' y <- rnorm(N)[as.logical(srswor(n, N))]
 #' pik <- rep(n/N, n)
 #' varDT(y, pik)
 #' sampling::varest(y, pik = pik)
@@ -250,11 +250,11 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #' N <- 1000
 #' n <- 100
 #' pik <- runif(N)
-#' s <- as.logical(sampling::UPsystematic(pik))
+#' s <- as.logical(UPsystematic(pik))
 #' y <- rnorm(N)[s]
 #' pik <- pik[s]
 #' varDT(y, pik)
-#' sampling::varest(y, pik = pik)
+#' varest(y, pik = pik)
 #' # The small difference is expected (see above).
 #'
 #' # Balanced sampling case
@@ -262,7 +262,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #' n <- 100
 #' pik <- runif(N)
 #' x <- matrix(rnorm(N*3), ncol = 3)
-#' s <- as.logical(sampling::samplecube(x, pik))
+#' s <- as.logical(samplecube(x, pik))
 #' y <- rnorm(N)[s]
 #' pik <- pik[s]
 #' x <- x[s, ]
@@ -275,7 +275,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #' pik <- runif(N)
 #' y <- rnorm(N)
 #' x <- cbind(matrix(rnorm(N*3), ncol = 3), y)
-#' s <- as.logical(sampling::samplecube(x, pik))
+#' s <- as.logical(samplecube(x, pik))
 #' y <- y[s]
 #' pik <- pik[s]
 #' x <- x[s, ]
@@ -366,8 +366,58 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, colinearity.
 
 
 #' Sen-Yates-Grundy variance estimator
+#' 
+#' @description \code{varSYG} computes the Sen-Yates-Grundy 
+#' variance estimator (valid under the assumption that the sampling
+#' design is of fixed size).
+#' 
+#' @param y A numerical matrix of the variable(s) whose variance of their total
+#'   is to be estimated. May be a Matrix::TsparseMatrix.
+#' @param pikl A numerical matrix of second-order inclusion probabilities.
+#' @param precalc A list of precalculated results (analogous to the one used by 
+#'   \code{\link{varDT}}).
+#' 
+#' @details \code{varSYG} aims at being an efficient implementation of the 
+#'   Sen-Yates-Grundy variance estimator for sampling designs with fixed sample 
+#'   size. It should be especially useful when several variance estimations are
+#'   to be conducted, as it relies on (sparse) matrix linear algebra.
+#' 
+#'   Moreover, in order to be consistent with \code{\link{varDT}}, \code{varSYG}
+#'   alsa has a \code{precalc} argument allowing for the re-use of intermediary
+#'   results calculated once and for all in a precalculation step (see 
+#'   \code{\link{varDT}} for details).
+#'   
+#' @section Difference with \code{varHT} from package \code{sampling}:
+#'   
+#'   \code{varSYG} differs from \code{sampling::varHT} in several ways: 
+#'   \itemize{ \item The formula implemented in \code{varSYG} is solely
+#'   the Sen-Yates-Grundy estimator, which is the one calculated 
+#'   by \code{varHT} when method = 2.
+#'   \item \code{varSYG} introduces several optimizations: \itemize{ \item
+#'   matrixwise operations allow to estimate variance on several interest
+#'   variables at once \item Matrix::TsparseMatrix capability yields significant 
+#'   performance gains.}}
+#' 
+#' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
+#'   numerical vector of size the number of columns of y. \item if \code{y} is
+#'   \code{NULL} (precalculation step) : a list containing precalculated data 
+#'   (analogous to the one used by \code{\link{varDT}}).}
+#' 
+#' @author Martin Chevalier (Insee, French Statistical Institute)
+#' 
+#' @examples library(sampling)
+#' set.seed(1)
+#' 
+#' # Simple random sampling case
+#' N <- 1000
+#' n <- 100
+#' y <- rnorm(N)[as.logical(srswor(n, N))]
+#' pikl <- matrix(rep((n*(n-1))/(N*(N-1)), n*n), nrow = n)
+#' diag(pikl) <- rep(n/N, n)
+#' varSYG(y, pikl)
+#' sampling::varHT(y = y, pikl = pikl, method = 2)
+
 #' @export
-#' @references doc de travail M2015 3 Gros Moussallam p. 19
 
 varSYG <- function (y = NULL, pikl, precalc = NULL){
   if(is.null(precalc)){

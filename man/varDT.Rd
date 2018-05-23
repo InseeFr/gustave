@@ -9,9 +9,9 @@ varDT(y = NULL, pik, x = NULL, strata = NULL, w = NULL,
 }
 \arguments{
 \item{y}{A numerical matrix of the variable(s) whose variance of their total
-is to be estimated. variable(s). May be a Matrix::TsparseMatrix.}
+is to be estimated. May be a Matrix::TsparseMatrix.}
 
-\item{pik}{A numerical vector of first-order inclusion probabilties.}
+\item{pik}{A numerical vector of first-order inclusion probabilities.}
 
 \item{x}{An optional numerical matrix of balancing variable(s). May be a
 Matrix::TsparseMatrix.}
@@ -29,7 +29,7 @@ variance estimation is to be conducted within strata.}
 }
 \value{
 \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
-  numerical vector of sizz the number of columns of y. \item if \code{y} is
+  numerical vector of size the number of columns of y. \item if \code{y} is
   \code{NULL} (precalculation step) : a list containing precalculated data:
   \itemize{ \item \code{pik}: the numerical vector of first-order inclusion
   probabilities. \item \code{A}: the numerical matrix denoted A in (Deville,
@@ -96,13 +96,13 @@ variance estimation is to be conducted within strata.}
 }
 
 \examples{
-require(sampling)
+library(sampling)
 set.seed(1)
 
 # Simple random sampling case
 N <- 1000
 n <- 100
-y <- rnorm(N)[as.logical(sampling::srswor(n, N))]
+y <- rnorm(N)[as.logical(srswor(n, N))]
 pik <- rep(n/N, n)
 varDT(y, pik)
 sampling::varest(y, pik = pik)
@@ -112,11 +112,11 @@ N^2 * (1 - n/N) * var(y) / n
 N <- 1000
 n <- 100
 pik <- runif(N)
-s <- as.logical(sampling::UPsystematic(pik))
+s <- as.logical(UPsystematic(pik))
 y <- rnorm(N)[s]
 pik <- pik[s]
 varDT(y, pik)
-sampling::varest(y, pik = pik)
+varest(y, pik = pik)
 # The small difference is expected (see above).
 
 # Balanced sampling case
@@ -124,7 +124,7 @@ N <- 1000
 n <- 100
 pik <- runif(N)
 x <- matrix(rnorm(N*3), ncol = 3)
-s <- as.logical(sampling::samplecube(x, pik))
+s <- as.logical(samplecube(x, pik))
 y <- rnorm(N)[s]
 pik <- pik[s]
 x <- x[s, ]
@@ -137,7 +137,7 @@ n <- 100
 pik <- runif(N)
 y <- rnorm(N)
 x <- cbind(matrix(rnorm(N*3), ncol = 3), y)
-s <- as.logical(sampling::samplecube(x, pik))
+s <- as.logical(samplecube(x, pik))
 y <- y[s]
 pik <- pik[s]
 x <- x[s, ]
@@ -184,5 +184,5 @@ Caron N., Deville J.-C., Sautory O. (1998), \emph{Estimation de
   \emph{Sankhya}, C n°37
 }
 \author{
-Martin Chevalier (Insee)
+Martin Chevalier (Insee, French Statistical Institute)
 }

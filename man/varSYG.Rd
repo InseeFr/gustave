@@ -6,9 +6,63 @@
 \usage{
 varSYG(y = NULL, pikl, precalc = NULL)
 }
-\description{
-Sen-Yates-Grundy variance estimator
+\arguments{
+\item{y}{A numerical matrix of the variable(s) whose variance of their total
+is to be estimated. May be a Matrix::TsparseMatrix.}
+
+\item{pikl}{A numerical matrix of second-order inclusion probabilities.}
+
+\item{precalc}{A list of precalculated results (analogous to the one used by 
+\code{\link{varDT}}).}
 }
-\references{
-doc de travail M2015 3 Gros Moussallam p. 19
+\value{
+\itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
+  numerical vector of size the number of columns of y. \item if \code{y} is
+  \code{NULL} (precalculation step) : a list containing precalculated data 
+  (analogous to the one used by \code{\link{varDT}}).}
+}
+\description{
+\code{varSYG} computes the Sen-Yates-Grundy 
+variance estimator (valid under the assumption that the sampling
+design is of fixed size).
+}
+\details{
+\code{varSYG} aims at being an efficient implementation of the 
+  Sen-Yates-Grundy variance estimator for sampling designs with fixed sample 
+  size. It should be especially useful when several variance estimations are
+  to be conducted, as it relies on (sparse) matrix linear algebra.
+
+  Moreover, in order to be consistent with \code{\link{varDT}}, \code{varSYG}
+  alsa has a \code{precalc} argument allowing for the re-use of intermediary
+  results calculated once and for all in a precalculation step (see 
+  \code{\link{varDT}} for details).
+}
+\section{Difference with \code{varHT} from package \code{sampling}}{
+
+  
+  \code{varSYG} differs from \code{sampling::varHT} in several ways: 
+  \itemize{ \item The formula implemented in \code{varSYG} is solely
+  the Sen-Yates-Grundy estimator, which is the one calculated 
+  by \code{varHT} when method = 2.
+  \item \code{varSYG} introduces several optimizations: \itemize{ \item
+  matrixwise operations allow to estimate variance on several interest
+  variables at once \item Matrix::TsparseMatrix capability yields significant 
+  performance gains.}}
+}
+
+\examples{
+library(sampling)
+set.seed(1)
+
+# Simple random sampling case
+N <- 1000
+n <- 100
+y <- rnorm(N)[as.logical(srswor(n, N))]
+pikl <- matrix(rep((n*(n-1))/(N*(N-1)), n*n), nrow = n)
+diag(pikl) <- rep(n/N, n)
+varSYG(y, pikl)
+sampling::varHT(y = y, pikl = pikl, method = 2)
+}
+\author{
+Martin Chevalier (Insee, French Statistical Institute)
 }
