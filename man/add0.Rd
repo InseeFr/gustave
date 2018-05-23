@@ -2,10 +2,52 @@
 % Please edit documentation in R/utils.R
 \name{add0}
 \alias{add0}
-\title{Expand a matrix with zeros based on rownames matching}
+\title{Expand a matrix or a data.frame with zeros based on rownames matching}
 \usage{
-add0(y, rownames)
+add0(y, rownames, remove = TRUE)
+}
+\arguments{
+\item{y}{A (sparse) matrix or a data.frame. The object to add zeros to.}
+
+\item{rownames}{A character vector (other types are coerced to character).
+The character vector giving the rows of the produced object.}
+
+\item{remove}{Should rows of y whose name do not appear in the rownames
+argument be removed ? TRUE by default, a warning is shown when rows are
+removed.}
+}
+\value{
+A (sparse) matrix or data.frame depending on the type of y.
 }
 \description{
-Expand a matrix with zeros based on rownames matching
+For a given two-dimensional object with rownames, (sparse) 
+matrix or data.frame and a character vector, \code{add0()} produces
+a corresponding object whose rownames match the character vector 
+with zeros on the additional rows.
+
+This function is an easy-to-use and reliable way to reintroduce 
+non-responding in the variance estimation process (after the 
+non-response phase is taken into account).
+}
+\examples{
+# Data generation
+set.seed(1)
+n <- 10
+p <- 2
+y <- matrix(1:(n*p), ncol = p, dimnames = list(sample(letters, n)))
+y[c(3, 8, 12)] <- NA
+rownames <- letters
+
+# Standard use
+add0(y, rownames) 
+
+# Use when rownames in y do not match 
+# any element in the rownames argument
+rownames(y)[1:3] <- toupper(rownames(y)[1:3])
+add0(y, rownames)
+add0(y, rownames, remove = FALSE)
+
+}
+\author{
+Martin Chevalier (Insee, French Statistical Institute)
 }

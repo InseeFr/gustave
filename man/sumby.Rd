@@ -2,10 +2,66 @@
 % Please edit documentation in R/utils.R
 \name{sumby}
 \alias{sumby}
-\title{Efficient sum by group using Matrix}
+\title{Efficient by-group (weighted) summation}
 \usage{
-sumby(y, by, w = NULL)
+sumby(y, by, w = NULL, na_rm = TRUE, keep_sparse = FALSE)
+}
+\arguments{
+\item{y}{A (sparse) vector, a (sparse) matrix or a data.frame. 
+The object to perform by-groupe summation on.}
+
+\item{by}{The factor variable defining the by-groups. Character variables
+are coerced to factors.}
+
+\item{w}{The optional weight to be used in the summation.}
+
+\item{na_rm}{Should NA values in y be removed (ie treated as 0 in the summation) ? 
+Similar to na.rm argument in \code{\link[base]{sum}}, but TRUE by default. 
+If FALSE, NA values in y produce NA values in the result.}
+
+\item{keep_sparse}{When y is a sparse vector or a sparse matrix, should the result
+also be sparse ? FALSE by default. As \code{\link[Matrix]{sparseVector-class}} does
+not have a name attribute, when y is a sparseVector the result does not have any
+name (and a warning is cast).}
+}
+\value{
+A vector, a matrix or a data.frame depending on the type of y. If y is
+sparse and keep_sparse is TRUE, then the result is also sparse (without names
+when it is a sparse vector, see keep_sparse argument for details).
 }
 \description{
-Efficient sum by group using Matrix
+\code{sumby()} performs an efficient and optionnaly weighted 
+by-group summation by using linear algebra and the Matrix package 
+capabilities. The by-group summation is performed through matrix cross-product
+of the y parameter (coerced to a matrix if needed) with a (very) sparse
+matrix bulit up using the by and the (optional) w parameters. 
+
+Compared to base R, dplyr or data.table alternatives, this implementation 
+aims at being easier to use in a matrix-oriented context and can yield 
+efficiency gains when the number of columns becomes high.
+}
+\examples{
+# Data generation
+set.seed(1)
+n <- 100
+p <- 10
+H <- 3
+y <- matrix(rnorm(n*p), ncol = p, dimnames = list(NULL, paste0("var", 1:10)))
+y[1, 1] <- NA
+by <- letters[sample.int(H, n, replace = TRUE)]
+w <- rep(1, n)
+w[by == "a"] <- 2
+
+# Standard use
+sumby(y, by)
+
+# Keeping the NAs
+sumby(y, by, na_rm = FALSE)
+
+# With a weight
+sumby(y, by, w = w)
+
+}
+\author{
+Martin Chevalier (Insee, French Statistical Institute)
 }
