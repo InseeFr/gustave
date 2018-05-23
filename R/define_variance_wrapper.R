@@ -81,94 +81,105 @@
 #'    
 #' @seealso \code{\link{define_linearization_wrapper}} \code{\link{varDT}}
 #' 
-#' @examples ### Survey setup
+#' @examples ### Example from the Information and communication technologies (ICT) survey
 #' 
-#' # Let's consider a survey drawn with a one-stage unequal 
-#' # probability sampling and neither non-response nor calibration.
-#' N <- 1000 # Size of the population
-#' n <- 20 # Size of the sample
+#' # The subset of the (simulated) ICT survey has the following features: 
+#' # - stratified one-stage sampling design of 650 firms;
+#' # - 612 responding firms, non-response correction through reweighting 
+#' # in homogeneous response groups based on economic sub-sector and turnover;
+#' # - calibration on margins (number of firms and turnover broken down
+#' # by economic sub-sector).
 #' 
-#' # Randomly generating a sampling frame and first-order 
-#' # probabilities of inclusion
-#' set.seed(1)
-#' frame <- data.frame(id = 1:N, pik = runif(N))
-#' frame$pik <- frame$pik * n / sum(frame$pik)
-#' sum(frame$pik) # n
-#'
-#' # Drawing the sample with sampling::UPmaxentropy()
-#' library(sampling)
-#' sample <- frame[as.logical(UPmaxentropy(frame$pik)), ]
+#' # Step 1 : Definition of a variance function
 #' 
-#' # Randomly generating the data that would have been collected
-#' # on the field and storing it in the "survey" data.frame 
-#' survey <- data.frame(
-#'   id = sample$id
-#'   , weight = 1 / sample$pik
-#'   , var1 = 10 + rnorm(n)
-#'   , var2 = letters[sample.int(3, n, replace = TRUE)]
-#'   , var3 = 5 + rnorm(n)*2
-#' )
+#' # Diagonal term of the variance estimator for a stratified
+#' # simple random sampling
+#' diago <- varDT(y = NULL, 
+#'   pik = setNames(1 / ict_sample$w_sample, ict_sample$firm_id), 
+#'   strata = ict_sample$division
+#' )$diago
 #' 
-#' # Sorting the "sample" and "survey" objects by id
-#' sample <- sample[order(sample$id), ]
-#' survey <- survey[order(survey$id), ]
+#' # Estimated non-reponse probabilities within HRG
+#' ict_sample$prob <- ict_sample$w_nr / ict_sample$w_sample
 #' 
+#' # Calibration variables matrix
+#' x <- as.matrix(ict_survey[, c(paste0("N_", 58:63), paste0("turnover_", 58:63))])
+#' rownames(x) <- ict_survey$firm_id
 #' 
-#' ### Definition of the variance wrapper
+#' # Definition of a variance function
+#' variance_function <- function(y){
 #' 
-#' # Using the varDT function for estimating the variance
-#' # (see gustave::varDT)
-#' varDT(y = survey$var1, pik = sample$pik)
+#'   # Calibration
+#'   y <- rescal(y, x = x)
+#'   
+#'   # Non-response and sampling
+#'   y <- add0(y, rownames = ict_sample$firm_id) / ict_sample$prob
+#'   var_nr <- sum( (ict_sample$w_sample^2 - diago) * (1 - ict_sample$prob) * y^2)
+#'   
+#'   # Sampling
+#'   var_sampling <- varDT(y, pik = 1 / ict_sample$w_sample, strata = ict_sample$division)
+#'   
+#'   var_sampling + var_nr
 #' 
-#' # Definition of the variance wrapper
+#' }
+#' 
+#' # Test of the variance function
+#' y <- as.matrix(ict_survey$big_data)
+#' rownames(y) <- ict_survey$firm_id
+#' variance_function(y)
+#' 
+#' # Step 2 : Definition of a variance wrapper
+#' 
 #' variance_wrapper <- define_variance_wrapper(
-#'   variance_function = function(y) varDT(y = y, pik = sample$pik)
-#'   , reference_id = sample$id
-#'   , default = list(id = "id", weight = "weight")
-#'   , objects_to_include = "sample"
+#'   variance_function = variance_function,
+#'   reference_id = ict_survey$firm_id,
+#'   default = list(id = "firm_id", weight = "w_calib"),
+#'   objects_to_include = c("ict_sample", "x", "diago")
 #' )
 #' 
-#' # The data.frame "sample" is embedded within the function 
-#' # variance_wrapper
+#' # The objects "firm_id", "x" and "diago" are embedded 
+#' # within the function variance_wrapper
 #' ls(environment(variance_wrapper))
-#' str(environment(variance_wrapper)$sample)
 #' # Note : variance_wrapper is a closure 
 #' # (http://adv-r.had.co.nz/Functional-programming.html#closures)
 #' 
-#' 
-#' ### Features of the variance wrapper
-#' 
+#' # Step 3 : Features of the variance wrapper
+#'
 #' # Better display of results
-#' variance_wrapper(survey, var1)
+#' variance_wrapper(ict_survey, speed_quanti)
 #' 
-#' # Discretization of qualitative variables
-#' variance_wrapper(survey, var2)
-#' # On-the-fly recoding
-#' variance_wrapper(survey, var2 == "a") 
-#' 
-#' # 1-domain estimation
-#' variance_wrapper(survey, var1, where = var2 == "a") 
-#' # Multiple domains estimation
-#' variance_wrapper(survey, var1, by = var2) 
+#' # Compatible with magrittr pipe operator %>%
+#' library(magrittr)
+#' ict_survey %>% variance_wrapper(speed_quanti)
 #' 
 #' # Mean linearization
-#' variance_wrapper(survey, mean(var1)) 
+#' ict_survey %>% variance_wrapper(mean(speed_quanti)) 
 #' # Ratio linearization
-#' variance_wrapper(survey, ratio(var2 == "a", var2 %in% c("a", "b"))) 
+#' ict_survey %>% variance_wrapper(ratio(turnover, employees))
+#' 
+#' # Discretization of qualitative variables
+#' ict_survey %>% variance_wrapper(speed_quali)
+#' # On-the-fly recoding
+#' ict_survey %>% variance_wrapper(speed_quali == "Between 2 and 10 Mbs")
+#' 
+#' # 1-domain estimation
+#' ict_survey %>% variance_wrapper(speed_quanti, where = division == "58") 
+#' # Multiple domains estimation
+#' ict_survey %>% variance_wrapper(speed_quanti, by = division) 
 #' 
 #' # Multiple variables at a time
-#' variance_wrapper(survey, var1, var3)
-#' variance_wrapper(survey, mean(var1), total(var3))
+#' \dontrun{ict_survey %>% variance_wrapper( big_data, speed_quanti)}
+#' ict_survey %>% variance_wrapper(mean(speed_quanti), mean(big_data * 100))
 #' # Flexible syntax for where and by arguments
 #' # (similar to the aes() function in ggplot2)
-#' variance_wrapper(survey, where = var2 == "c"
-#'   , mean(var1), total(var3)
+#' ict_survey %>% variance_wrapper(where = division == "58", 
+#'   mean(speed_quanti), mean(big_data * 100)
 #' )
-#' variance_wrapper(survey, where = var2 == "c"
-#'   , mean(var1), total(var3, where = var2 == "a")
+#' ict_survey %>% variance_wrapper(where = division == "58", 
+#'   mean(speed_quanti), mean(big_data * 100, where = division == "61")
 #' )
-#' variance_wrapper(survey, where = var2 == "c"
-#'   , mean(var1), total(var3, where = NULL)
+#' ict_survey %>% variance_wrapper(where = division == "58", 
+#'   mean(speed_quanti), mean(big_data * 100, where = NULL)
 #' )
 #' 
 #' @export define_variance_wrapper
@@ -180,6 +191,10 @@ define_variance_wrapper <- function(
   objects_to_include = NULL, objects_to_include_from = parent.frame()
 ){
 
+  # TODO: add some sort of startup message on first run of the function
+  # whith the package version number and the github repo. Something like : 
+  # "Variance wrapper generated by the gustave V.V on DD/MM/YYYY. See https://github.com/martinchevalier/gustave" for documentation and bug reports."
+  
   # Step 0 : Work with default argument
   if(is.null(default$stat) && !("stat" %in% names(default))) default$stat <- "total"
   if(is.null(default$alpha) && !("alpha" %in% names(default))) default$alpha <- 0.05

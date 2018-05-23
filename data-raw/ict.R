@@ -19,9 +19,9 @@ ict_pop <- do.call(rbind, lapply(division, function(d){
   # d <- "58"
   df <- data.frame(division = rep(d, N[d]), stringsAsFactors = FALSE)
   df$employees <- rgamma(N[d], shape = 0.3)
-  df$employees <- round(df$employees * (employees[d] + rnorm(NROW(df), -10, 5)) / mean(df$employees)) + 10
+  df$employees <- round(df$employees * (employees[d] + rnorm(NROW(df), -10, 5)) / base::mean(df$employees)) + 10
   df$turnover <- rgamma(N[d], shape = 0.5)
-  df$turnover <- df$turnover * (turnover[d] + rnorm(NROW(df), 0, 500)) / mean(df$turnover)
+  df$turnover <- df$turnover * (turnover[d] + rnorm(NROW(df), 0, 500)) / base::mean(df$turnover)
   df
 }))
 ict_pop$firm_id <- paste0("X", formatC(1:NROW(ict_pop), flag = 0, width = ceiling(log10(NROW(ict_pop)))))
@@ -106,6 +106,9 @@ ict_survey$big_data_NA <- ict_survey$big_data
 ict_survey$big_data_NA[runif(NROW(ict_survey)) < big_data_NA_prob] <- NA
 
 # Export
+rownames(ict_pop) <- ict_pop$firm_id
+rownames(ict_sample) <- ict_sample$firm_id
+rownames(ict_survey) <- ict_survey$firm_id
 save(ict_pop, file = "data/ict_pop.RData")
 save(ict_sample, file = "data/ict_sample.RData")
 save(ict_survey, file = "data/ict_survey.RData")

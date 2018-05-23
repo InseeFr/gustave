@@ -9,7 +9,8 @@ Imports:
 Suggests: 
   testthat,
   sampling,
-  vardpoor
+  vardpoor,
+  magrittr
 Depends:
     R (>= 3.2.1)
 Version: 0.3.0.9000
