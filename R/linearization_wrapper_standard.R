@@ -1,5 +1,14 @@
 
-#' TODO
+#' Standard linearization wrappers
+#' 
+#' 
+#' 
+#' 
+#' @name linearization_wrapper_standard
+#' @aliases total ratio mean diffratio
+
+
+#' @rdname linearization_wrapper_standard
 total <- define_linearization_wrapper(
   linearization_function = function(y, weight){
     na <- is.na(y)
@@ -10,7 +19,7 @@ total <- define_linearization_wrapper(
   allow_factor = TRUE
 )
 
-#' TODO
+#' @rdname linearization_wrapper_standard
 ratio <- define_linearization_wrapper(
   linearization_function = function(num, denom, weight){
     na <- is.na(num) | is.na(denom); num[na] <- 0; denom[na] <- 0
@@ -23,7 +32,7 @@ ratio <- define_linearization_wrapper(
   arg_type = list(data = c("num", "denom") , weight = "weight")
 )
 
-#' TODO
+#' @rdname linearization_wrapper_standard
 mean <- define_linearization_wrapper(
   linearization_function = function(y, weight){
     environment(ratio)$linearization_function(num = y, denom = rep(1, length(y)), weight = weight)
@@ -31,11 +40,14 @@ mean <- define_linearization_wrapper(
   allow_factor = TRUE
 )
 
-#' TODO
+#' @rdname linearization_wrapper_standard
 diffratio <- define_linearization_wrapper(
   linearization_function = function(num1, denom1, num2, denom2, weight){
     na <- is.na(num1) | is.na(denom1) | is.na(num2) | is.na(denom2)
-    num1[na] <- 0; denom1[na] <- 0; num2[na] <- 0; denom2[na] <- 0
+    num1[na] <- 0
+    denom1[na] <- 0
+    num2[na] <- 0
+    denom2[na] <- 0
     ratio1 <- environment(ratio)$linearization_function(num = num1, denom = denom1, weight = weight)
     ratio2 <- environment(ratio)$linearization_function(num = num2, denom = denom2, weight = weight)
     lin <- ratio1$lin[[1]] - ratio2$lin[[1]]
@@ -44,28 +56,5 @@ diffratio <- define_linearization_wrapper(
   }, 
   arg_type = list(data = c("num1", "denom1", "num2", "denom2") , weight = "weight")
 )
-
-#' TODO
-arpr <- define_linearization_wrapper(
-  linearization_function = function(y, weight, percentage = 60, order_quant = 50L){
-    require(vardpoor)
-    r <- linarpr(Y = y, weight = weight, percentage = percentage, order_quant = order_quant)
-    return(list(lin = list(r$lin$lin_arpr), metadata = list(est = r$val$arpr)))
-  }, 
-  arg_type = list(data = "y", weight = "weight", param = c("percentage", "order_quant"))
-)
-
-#' TODO
-gini <- define_linearization_wrapper(
-  linearization_function = function(y, weight){
-    require(vardpoor)
-    r <- lingini(Y = y, weight = weight)
-    return(list(lin = list(r$lin$lin_gini), metadata = list(est = r$value$Gini)))
-  }, 
-  arg_type = list(data = "y", weight = "weight", param = NULL)
-)
-# TODO: test whether there is a permutation in lingini()$lin
-
-
 
 
