@@ -105,7 +105,10 @@ Defining variance estimation wrappers is the \strong{key feature} of
 # Step 1 : Definition of a variance function
 
 # Calibration variables matrix
-x <- as.matrix(ict_survey[order(ict_survey$firm_id), c(paste0("N_", 58:63), paste0("turnover_", 58:63))])
+x <- as.matrix(ict_survey[
+  order(ict_survey$firm_id), 
+  c(paste0("N_", 58:63), paste0("turnover_", 58:63))
+])
 
 # Definition of a variance function
 variance_function <- function(y){
@@ -139,15 +142,16 @@ variance_wrapper <- define_variance_wrapper(
   objects_to_include = c("x", "ict_sample")
 )
 
-# The objects "x" and "diago" are embedded
+# The objects "x" and "ict_sample" are embedded
 # within the function variance_wrapper
 ls(environment(variance_wrapper))
 # Note : variance_wrapper is a closure
 # (http://adv-r.had.co.nz/Functional-programming.html#closures)
+# As a consequence, the variance wrapper will work even if 
+# x is removed from globalenv()
 rm(x)
 
 # Step 3 : Features of the variance wrapper
-
 
 # Better display of results
 variance_wrapper(ict_survey, speed_quanti)

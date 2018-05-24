@@ -62,7 +62,7 @@ sumby <- function(y, by, w = NULL, na_rm = TRUE, keep_sparse = FALSE){
   class_y <- class(y)
   is_data.frame_y <- is.data.frame(y)
   if(is_data.frame_y) y <- as.matrix(y)
-  is_sparse_y <- isTRUE(attr(class(y), "package") == "Matrix")
+  is_sparse_y <- inherits(y, c("Matrix", "sparseVector"))
   is_vector_y <- is.null(dim(y))
   is_numeric_y <- is.numeric(if(!is_sparse_y) y else y@x)
   if(!is_numeric_y) stop("y is not numeric (or not entirely).")
@@ -155,7 +155,7 @@ add0 <- function(y, rownames, remove = TRUE){
     stop("y must be a (sparse) matrix or a data.frame.")
   if(is.null(rownames(y)))
      stop("y must have rownames in order to be used in add0().")
-  is_sparse_y <- isTRUE(attr(class(y), "package") == "Matrix")
+  is_sparse_y <- inherits(y, c("Matrix", "sparseVector"))
   is_numeric_y <- is.numeric(if(!is_sparse_y) y else y@x)
   if(!is_numeric_y) stop("y is not numeric (or not entirely).")
   

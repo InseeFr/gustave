@@ -37,6 +37,7 @@
 #'   \item{w_sample}{sampling weight}
 #'   \item{resp}{boolean indicating whether the firm did respond to the survey or not}
 #'   \item{hrg}{homogeneous response group used for the unit non-response correction}
+#'   \item{response_prob_est}{response probability of the unit estimated using homogeneous response groups}
 #'   \item{w_nr}{weight after unit non-response correction}
 #' }
 #' 

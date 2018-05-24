@@ -373,7 +373,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, colinearity.
 #' @rdname varDT
 #' @export
 var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
-  if(any(tapply(pik, strata, sd) > 1e-6))
+  if(any(tapply(pik, strata, stats::sd) > 1e-6))
     stop("First-order inclusion probabilities are not equal (within strata if any).")
   varDT(
     y = y, pik = pik, x = NULL, strata = strata, w = w, 
