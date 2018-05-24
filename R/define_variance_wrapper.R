@@ -132,7 +132,7 @@
 #' ls(environment(variance_wrapper))
 #' # Note : variance_wrapper is a closure
 #' # (http://adv-r.had.co.nz/Functional-programming.html#closures)
-#' # As a consequence, the function will work even if 
+#' # As a consequence, the variance wrapper will work even if 
 #' # x is removed from globalenv()
 #' rm(x)
 #' 
