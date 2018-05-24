@@ -2,10 +2,14 @@
 % Please edit documentation in R/variance_function.R
 \name{varDT}
 \alias{varDT}
+\alias{var_srs}
+\alias{var_srs}
 \title{Variance approximation with Deville-Tillé (2005) formula}
 \usage{
 varDT(y = NULL, pik, x = NULL, strata = NULL, w = NULL,
   colinearity.check = NULL, precalc = NULL)
+
+var_srs(y, pik, strata = NULL, w = NULL, precalc = NULL)
 }
 \arguments{
 \item{y}{A numerical matrix of the variable(s) whose variance of their total
@@ -28,31 +32,34 @@ variance estimation is to be conducted within strata.}
 \item{precalc}{A list of precalculated results (see Details).}
 }
 \value{
-\itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
-  numerical vector of size the number of columns of y. \item if \code{y} is
-  \code{NULL} (precalculation step) : a list containing precalculated data:
-  \itemize{ \item \code{pik}: the numerical vector of first-order inclusion
-  probabilities. \item \code{A}: the numerical matrix denoted A in (Deville,
-  Tillé, 2005). \item \code{ck}: the numerical vector denoted ck2 in
-  (Deville, Tillé, 2005). \item \code{inv}: the inverse of \code{A \%*\%
+\itemize{ \item if \code{y} is not \code{NULL} (calculation step) : 
+  the estimated variances as a numerical vector of size the number of 
+  columns of y. \item if \code{y} is \code{NULL} (precalculation step) : a list 
+  containing precalculated data: \itemize{ \item \code{pik}: the numerical vector 
+  of first-order inclusion probabilities. \item \code{A}: the numerical matrix 
+  denoted A in (Deville, Tillé, 2005). \item \code{ck}: the numerical vector denoted 
+  ck2 in (Deville, Tillé, 2005). \item \code{inv}: the inverse of \code{A \%*\%
   Matrix::Diagonal(x = ck) \%*\% t(A)} \item \code{diago}: the diagonal term
   of the variance estimator } }
 }
 \description{
-\code{varDT} estimates the variance of the total in the case of
-  a balanced sampling design with equal or unequal probabilities. Without 
-  balancing variables, it falls back to Deville's (1993) classical
+\code{varDT} estimates the variance of the estimator of a total
+  in the case of a balanced sampling design with equal or unequal probabilities. 
+  Without balancing variables, it falls back to Deville's (1993) classical
   approximation. Without balancing variables and with equal probabilities, it
-  falls back to the classical variance estimator for the total in the case of
-  simple random sampling. Stratification is natively supported.
+  falls back to the classical Horvitz-Thompson variance estimator for the total in 
+  the case of simple random sampling. Stratification is natively supported.
+  
+  \code{var_srs} is a convenience wrapper for the (stratified) simple random
+  sampling case.
 }
 \details{
-\code{varDT} is the workhorse of most variance estimation conducted
-  with the \code{gustave} package. It might be used to estimate the variance
-  of a total in the case of (stratified) simple random sampling, (stratified)
-  unequal probability sampling and (stratified) balanced sampling. The native
-  integration of stratification based on Matrix::TsparseMatrix allows for
-  significant performance gains compared to higher level vectorizations
+\code{varDT} aims at being the workhorse of most variance estimation conducted
+  with the \code{gustave} package. It may be used to estimate the variance
+  of the estimator of a total in the case of (stratified) simple random sampling, 
+  (stratified) unequal probability sampling and (stratified) balanced sampling. 
+  The native integration of stratification based on Matrix::TsparseMatrix allows 
+  for significant performance gains compared to higher level vectorizations
   (\code{*apply} especially).
   
   Several time-consuming operations (e.g. colinearity-check, matrix
@@ -70,8 +77,8 @@ variance estimation is to be conducted within strata.}
   x) == 0)}.
   
   \code{w} is a row weight used at the final summation step. It is useful
-  when \code{varDT} is used on the second stage of a two-stage sampling
-  design applying the Rao (1975) formula.
+  when \code{varDT} or \code{var_srs} are used on the second stage of a 
+  two-stage sampling design applying the Rao (1975) formula.
 }
 \section{Difference with \code{varest} from package \code{sampling}}{
 

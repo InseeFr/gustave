@@ -141,12 +141,17 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 
 #' Variance approximation with Deville-Tillé (2005) formula
 #' 
-#' @description \code{varDT} estimates the variance of the total in the case of
-#'   a balanced sampling design with equal or unequal probabilities. Without 
-#'   balancing variables, it falls back to Deville's (1993) classical
+#' @aliases varDT var_srs
+#' 
+#' @description \code{varDT} estimates the variance of the estimator of a total
+#'   in the case of a balanced sampling design with equal or unequal probabilities. 
+#'   Without balancing variables, it falls back to Deville's (1993) classical
 #'   approximation. Without balancing variables and with equal probabilities, it
-#'   falls back to the classical variance estimator for the total in the case of
-#'   simple random sampling. Stratification is natively supported.
+#'   falls back to the classical Horvitz-Thompson variance estimator for the total in 
+#'   the case of simple random sampling. Stratification is natively supported.
+#'   
+#'   \code{var_srs} is a convenience wrapper for the (stratified) simple random
+#'   sampling case.
 #'   
 #' @param y A numerical matrix of the variable(s) whose variance of their total
 #'   is to be estimated. May be a Matrix::TsparseMatrix.
@@ -161,12 +166,12 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'   (see Details).
 #' @param precalc A list of precalculated results (see Details).
 #'   
-#' @details \code{varDT} is the workhorse of most variance estimation conducted
-#'   with the \code{gustave} package. It might be used to estimate the variance
-#'   of a total in the case of (stratified) simple random sampling, (stratified)
-#'   unequal probability sampling and (stratified) balanced sampling. The native
-#'   integration of stratification based on Matrix::TsparseMatrix allows for
-#'   significant performance gains compared to higher level vectorizations
+#' @details \code{varDT} aims at being the workhorse of most variance estimation conducted
+#'   with the \code{gustave} package. It may be used to estimate the variance
+#'   of the estimator of a total in the case of (stratified) simple random sampling, 
+#'   (stratified) unequal probability sampling and (stratified) balanced sampling. 
+#'   The native integration of stratification based on Matrix::TsparseMatrix allows 
+#'   for significant performance gains compared to higher level vectorizations
 #'   (\code{*apply} especially).
 #'   
 #'   Several time-consuming operations (e.g. colinearity-check, matrix
@@ -184,8 +189,8 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'   x) == 0)}.
 #'   
 #'   \code{w} is a row weight used at the final summation step. It is useful
-#'   when \code{varDT} is used on the second stage of a two-stage sampling
-#'   design applying the Rao (1975) formula.
+#'   when \code{varDT} or \code{var_srs} are used on the second stage of a 
+#'   two-stage sampling design applying the Rao (1975) formula.
 #'   
 #' @section Difference with \code{varest} from package \code{sampling}:
 #'   
@@ -208,13 +213,13 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'   \code{varDT} in order to achieve the same result.}
 #'   
 #'   
-#' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
-#'   numerical vector of size the number of columns of y. \item if \code{y} is
-#'   \code{NULL} (precalculation step) : a list containing precalculated data:
-#'   \itemize{ \item \code{pik}: the numerical vector of first-order inclusion
-#'   probabilities. \item \code{A}: the numerical matrix denoted A in (Deville,
-#'   Tillé, 2005). \item \code{ck}: the numerical vector denoted ck2 in
-#'   (Deville, Tillé, 2005). \item \code{inv}: the inverse of \code{A \%*\%
+#' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : 
+#'   the estimated variances as a numerical vector of size the number of 
+#'   columns of y. \item if \code{y} is \code{NULL} (precalculation step) : a list 
+#'   containing precalculated data: \itemize{ \item \code{pik}: the numerical vector 
+#'   of first-order inclusion probabilities. \item \code{A}: the numerical matrix 
+#'   denoted A in (Deville, Tillé, 2005). \item \code{ck}: the numerical vector denoted 
+#'   ck2 in (Deville, Tillé, 2005). \item \code{inv}: the inverse of \code{A \%*\%
 #'   Matrix::Diagonal(x = ck) \%*\% t(A)} \item \code{diago}: the diagonal term
 #'   of the variance estimator } }
 #'   
@@ -305,7 +310,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'  , varDT(y, pik, strata = strata)
 #' )
 #'
-#' @export varDT
+#' @export
 
 varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, colinearity.check = NULL, precalc = NULL){
 
@@ -363,6 +368,47 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, colinearity.
 
 }
 
+
+
+#' @rdname varDT
+#' @export
+var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
+  if(any(tapply(pik, strata, sd) > 1e-6))
+    stop("First-order inclusion probabilities are not equal (within strata if any).")
+  varDT(
+    y = y, pik = pik, x = NULL, strata = strata, w = w, 
+    colinearity.check = FALSE, precalc = precalc
+  )
+}
+
+
+
+#' Variance estimator for a Poisson sampling design
+#' 
+#' @description \code{var_pois} estimates the variance of the estimator 
+#' of a total for a Poisson sampling design.
+#' 
+#' @param y A numerical matrix of the variable(s) whose variance of their total
+#'   is to be estimated. May be a Matrix::TsparseMatrix.
+#' @param pik A numerical vector of first-order inclusion probabilities.
+#' @param w An optional numerical vector of row weights (see Details).
+#' 
+#' @details \code{w} is a row weight used at the final summation step. It is useful
+#'   when \code{var_pois} is used on the second stage of a two-stage sampling
+#'   design applying the Rao (1975) formula.
+#' 
+#' @return The estimated variances as a numerical vector of size the number of 
+#'   columns of y. 
+#'    
+#' @author Martin Chevalier (Insee, French Statistical Institute)
+#'   
+#' @references Rao, J.N.K (1975), "Unbiased variance estimation for multistage designs",
+#'   \emph{Sankhya}, C n°37
+
+#' @export
+var_pois <- function(y, pik, w = NULL){
+  colSums(w * (1 - pik) * (y / pik)^2)
+}
 
 
 #' Sen-Yates-Grundy variance estimator
@@ -434,3 +480,4 @@ varSYG <- function (y = NULL, pikl, precalc = NULL){
   }
 }
 
+# TODO: add a varHT() estimator 
