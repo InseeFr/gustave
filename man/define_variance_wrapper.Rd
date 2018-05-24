@@ -45,7 +45,7 @@ variance function easier. Its parameters are:
   \itemize{
    \item \code{data}: the survey data where the interest variables are stored
    \item \code{...}: one or more calls to a linearization wrapper (see examples
-   and \code{\link{define_linearization_wrapper}})
+   and \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}})
    \item \code{where}: a logical vector indicating a domain on which the variance
    estimation is conducted
    \item \code{by}: a qualitative variable whose levels are used to define domains
@@ -84,7 +84,7 @@ Defining variance estimation wrappers is the \strong{key feature} of
   user-friendly features: \itemize{ \item checks for consistency between the 
   provided dataset and the survey characteristics \item factor discretization
   \item domain estimation \item linearization of complex statistics (see 
-  \code{define_linearization_wrapper})}
+  \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}})}
   
   \code{define_variance_wrapper} allows the methodologist to define a 
   variance estimation wrapper around a given variance estimation function and
@@ -104,19 +104,8 @@ Defining variance estimation wrappers is the \strong{key feature} of
 
 # Step 1 : Definition of a variance function
 
-# Diagonal term of the variance estimator for a stratified
-# simple random sampling
-diago <- varDT(y = NULL,
-  pik = setNames(1 / ict_sample$w_sample, ict_sample$firm_id),
-  strata = ict_sample$division
-)$diago
-
-# Estimated non-reponse probabilities within HRG
-ict_sample$prob <- ict_sample$w_nr / ict_sample$w_sample
-
 # Calibration variables matrix
-x <- as.matrix(ict_survey[, c(paste0("N_", 58:63), paste0("turnover_", 58:63))])
-rownames(x) <- ict_survey$firm_id
+x <- as.matrix(ict_survey[order(ict_survey$firm_id), c(paste0("N_", 58:63), paste0("turnover_", 58:63))])
 
 # Definition of a variance function
 variance_function <- function(y){
@@ -124,14 +113,16 @@ variance_function <- function(y){
   # Calibration
   y <- rescal(y, x = x)
   
-  # Non-response and sampling
-  y <- add0(y, rownames = ict_sample$firm_id) / ict_sample$prob
-  var_nr <- colSums( (ict_sample$w_sample^2 - diago) * (1 - ict_sample$prob) * y^2 )
+  # Non-response
+  y <- add0(y, rownames = ict_sample$firm_id)
+  var_nr <- var_pois(y, pik = ict_sample$response_prob_est, w = ict_sample$w_sample)
   
   # Sampling
-  var_sampling <- varDT(y, pik = 1 / ict_sample$w_sample, strata = ict_sample$division)
+  y <- y / ict_sample$response_prob_est
+  var_sampling <- var_srs(y, pik = 1 / ict_sample$w_sample, strata = ict_sample$division)
   
   var_sampling + var_nr
+  
 }
 
 # Test of the variance function
@@ -145,16 +136,18 @@ variance_wrapper <- define_variance_wrapper(
   variance_function = variance_function,
   reference_id = ict_survey$firm_id,
   default = list(id = "firm_id", weight = "w_calib"),
-  objects_to_include = c("ict_sample", "x", "diago")
+  objects_to_include = c("x", "ict_sample")
 )
 
-# The objects "firm_id", "x" and "diago" are embedded
+# The objects "x" and "diago" are embedded
 # within the function variance_wrapper
 ls(environment(variance_wrapper))
 # Note : variance_wrapper is a closure
 # (http://adv-r.had.co.nz/Functional-programming.html#closures)
+rm(x)
 
 # Step 3 : Features of the variance wrapper
+
 
 # Better display of results
 variance_wrapper(ict_survey, speed_quanti)
@@ -195,7 +188,7 @@ ict_survey \%>\% variance_wrapper(where = division == "58",
 
 }
 \seealso{
-\code{\link{define_linearization_wrapper}} \code{\link{varDT}}
+\code{\link[=linearization_wrapper_standard]{standard linearization wrappers}} \code{\link{varDT}}
 }
 \author{
 Martin Chevalier (Insee)

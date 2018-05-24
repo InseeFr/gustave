@@ -52,14 +52,15 @@ ict_sample <- ict_sample[, setdiff(names(ict_sample), "response_prob")]
 ict_sample$hrg <- with(ict_sample, paste0(
   division, "_", as.integer(cut(ict_sample$turnover, c(-Inf, quantile(ict_sample$turnover, c(0.2, 0.4, 0.6, 0.8)), Inf)))
 ))
-nr_corr <- sapply(split(ict_sample, ict_sample$hrg), function(hrg) with(hrg, sum(w_sample) / sum(w_sample * resp)))
 table(ict_sample$resp, ict_sample$hrg)
-ict_sample$w_nr <- ict_sample$w_sample * nr_corr[ict_sample$hrg]
+response_prob_est <- sapply(split(ict_sample, ict_sample$hrg), function(hrg) with(hrg, sum(w_sample) / sum(w_sample * resp)))
+ict_sample$response_prob_est <- response_prob_est[ict_sample$hrg]
+ict_sample$w_nr <- ict_sample$w_sample * ict_sample$response_prob_est
 
 
 
 # Calibration
-ict_survey <- ict_sample[ict_sample$resp, setdiff(names(ict_sample), c("hrg", "resp"))]
+ict_survey <- ict_sample[ict_sample$resp, setdiff(names(ict_sample), c("hrg", "resp", "response_prob_est"))]
 calib_var <- c(paste0("N_", division), paste0("turnover_", division))
 ict_survey$N_58 <- (ict_survey$division == "58") * 1
 ict_survey$N_59 <- (ict_survey$division == "59") * 1
