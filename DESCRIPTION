@@ -13,7 +13,7 @@ Suggests:
   magrittr
 Depends:
     R (>= 3.2.1)
-Version: 0.3.0.9000
+Version: 0.3.0.9001
 Author: person("Martin", "Chevalier", "martin.chevalier@insee.fr", role = c("aut", "cre"))
 Maintainer: Martin Chevalier <martin.chevalier@insee.fr>
 Description: Gustave: a User-oriented Statistical Toolkit for Analytical Variance Estimation.
