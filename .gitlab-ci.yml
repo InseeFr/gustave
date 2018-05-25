@@ -1,15 +1,7 @@
-stages:
-    - build
-
-variables:
-  CONTAINER_RELEASE_API: "docker-registry.web.innovation.insee.test/methodologie-sondage/gustave"
-
 package:
-  stage: build
   tags:
     - maven
   script:
     - 'docker build -t $CONTAINER_RELEASE_API .'
-    - 'docker push $CONTAINER_RELEASE_API'
   only:
     - master@methodologie-sondage/gustave
