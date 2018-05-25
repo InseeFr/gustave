@@ -2,6 +2,6 @@ package:
   tags:
     - maven
   script:
-    - 'docker build -t $CONTAINER_RELEASE_API .'
+    - 'docker build .'
   only:
     - master@methodologie-sondage/gustave
