@@ -4,7 +4,7 @@ ENV http_proxy=http://proxy-rie.http.insee.fr:8080
 ENV https_proxy=http://proxy-rie.http.insee.fr:8080
 
 RUN apt-get update
-RUN apt-get install libssl-dev libcurl4-openssl-dev git-core
+RUN apt-get -y install libssl-dev libcurl4-openssl-dev git-core
 
 RUN R -e "install.packages(c('testthat', 'sampling', 'vardpoor', 'magrittr', 'devtools'), repos='https://cran.rstudio.com/')"
 RUN R CMD build . --no-build-vignettes --no-manual
