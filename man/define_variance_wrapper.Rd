@@ -156,37 +156,33 @@ rm(x)
 # Better display of results
 variance_wrapper(ict_survey, speed_quanti)
 
-# Compatible with magrittr pipe operator \%>\%
-library(magrittr)
-ict_survey \%>\% variance_wrapper(speed_quanti)
-
 # Mean linearization
-ict_survey \%>\% variance_wrapper(mean(speed_quanti))
+variance_wrapper(ict_survey, mean(speed_quanti))
 # Ratio linearization
-ict_survey \%>\% variance_wrapper(ratio(turnover, employees))
+variance_wrapper(ict_survey, ratio(turnover, employees))
 
 # Discretization of qualitative variables
-ict_survey \%>\% variance_wrapper(speed_quali)
+variance_wrapper(ict_survey, speed_quali)
 # On-the-fly recoding
-ict_survey \%>\% variance_wrapper(speed_quali == "Between 2 and 10 Mbs")
+variance_wrapper(ict_survey, speed_quali == "Between 2 and 10 Mbs")
 
 # 1-domain estimation
-ict_survey \%>\% variance_wrapper(speed_quanti, where = division == "58")
+variance_wrapper(ict_survey, speed_quanti, where = division == "58")
 # Multiple domains estimation
-ict_survey \%>\% variance_wrapper(speed_quanti, by = division)
+variance_wrapper(ict_survey, speed_quanti, by = division)
 
 # Multiple variables at a time
-ict_survey \%>\% variance_wrapper(speed_quanti, big_data)
-ict_survey \%>\% variance_wrapper(speed_quanti, mean(big_data))
+variance_wrapper(ict_survey, speed_quanti, big_data)
+variance_wrapper(ict_survey, speed_quanti, mean(big_data))
 # Flexible syntax for where and by arguments
 # (similar to the aes() function in ggplot2)
-ict_survey \%>\% variance_wrapper(where = division == "58", 
+variance_wrapper(ict_survey, where = division == "58", 
   mean(speed_quanti), mean(big_data * 100)
 )
-ict_survey \%>\% variance_wrapper(where = division == "58", 
+variance_wrapper(ict_survey, where = division == "58", 
   mean(speed_quanti), mean(big_data * 100, where = division == "61")
 )
-ict_survey \%>\% variance_wrapper(where = division == "58", 
+variance_wrapper(ict_survey, where = division == "58", 
   mean(speed_quanti), mean(big_data * 100, where = NULL)
 )
 

@@ -8,10 +8,10 @@
 \alias{gini}
 \title{Linearization wrappers for Laeken indicators}
 \usage{
-arpr(y, weight, percentage = 60, order_quant = 50L, by = NULL,
-  where = NULL, technical_arg)
+arpr(y, percentage = 60, order_quant = 50L, by = NULL, where = NULL,
+  ...)
 
-gini(y, weight, by = NULL, where = NULL, technical_arg)
+gini(y, by = NULL, where = NULL, ...)
 }
 \description{
 Linearization wrappers for Laeken indicators

@@ -11,14 +11,13 @@
 \alias{diffratio}
 \title{Standard linearization wrappers}
 \usage{
-total(y, weight, by = NULL, where = NULL, technical_arg)
+total(y, by = NULL, where = NULL, ...)
 
-ratio(num, denom, weight, by = NULL, where = NULL, technical_arg)
+ratio(num, denom, by = NULL, where = NULL, ...)
 
-mean(y, weight, by = NULL, where = NULL, technical_arg)
+mean(y, by = NULL, where = NULL, ...)
 
-diffratio(num1, denom1, num2, denom2, weight, by = NULL, where = NULL,
-  technical_arg)
+diffratio(num1, denom1, num2, denom2, by = NULL, where = NULL, ...)
 }
 \description{
 Standard linearization wrappers
