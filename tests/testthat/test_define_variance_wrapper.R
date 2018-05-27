@@ -5,9 +5,9 @@ context("define_variance_wrapper")
 test_that("variance_wrapper can be defined in globalenv()", {
   expect_error(
     variance_wrapper <<- define_variance_wrapper(
-      variance_function = function(y) abs(colSums(y))
-      , reference_id = ict_survey$firm_id
-      , default = list(id = "firm_id", weight = "w_calib", stat = "mean")
+      variance_function = function(y) abs(colSums(y)), 
+      reference_id = ict_survey$firm_id, 
+      default = list(id = "firm_id", weight = "w_calib", stat = "mean")
     ), 
     regexp = NA)
   expect_error(variance_wrapper(ict_survey, speed_quanti), regexp = NA)
@@ -19,10 +19,10 @@ test_that("varwrap_test can be defined in another function", {
     preparation_function <- function(){
       a <- 1
       define_variance_wrapper(
-        variance_function = function(y) abs(colSums(y)) + 1
-        , reference_id = ict_survey$firm_id
-        , default = list(id = "firm_id", weight = "w_calib", stat = "mean")
-        , objects_to_include = "a"
+        variance_function = function(y) abs(colSums(y)) + 1, 
+        reference_id = ict_survey$firm_id, 
+        default = list(id = "firm_id", weight = "w_calib", stat = "mean"), 
+        objects_to_include = "a"
       )
     }
     variance_wrapper2 <<- preparation_function()
