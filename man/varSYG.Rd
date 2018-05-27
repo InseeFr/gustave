@@ -12,13 +12,13 @@ is to be estimated. May be a Matrix::TsparseMatrix.}
 
 \item{pikl}{A numerical matrix of second-order inclusion probabilities.}
 
-\item{precalc}{A list of precalculated results (analogous to the one used by 
+\item{precalc}{A list of pre-calculated results (analogous to the one used by 
 \code{\link{varDT}}).}
 }
 \value{
 \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
   numerical vector of size the number of columns of y. \item if \code{y} is
-  \code{NULL} (precalculation step) : a list containing precalculated data 
+  \code{NULL} (pre-calculation step) : a list containing pre-calculated data 
   (analogous to the one used by \code{\link{varDT}}).}
 }
 \description{
@@ -33,8 +33,8 @@ design is of fixed size).
   to be conducted, as it relies on (sparse) matrix linear algebra.
 
   Moreover, in order to be consistent with \code{\link{varDT}}, \code{varSYG}
-  alsa has a \code{precalc} argument allowing for the re-use of intermediary
-  results calculated once and for all in a precalculation step (see 
+  has a \code{precalc} argument allowing for the re-use of intermediary
+  results calculated once and for all in a pre-calculation step (see 
   \code{\link{varDT}} for details).
 }
 \section{Difference with \code{varHT} from package \code{sampling}}{

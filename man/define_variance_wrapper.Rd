@@ -26,7 +26,7 @@ according to \code{reference_id}.}
   \item \code{weight}: the name of the default weight variable in the survey file. 
   It can also be an unevaluated expression (enclosed in \code{substitute()}) to be 
   evaluated within the survey file.
-  \item \code{stat}: the name of the default statitic to compute when none is specified. 
+  \item \code{stat}: the name of the default statistic to compute when none is specified. 
   It is set to \code{"total"} by default.
   \item \code{alpha}: the default threshold for confidence interval derivation. 
   It is set to \code{0.05} by default.

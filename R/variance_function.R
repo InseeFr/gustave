@@ -3,62 +3,62 @@
 #' Linear Regression Residuals Calculation
 #'
 #' @description \code{rescal} calculates linear regression residuals in an 
-#' efficient way : handling several dependant variables at a time, using 
-#' Matrix::TsparseMatrix capabilities and allowing for precalculation of 
+#' efficient way : handling several dependent variables at a time, using 
+#' Matrix::TsparseMatrix capabilities and allowing for pre-calculation of 
 #' the matrix inverse.
 #'
-#' @param y A numerical matrix of dependant variable(s). May be a 
+#' @param y A numerical matrix of dependent variable(s). May be a 
 #' Matrix::TsparseMatrix.
-#' @param x A numerical matrix of independant variable(s). May be a 
+#' @param x A numerical matrix of independent variable(s). May be a 
 #' Matrix::TsparseMatrix.
 #' @param w An optional numerical vector of row weights.
 #' @param by An optional categorical vector (factor or character)
 #' when residuals calculation is to be conducted within by-groups 
 #' (see Details).
-#' @param colinearity.check A boolean (\code{TRUE} or \code{FALSE}) or 
-#' \code{NULL} indicating whether to perform a check for colinearity or 
+#' @param collinearity.check A boolean (\code{TRUE} or \code{FALSE}) or 
+#' \code{NULL} indicating whether to perform a check for collinearity or 
 #' not (see Details).
-#' @param precalc A list of precalculated results (see Details).
+#' @param precalc A list of pre-calculated results (see Details).
 #'
 #' @details In the context of the \code{gustave} package, linear 
 #' regression residual calculation is solely used to take into account 
-#' the effect of calibration on variance estimation. Independant variables 
+#' the effect of calibration on variance estimation. Independent variables 
 #' are therefore most likely to be the same from one variance estimation 
 #' to another, hence the inversion of the matrix 
 #' \code{t(x) \%*\% Diagonal(x = w) \%*\% x} can be done once and for all 
-#' at a precalculation step.
+#' at a pre-calculation step.
 #'
 #' The parameters \code{y} and \code{precalc} determine whether a list of 
-#' precalculated data should be used in order to speed up the regression 
+#' pre-calculated data should be used in order to speed up the regression 
 #' residuals computation at execution time:
 #' \itemize{
 #'  \item if \code{y} not \code{NULL} and \code{precalc} \code{NULL} : 
 #'  on-the-fly calculation of the matrix inverse and the regression residuals 
-#'  (no precalculation).
+#'  (no pre-calculation).
 #'  \item if \code{y} \code{NULL} and \code{precalc} \code{NULL} : 
-#'  precalculation of the matrix inverse which is stored in a list of 
-#'  precalculated data.
+#'  pre-calculation of the matrix inverse which is stored in a list of 
+#'  pre-calculated data.
 #'  \item if \code{y} not \code{NULL} and \code{precalc} not \code{NULL} : 
-#'  calculation of the regression residuals using the list of precalculated 
+#'  calculation of the regression residuals using the list of pre-calculated 
 #'  data.
 #' }
 #'
-#' The \code{by} paramater allows for calculation within by-groups : all 
+#' The \code{by} parameter allows for calculation within by-groups : all 
 #' calculation are made separately for each by-group (when calibration was 
 #' conducted separately on several subsamples), but in an efficient way using 
-#' Matrix::TsparseMatrix capabilities (especiellay when the matrix inverse is 
-#' precalculated).
+#' Matrix::TsparseMatrix capabilities (especially when the matrix inverse is 
+#' pre-calculated).
 #' 
-#' If \code{colinearity.check} is \code{NULL}, a test for colinearity in the 
-#' independant variables (\code{x}) is conducted if and only if \code{det(t(x)
+#' If \code{collinearity.check} is \code{NULL}, a test for collinearity in the 
+#' independent variables (\code{x}) is conducted if and only if \code{det(t(x)
 #' \%*\% x) == 0}.
 #' 
 #'
 #' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
 #'   numerical matrix with same structure (regular base::matrix or
 #'   Matrix::TsparseMatrix) and dimensions as \code{y}. \item if \code{y} is
-#'   \code{NULL} (precalculation step) : a list containing precalculated data:
-#'   \itemize{ \item \code{x}: the numerical matrix of independant variables. 
+#'   \code{NULL} (pre-calculation step) : a list containing pre-calculated data:
+#'   \itemize{ \item \code{x}: the numerical matrix of independent variables. 
 #'   \item \code{w}: the numerical vector of row weights (vector of 1 by
 #'   default). \item \code{inv}: the inverse of \code{t(x) \%*\%
 #'   Matrix::Diagonal(x = w) \%*\% x} } }
@@ -76,13 +76,13 @@
 #' # Direct calculation
 #' rescal(y, x)
 #'
-#' # Calculation with precalculated data
+#' # Calculation with pre-calculated data
 #' precalc <- rescal(y = NULL, x)
 #' rescal(y, precalc = precalc)
 #' identical(rescal(y, x), rescal(y, precalc = precalc))
 #'
-#' # Colinearity check
-#' rescal(y, cbind(x, x[, 1]), colinearity.check = TRUE)
+#' # Collinearity check
+#' rescal(y, cbind(x, x[, 1]), collinearity.check = TRUE)
 #'
 #' # Matrix::TsparseMatrix capability
 #' require(Matrix)
@@ -99,7 +99,7 @@
 #'
 #' @export rescal
 
-rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, precalc = NULL){
+rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, precalc = NULL){
 
   if(is.null(precalc)){
 
@@ -108,10 +108,10 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
     # Taking the by into account
     if(!is.null(by)) x <- block_matrix(x, by)$y
 
-    # Checking for colinearity
-    if(isTRUE(colinearity.check) || (is.null(colinearity.check) && det(t(x) %*% x) == 0)){
+    # Checking for collinearity
+    if(isTRUE(collinearity.check) || (is.null(collinearity.check) && det(t(x) %*% x) == 0)){
       t <- as.vector(is.na(stats::lm(rep(1, NROW(x)) ~ . - 1, data = as.data.frame(as.matrix(x)))$coef))
-      if(any(t)) warning("Some variables in x where discarted due to colinearity.")
+      if(any(t)) warning("Some variables in x where discarted due to collinearity.")
       x <- x[, !t]
     }
 
@@ -161,10 +161,10 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #' @param strata An optional categorical vector (factor or character) when
 #'   variance estimation is to be conducted within strata.
 #' @param w An optional numerical vector of row weights (see Details).
-#' @param colinearity.check A boolean (\code{TRUE} or \code{FALSE}) or
-#'   \code{NULL} indicating whether to perform a check for colinearity or not
+#' @param collinearity.check A boolean (\code{TRUE} or \code{FALSE}) or
+#'   \code{NULL} indicating whether to perform a check for collinearity or not
 #'   (see Details).
-#' @param precalc A list of precalculated results (see Details).
+#' @param precalc A list of pre-calculated results (see Details).
 #'   
 #' @details \code{varDT} aims at being the workhorse of most variance estimation conducted
 #'   with the \code{gustave} package. It may be used to estimate the variance
@@ -174,18 +174,18 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'   for significant performance gains compared to higher level vectorizations
 #'   (\code{*apply} especially).
 #'   
-#'   Several time-consuming operations (e.g. colinearity-check, matrix
-#'   inversion) can be precalculated in order to speed up the estimation at
+#'   Several time-consuming operations (e.g. collinearity-check, matrix
+#'   inversion) can be pre-calculated in order to speed up the estimation at
 #'   execution time. This is determined by the value of the parameters \code{y}
 #'   and \code{precalc}: \itemize{ \item if \code{y} not \code{NULL} and
-#'   \code{precalc} \code{NULL} : on-the-fly calculation (no precalculation). 
+#'   \code{precalc} \code{NULL} : on-the-fly calculation (no pre-calculation). 
 #'   \item if \code{y} \code{NULL} and \code{precalc} \code{NULL} :
-#'   precalculation whose results are stored in a list of precalculated data. 
+#'   pre-calculation whose results are stored in a list of pre-calculated data. 
 #'   \item if \code{y} not \code{NULL} and \code{precalc} not \code{NULL} :
-#'   calculation using the list of precalculated data. }
+#'   calculation using the list of pre-calculated data. }
 #'   
-#'   If \code{colinearity.check} is \code{NULL}, a test for colinearity in the
-#'   independant variables (\code{x}) is conducted only if \code{det(t(x) \%*\%
+#'   If \code{collinearity.check} is \code{NULL}, a test for collinearity in the
+#'   independent variables (\code{x}) is conducted only if \code{det(t(x) \%*\%
 #'   x) == 0)}.
 #'   
 #'   \code{w} is a row weight used at the final summation step. It is useful
@@ -205,7 +205,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'   matrixwise operations allow to estimate variance on several interest
 #'   variables at once \item Matrix::TsparseMatrix capability and the native
 #'   integration of stratification yield significant performance gains. \item
-#'   the ability to precalculate some time-consuming operations speeds up the
+#'   the ability to pre-calculate some time-consuming operations speeds up the
 #'   estimation at execution time. } \item \code{varDT} does not natively
 #'   implements the calibration estimator (i.e. the sampling variance estimator
 #'   that takes into account the effect of calibration). In the context of the
@@ -215,8 +215,8 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'   
 #' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : 
 #'   the estimated variances as a numerical vector of size the number of 
-#'   columns of y. \item if \code{y} is \code{NULL} (precalculation step) : a list 
-#'   containing precalculated data: \itemize{ \item \code{pik}: the numerical vector 
+#'   columns of y. \item if \code{y} is \code{NULL} (pre-calculation step) : a list 
+#'   containing pre-calculated data: \itemize{ \item \code{pik}: the numerical vector 
 #'   of first-order inclusion probabilities. \item \code{A}: the numerical matrix 
 #'   denoted A in (Deville, Tillé, 2005). \item \code{ck}: the numerical vector denoted 
 #'   ck2 in (Deville, Tillé, 2005). \item \code{inv}: the inverse of \code{A \%*\%
@@ -232,7 +232,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'   Deville, J.-C. (1993), \emph{Estimation de la variance pour les enquêtes en
 #'   deux phases}, Manuscript, INSEE, Paris.
 #'   
-#'   Deville, J.-C., Tille, Y. (2005), "Variance approximation under balanced
+#'   Deville, J.-C., Tillé, Y. (2005), "Variance approximation under balanced
 #'   sampling", \emph{Journal of Statistical Planning and Inference}, 128, issue
 #'   2 569-591
 #'   
@@ -312,16 +312,16 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL, p
 #'
 #' @export
 
-varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, colinearity.check = NULL, precalc = NULL){
+varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity.check = NULL, precalc = NULL){
 
   # set.seed(1); n <- 2600; q <- 10; p <- 15; H <- 22; y <- matrix(rnorm(q*n),ncol=q); pik <- runif(n); x <- matrix(rnorm(p*n),ncol=p); x <- cbind(x, x[, 1]); strata <- rep(1:H,n %/% H + 1)[1:n][sample.int(n)]; precalc <- NULL;
-  # y = NULL; pik = bisect$piup; x = up_x; strata = bisect$reg; colinearity.check = TRUE
+  # y = NULL; pik = bisect$piup; x = up_x; strata = bisect$reg; collinearity.check = TRUE
 
   if(is.null(precalc)){
 
     if(is.null(x)){
       x <- pik
-      if(is.null(colinearity.check)) colinearity.check <- FALSE
+      if(is.null(collinearity.check)) collinearity.check <- FALSE
     }
     p <- NCOL(x)
 
@@ -337,12 +337,12 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, colinearity.
       n <- length(pik)
     }
 
-    # Checking for colinearity
-    if(isTRUE(colinearity.check) || (is.null(colinearity.check) && Matrix::det(t(x) %*% x) == 0)){
+    # Checking for collinearity
+    if(isTRUE(collinearity.check) || (is.null(collinearity.check) && Matrix::det(t(x) %*% x) == 0)){
       t <- as.vector(is.na(stats::lm(rep(1, NROW(x)) ~ . - 1, data = as.data.frame(as.matrix(x)))$coef))
       t2 <- sumby(!t, bycol)
       x <- x[, !t]
-      if(any(t)) warning("Some variables in x where discarted due to colinearity.")
+      if(any(t)) warning("Some variables in x where discarted due to collinearity.")
       p <- as.vector(t2[match(strata, names(t2))])
     }
 
@@ -377,7 +377,7 @@ var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
     stop("First-order inclusion probabilities are not equal (within strata if any).")
   varDT(
     y = y, pik = pik, x = NULL, strata = strata, w = w, 
-    colinearity.check = FALSE, precalc = precalc
+    collinearity.check = FALSE, precalc = precalc
   )
 }
 
@@ -420,7 +420,7 @@ var_pois <- function(y, pik, w = NULL){
 #' @param y A numerical matrix of the variable(s) whose variance of their total
 #'   is to be estimated. May be a Matrix::TsparseMatrix.
 #' @param pikl A numerical matrix of second-order inclusion probabilities.
-#' @param precalc A list of precalculated results (analogous to the one used by 
+#' @param precalc A list of pre-calculated results (analogous to the one used by 
 #'   \code{\link{varDT}}).
 #' 
 #' @details \code{varSYG} aims at being an efficient implementation of the 
@@ -429,8 +429,8 @@ var_pois <- function(y, pik, w = NULL){
 #'   to be conducted, as it relies on (sparse) matrix linear algebra.
 #' 
 #'   Moreover, in order to be consistent with \code{\link{varDT}}, \code{varSYG}
-#'   alsa has a \code{precalc} argument allowing for the re-use of intermediary
-#'   results calculated once and for all in a precalculation step (see 
+#'   has a \code{precalc} argument allowing for the re-use of intermediary
+#'   results calculated once and for all in a pre-calculation step (see 
 #'   \code{\link{varDT}} for details).
 #'   
 #' @section Difference with \code{varHT} from package \code{sampling}:
@@ -446,7 +446,7 @@ var_pois <- function(y, pik, w = NULL){
 #' 
 #' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
 #'   numerical vector of size the number of columns of y. \item if \code{y} is
-#'   \code{NULL} (precalculation step) : a list containing precalculated data 
+#'   \code{NULL} (pre-calculation step) : a list containing pre-calculated data 
 #'   (analogous to the one used by \code{\link{varDT}}).}
 #' 
 #' @author Martin Chevalier (Insee, French Statistical Institute)

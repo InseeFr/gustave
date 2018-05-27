@@ -4,14 +4,14 @@
 \alias{rescal}
 \title{Linear Regression Residuals Calculation}
 \usage{
-rescal(y = NULL, x, w = NULL, by = NULL, colinearity.check = NULL,
+rescal(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL,
   precalc = NULL)
 }
 \arguments{
-\item{y}{A numerical matrix of dependant variable(s). May be a 
+\item{y}{A numerical matrix of dependent variable(s). May be a 
 Matrix::TsparseMatrix.}
 
-\item{x}{A numerical matrix of independant variable(s). May be a 
+\item{x}{A numerical matrix of independent variable(s). May be a 
 Matrix::TsparseMatrix.}
 
 \item{w}{An optional numerical vector of row weights.}
@@ -20,60 +20,60 @@ Matrix::TsparseMatrix.}
 when residuals calculation is to be conducted within by-groups 
 (see Details).}
 
-\item{colinearity.check}{A boolean (\code{TRUE} or \code{FALSE}) or 
-\code{NULL} indicating whether to perform a check for colinearity or 
+\item{collinearity.check}{A boolean (\code{TRUE} or \code{FALSE}) or 
+\code{NULL} indicating whether to perform a check for collinearity or 
 not (see Details).}
 
-\item{precalc}{A list of precalculated results (see Details).}
+\item{precalc}{A list of pre-calculated results (see Details).}
 }
 \value{
 \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
   numerical matrix with same structure (regular base::matrix or
   Matrix::TsparseMatrix) and dimensions as \code{y}. \item if \code{y} is
-  \code{NULL} (precalculation step) : a list containing precalculated data:
-  \itemize{ \item \code{x}: the numerical matrix of independant variables. 
+  \code{NULL} (pre-calculation step) : a list containing pre-calculated data:
+  \itemize{ \item \code{x}: the numerical matrix of independent variables. 
   \item \code{w}: the numerical vector of row weights (vector of 1 by
   default). \item \code{inv}: the inverse of \code{t(x) \%*\%
   Matrix::Diagonal(x = w) \%*\% x} } }
 }
 \description{
 \code{rescal} calculates linear regression residuals in an 
-efficient way : handling several dependant variables at a time, using 
-Matrix::TsparseMatrix capabilities and allowing for precalculation of 
+efficient way : handling several dependent variables at a time, using 
+Matrix::TsparseMatrix capabilities and allowing for pre-calculation of 
 the matrix inverse.
 }
 \details{
 In the context of the \code{gustave} package, linear 
 regression residual calculation is solely used to take into account 
-the effect of calibration on variance estimation. Independant variables 
+the effect of calibration on variance estimation. Independent variables 
 are therefore most likely to be the same from one variance estimation 
 to another, hence the inversion of the matrix 
 \code{t(x) \%*\% Diagonal(x = w) \%*\% x} can be done once and for all 
-at a precalculation step.
+at a pre-calculation step.
 
 The parameters \code{y} and \code{precalc} determine whether a list of 
-precalculated data should be used in order to speed up the regression 
+pre-calculated data should be used in order to speed up the regression 
 residuals computation at execution time:
 \itemize{
  \item if \code{y} not \code{NULL} and \code{precalc} \code{NULL} : 
  on-the-fly calculation of the matrix inverse and the regression residuals 
- (no precalculation).
+ (no pre-calculation).
  \item if \code{y} \code{NULL} and \code{precalc} \code{NULL} : 
- precalculation of the matrix inverse which is stored in a list of 
- precalculated data.
+ pre-calculation of the matrix inverse which is stored in a list of 
+ pre-calculated data.
  \item if \code{y} not \code{NULL} and \code{precalc} not \code{NULL} : 
- calculation of the regression residuals using the list of precalculated 
+ calculation of the regression residuals using the list of pre-calculated 
  data.
 }
 
-The \code{by} paramater allows for calculation within by-groups : all 
+The \code{by} parameter allows for calculation within by-groups : all 
 calculation are made separately for each by-group (when calibration was 
 conducted separately on several subsamples), but in an efficient way using 
-Matrix::TsparseMatrix capabilities (especiellay when the matrix inverse is 
-precalculated).
+Matrix::TsparseMatrix capabilities (especially when the matrix inverse is 
+pre-calculated).
 
-If \code{colinearity.check} is \code{NULL}, a test for colinearity in the 
-independant variables (\code{x}) is conducted if and only if \code{det(t(x)
+If \code{collinearity.check} is \code{NULL}, a test for collinearity in the 
+independent variables (\code{x}) is conducted if and only if \code{det(t(x)
 \%*\% x) == 0}.
 }
 \examples{
@@ -88,13 +88,13 @@ by <- letters[sample(1:H, n, replace = TRUE)]
 # Direct calculation
 rescal(y, x)
 
-# Calculation with precalculated data
+# Calculation with pre-calculated data
 precalc <- rescal(y = NULL, x)
 rescal(y, precalc = precalc)
 identical(rescal(y, x), rescal(y, precalc = precalc))
 
-# Colinearity check
-rescal(y, cbind(x, x[, 1]), colinearity.check = TRUE)
+# Collinearity check
+rescal(y, cbind(x, x[, 1]), collinearity.check = TRUE)
 
 # Matrix::TsparseMatrix capability
 require(Matrix)

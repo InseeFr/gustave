@@ -8,7 +8,7 @@ sumby(y, by, w = NULL, na_rm = TRUE, keep_sparse = FALSE)
 }
 \arguments{
 \item{y}{A (sparse) vector, a (sparse) matrix or a data.frame. 
-The object to perform by-groupe summation on.}
+The object to perform by-group summation on.}
 
 \item{by}{The factor variable defining the by-groups. Character variables
 are coerced to factors.}
@@ -30,11 +30,11 @@ sparse and keep_sparse is TRUE, then the result is also sparse (without names
 when it is a sparse vector, see keep_sparse argument for details).
 }
 \description{
-\code{sumby()} performs an efficient and optionnaly weighted 
+\code{sumby()} performs an efficient and optionally weighted 
 by-group summation by using linear algebra and the Matrix package 
 capabilities. The by-group summation is performed through matrix cross-product
 of the y parameter (coerced to a matrix if needed) with a (very) sparse
-matrix bulit up using the by and the (optional) w parameters. 
+matrix built up using the by and the (optional) w parameters. 
 
 Compared to base R, dplyr or data.table alternatives, this implementation 
 aims at being easier to use in a matrix-oriented context and can yield 

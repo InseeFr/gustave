@@ -7,7 +7,7 @@
 \title{Variance approximation with Deville-Tillé (2005) formula}
 \usage{
 varDT(y = NULL, pik, x = NULL, strata = NULL, w = NULL,
-  colinearity.check = NULL, precalc = NULL)
+  collinearity.check = NULL, precalc = NULL)
 
 var_srs(y, pik, strata = NULL, w = NULL, precalc = NULL)
 }
@@ -25,17 +25,17 @@ variance estimation is to be conducted within strata.}
 
 \item{w}{An optional numerical vector of row weights (see Details).}
 
-\item{colinearity.check}{A boolean (\code{TRUE} or \code{FALSE}) or
-\code{NULL} indicating whether to perform a check for colinearity or not
+\item{collinearity.check}{A boolean (\code{TRUE} or \code{FALSE}) or
+\code{NULL} indicating whether to perform a check for collinearity or not
 (see Details).}
 
-\item{precalc}{A list of precalculated results (see Details).}
+\item{precalc}{A list of pre-calculated results (see Details).}
 }
 \value{
 \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : 
   the estimated variances as a numerical vector of size the number of 
-  columns of y. \item if \code{y} is \code{NULL} (precalculation step) : a list 
-  containing precalculated data: \itemize{ \item \code{pik}: the numerical vector 
+  columns of y. \item if \code{y} is \code{NULL} (pre-calculation step) : a list 
+  containing pre-calculated data: \itemize{ \item \code{pik}: the numerical vector 
   of first-order inclusion probabilities. \item \code{A}: the numerical matrix 
   denoted A in (Deville, Tillé, 2005). \item \code{ck}: the numerical vector denoted 
   ck2 in (Deville, Tillé, 2005). \item \code{inv}: the inverse of \code{A \%*\%
@@ -62,18 +62,18 @@ variance estimation is to be conducted within strata.}
   for significant performance gains compared to higher level vectorizations
   (\code{*apply} especially).
   
-  Several time-consuming operations (e.g. colinearity-check, matrix
-  inversion) can be precalculated in order to speed up the estimation at
+  Several time-consuming operations (e.g. collinearity-check, matrix
+  inversion) can be pre-calculated in order to speed up the estimation at
   execution time. This is determined by the value of the parameters \code{y}
   and \code{precalc}: \itemize{ \item if \code{y} not \code{NULL} and
-  \code{precalc} \code{NULL} : on-the-fly calculation (no precalculation). 
+  \code{precalc} \code{NULL} : on-the-fly calculation (no pre-calculation). 
   \item if \code{y} \code{NULL} and \code{precalc} \code{NULL} :
-  precalculation whose results are stored in a list of precalculated data. 
+  pre-calculation whose results are stored in a list of pre-calculated data. 
   \item if \code{y} not \code{NULL} and \code{precalc} not \code{NULL} :
-  calculation using the list of precalculated data. }
+  calculation using the list of pre-calculated data. }
   
-  If \code{colinearity.check} is \code{NULL}, a test for colinearity in the
-  independant variables (\code{x}) is conducted only if \code{det(t(x) \%*\%
+  If \code{collinearity.check} is \code{NULL}, a test for collinearity in the
+  independent variables (\code{x}) is conducted only if \code{det(t(x) \%*\%
   x) == 0)}.
   
   \code{w} is a row weight used at the final summation step. It is useful
@@ -94,7 +94,7 @@ variance estimation is to be conducted within strata.}
   matrixwise operations allow to estimate variance on several interest
   variables at once \item Matrix::TsparseMatrix capability and the native
   integration of stratification yield significant performance gains. \item
-  the ability to precalculate some time-consuming operations speeds up the
+  the ability to pre-calculate some time-consuming operations speeds up the
   estimation at execution time. } \item \code{varDT} does not natively
   implements the calibration estimator (i.e. the sampling variance estimator
   that takes into account the effect of calibration). In the context of the
@@ -183,7 +183,7 @@ Caron N., Deville J.-C., Sautory O. (1998), \emph{Estimation de
   Deville, J.-C. (1993), \emph{Estimation de la variance pour les enquêtes en
   deux phases}, Manuscript, INSEE, Paris.
   
-  Deville, J.-C., Tille, Y. (2005), "Variance approximation under balanced
+  Deville, J.-C., Tillé, Y. (2005), "Variance approximation under balanced
   sampling", \emph{Journal of Statistical Planning and Inference}, 128, issue
   2 569-591
   
