@@ -20,14 +20,13 @@ removed.}
 A (sparse) matrix or data.frame depending on the type of y.
 }
 \description{
-For a given two-dimensional object with rownames, (sparse) 
-matrix or data.frame and a character vector, \code{add0()} produces
-a corresponding object whose rownames match the character vector 
-with zeros on the additional rows.
+For a given two-dimensional object with rownames and a character
+  vector, \code{add0()} produces a corresponding object whose rownames match
+  the character vector, with zeros on the additional rows.
 
-This function is an easy-to-use and reliable way to reintroduce 
-non-responding in the variance estimation process (after the 
-non-response phase is taken into account).
+  This function is an easy-to-use and reliable way to reintroduce
+  non-responding units in the variance estimation process (after the
+  non-response phase is taken into account).
 }
 \examples{
 # Data generation
@@ -39,9 +38,9 @@ y[c(3, 8, 12)] <- NA
 rownames <- letters
 
 # Standard use
-add0(y, rownames) 
+add0(y, rownames)
 
-# Use when rownames in y do not match 
+# Use when rownames in y do not match
 # any element in the rownames argument
 rownames(y)[1:3] <- toupper(rownames(y)[1:3])
 add0(y, rownames)
