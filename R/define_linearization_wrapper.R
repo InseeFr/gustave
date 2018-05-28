@@ -28,26 +28,20 @@ define_linearization_wrapper <- function(
   # Step 1 : Create the linearization wrapper
   linearization_wrapper <- function(by = NULL, where = NULL, ...){
     
-    # Step 1.1 : Capture and modify the call
+    # Step 1.1 : Capture and expand the call
     call <- match.call(expand.dots = TRUE)
-    call_list <- as.list(call)[-1]
-    call_list <- c(call_list, list(
-      allow_factor = allow_factor, arg_type = arg_type
-      , arg_not_affected_by_domain = arg_not_affected_by_domain
-    ))
     call_display_arg <- c(1, which(names(call) %in% setdiff(names(formals(sys.function())), "...") & !sapply(call, is.null)))
     call_display <- paste(deparse(call[call_display_arg], width.cutoff = 500L), collapse = "")
+    call_list <- c(as.list(call)[-1], list(
+      allow_factor = allow_factor, arg_type = arg_type, 
+      arg_not_affected_by_domain = arg_not_affected_by_domain,
+      call = call_display
+    ))
     
     # Step 1.2 : Proceeed to standard preparation
     d <- do.call(standard_preparation, call_list)
     if(is.null(d)) return(NULL)
-    d <- lapply(d, function(i){
-      i$metadata$call <- call_display
-      i
-    })
-    # TODO: directly produce the display part within standard_preparation() (save for call)
-    # TODO: reactivate label capability
-    
+
     # Step 1.3 : Evaluate the linearization functions
     d <- lapply(d, function(i){
       tmp <- do.call(linearization_function, with(i, c(data, weight, param)))
@@ -68,7 +62,7 @@ define_linearization_wrapper <- function(
     formals(linearization_wrapper)
   )
 
-  # Step 3 : Include aobjects in linearization_wrapper enclosing environment
+  # Step 3 : Include objects in linearization_wrapper enclosing environment
   e <- new.env(parent = globalenv())
   assign_all(objects = "standard_preparation", to = e, from = asNamespace("gustave"))
   assign_all(objects = c("linearization_function", "arg_type", "allow_factor", "arg_not_affected_by_domain", "display_function"), to = e, from = environment())
@@ -81,7 +75,8 @@ define_linearization_wrapper <- function(
 standard_preparation <- function(..., 
                                  by = NULL, where = NULL, 
                                  data, label, evaluation_envir, execution_envir, 
-                                 allow_factor, arg_type, arg_not_affected_by_domain
+                                 allow_factor, arg_type, arg_not_affected_by_domain,
+                                 call
   ){
 
   # Step 1 : Evaluation
@@ -146,7 +141,8 @@ standard_preparation <- function(...,
       , metadata = c(j$metadata, list(
         by = if(byNULL) NA else names(bypos)[i], 
         bypos = bypos[[i]],
-        label = label
+        label = label,
+        call = call
       ))))
   }), recursive = FALSE)
   
