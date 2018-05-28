@@ -280,7 +280,7 @@ define_variance_wrapper <- function(
 
     # Step 1.6 Reorganize the results of the estimation
     k <- 0;
-    d$display <- lapply(seq_along(d$display), function(i) c(d$display[[i]]
+    d$preparation <- lapply(seq_along(d$preparation), function(i) c(d$preparation[[i]]
       , list(var = lapply(d$preparation[[i]]$lin, function(j){
         tmp <- r[[1]][(k + 1):(k + NCOL(j))]
         assign("k", (k + NCOL(j)), envir = execution_envir)
@@ -290,7 +290,7 @@ define_variance_wrapper <- function(
 
     # Step 1.7 : Display the results if requested (the default)
     if(display){
-      d <- lapply(d$display, function(i) i$display_function(i, alpha = alpha))
+      d <- lapply(d$preparation, function(i) i$display_function(i, alpha = alpha))
       names <- unique(do.call(base::c, lapply(d, names)))
       d <- do.call(rbind, lapply(d, function(i){
         i[, setdiff(names, names(i))] <- NA

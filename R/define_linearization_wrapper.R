@@ -42,22 +42,24 @@ define_linearization_wrapper <- function(
     preparation <- do.call(standard_preparation, call_list)
     if(is.null(preparation)) return(NULL)
     d <- lapply(preparation, function(i) list(
-      preparation = i
-      , display = list(metadata = list(
-        # label = label,
-        call = call_display,
-        mod = i$metadata$mod, by = i$metadata$by
-      ))
+      preparation = {
+        i$metadata$call <- call_display
+        i
+      }
     ))
     # TODO: directly produce the display part within standard_preparation() (save for call)
     # TODO: reactivate label capability
     
     # Step 1.3 : Evaluate the linearization functions
     d <- lapply(d, function(i){
-      t <- do.call(linearization_function, with(i$preparation, c(data, weight, param)))
+      tmp <- do.call(linearization_function, with(i$preparation, c(data, weight, param)))
+      i$preparation$metadata <- c(i$preparation$metadata, tmp$metadata)
       list(
-        preparation = c(i$preparation, list(linearization_function = linearization_function, lin  = t$lin))
-        , display = list(metadata = c(i$display$metadata, t$metadata), display_function = display_function)
+        preparation = c(i$preparation, list(
+          linearization_function = linearization_function, 
+          lin  = tmp$lin,
+          display_function = display_function
+        ))
       )
     })
     
@@ -146,8 +148,9 @@ standard_preparation <- function(...,
         if(names(j$weight)[k] %in% arg_not_affected_by_domain) j$weight[[k]] else j$weight[[k]][bypos[[i]]]
       }), param = j$param
       , metadata = c(j$metadata, list(
-        by = if(byNULL) NA else names(bypos)[i]
-        , bypos = bypos[[i]]
+        by = if(byNULL) NA else names(bypos)[i], 
+        bypos = bypos[[i]],
+        label = label
       ))))
   }), recursive = FALSE)
   
@@ -156,12 +159,12 @@ standard_preparation <- function(...,
 }
 
 standard_display_function <- function(i, alpha){
-  d <- as.data.frame(i$metadata[c("call", "mod", "by")])
+  d <- as.data.frame(i$metadata[c("label", "call", "mod", "by")])
   if(!is.null(i$metadata$n)) d$n <- i$metadata$n
   d$est <- i$metadata$est
   d$variance <- i$var[[1]]
   d$std <- sqrt(d$variance)
-  d$cv <- d$std*100/d$est
+  d$cv <- d$std * 100 / d$est
   d$lower <- d$est - stats::qnorm(1-alpha/2)*d$std
   d$upper <- d$est + stats::qnorm(1-alpha/2)*d$std
   return(d)
