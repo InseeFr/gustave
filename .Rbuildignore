@@ -8,4 +8,5 @@
 ^data-raw$
 ^doc$
 ^.gitlab-ci.yml$
+^Dockerfile$
 
