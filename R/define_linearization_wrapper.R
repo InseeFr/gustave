@@ -43,12 +43,11 @@ define_linearization_wrapper <- function(
     if(is.null(preparation)) return(NULL)
     d <- lapply(preparation, function(i) list(
       preparation = i
-      , display = list(metadata = list(standard = data.frame(
+      , display = list(metadata = list(
         # label = label,
         call = call_display,
-        mod = i$metadata$mod, by = i$metadata$by, 
-        stringsAsFactors = FALSE
-      )))
+        mod = i$metadata$mod, by = i$metadata$by
+      ))
     ))
     # TODO: directly produce the display part within standard_preparation() (save for call)
     # TODO: reactivate label capability
@@ -129,7 +128,6 @@ standard_preparation <- function(...,
     class(tmp) <- "factor"
     tmp
   }
-  # spy <<- d; stop("Control point")
   if(!is.null(substitute(where))){
     by[!as.logical(eval(substitute(where), eval_data))] <- NA
     by <- droplevels(by)
@@ -158,7 +156,7 @@ standard_preparation <- function(...,
 }
 
 standard_display_function <- function(i, alpha){
-  d <- i$metadata$standard
+  d <- as.data.frame(i$metadata[c("call", "mod", "by")])
   if(!is.null(i$metadata$n)) d$n <- i$metadata$n
   d$est <- i$metadata$est
   d$variance <- i$var[[1]]
