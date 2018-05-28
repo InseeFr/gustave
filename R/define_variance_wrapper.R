@@ -249,12 +249,11 @@ define_variance_wrapper <- function(
     if(is.null(d)) stop("No variable to estimate variance on.", call. = FALSE)
     d <- list(
       preparation = lapply(d, `[[`, "preparation")
-      , estimation = NULL
       , display = lapply(d, `[[`, "display")
     )
     
     # Step 1.4 : Build up the sparse matrix to be used in the estimation
-    d$estimation$data <- {
+    d_matrix <- {
       data <- lapply(d$preparation, function(k){
         t <- do.call(cbind, k$lin)
         Matrix::sparseMatrix(
@@ -271,29 +270,27 @@ define_variance_wrapper <- function(
     }
 
     # Step 1.5 : Call the variance estimation function
-    d$estimation$variance_function <- variance_function
     variance_function_args <- c(
-      list(d$estimation$data)
+      list(d_matrix)
       , lapply(names(formals(variance_function))[-1], get, envir = execution_envir)
     )
     r <- suppressMessages(do.call(variance_function, variance_function_args))
     if(is.data.frame(r)) r <- as.matrix(r)
     if(!is.list(r)) r <- list(var = r)
-    d$estimation$result <- r
-    
+
     # Step 1.6 Reorganize the results of the estimation
     k <- 0;
     d$display <- lapply(seq_along(d$display), function(i) c(d$display[[i]]
       , list(var = lapply(d$preparation[[i]]$lin, function(j){
-        t <- d$estimation$result[[1]][(k + 1):(k + NCOL(j))]
+        tmp <- r[[1]][(k + 1):(k + NCOL(j))]
         assign("k", (k + NCOL(j)), envir = execution_envir)
-        return(t)
+        return(tmp)
       }))
     ))
 
     # Step 1.7 : Display the results if requested (the default)
     if(display){
-      d <- lapply(d$display, function(i) i$fun(i, alpha = alpha))
+      d <- lapply(d$display, function(i) i$display_function(i, alpha = alpha))
       names <- unique(do.call(base::c, lapply(d, names)))
       d <- do.call(rbind, lapply(d, function(i){
         i[, setdiff(names, names(i))] <- NA

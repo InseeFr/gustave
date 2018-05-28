@@ -57,7 +57,7 @@ define_linearization_wrapper <- function(
       t <- do.call(linearization_function, with(i$preparation, c(data, weight, param)))
       list(
         preparation = c(i$preparation, list(linearization_function = linearization_function, lin  = t$lin))
-        , display = list(metadata = c(i$display$metadata, t$metadata), fun = display_function)
+        , display = list(metadata = c(i$display$metadata, t$metadata), display_function = display_function)
       )
     })
     
