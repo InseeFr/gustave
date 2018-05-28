@@ -195,8 +195,8 @@ define_variance_wrapper <- function(
   
   # Step 1 : Creating the variance estimation wrapper
   variance_wrapper <- function(
-    data, ..., weight = NULL, by = NULL, where = NULL, stat = NULL, alpha = NULL,
-    display = TRUE, id = NULL, w = NULL, envir = parent.frame()
+    data, ..., by = NULL, where = NULL, stat = NULL, alpha = NULL,
+    weight = NULL, id = NULL, display = TRUE, envir = parent.frame()
   ){
 
     if(!("package:Matrix" %in% search())) attachNamespace("Matrix")
