@@ -39,28 +39,24 @@ define_linearization_wrapper <- function(
     call_display <- paste(deparse(call[call_display_arg], width.cutoff = 500L), collapse = "")
     
     # Step 1.2 : Proceeed to standard preparation
-    preparation <- do.call(standard_preparation, call_list)
-    if(is.null(preparation)) return(NULL)
-    d <- lapply(preparation, function(i) list(
-      preparation = {
-        i$metadata$call <- call_display
-        i
-      }
-    ))
+    d <- do.call(standard_preparation, call_list)
+    if(is.null(d)) return(NULL)
+    d <- lapply(d, function(i){
+      i$metadata$call <- call_display
+      i
+    })
     # TODO: directly produce the display part within standard_preparation() (save for call)
     # TODO: reactivate label capability
     
     # Step 1.3 : Evaluate the linearization functions
     d <- lapply(d, function(i){
-      tmp <- do.call(linearization_function, with(i$preparation, c(data, weight, param)))
-      i$preparation$metadata <- c(i$preparation$metadata, tmp$metadata)
-      list(
-        preparation = c(i$preparation, list(
-          linearization_function = linearization_function, 
-          lin  = tmp$lin,
-          display_function = display_function
-        ))
-      )
+      tmp <- do.call(linearization_function, with(i, c(data, weight, param)))
+      i$metadata <- c(i$metadata, tmp$metadata)
+      c(i, list(
+        linearization_function = linearization_function, 
+        lin  = tmp$lin,
+        display_function = display_function
+      ))
     })
     
     return(d)
