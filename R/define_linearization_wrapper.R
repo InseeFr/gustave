@@ -11,16 +11,15 @@ define_linearization_wrapper <- function(
   
   # Step 0 : Control arguments consistency
   inconsistent_arg <- list(
-    in_arg_type_not_in_linearization_function = setdiff(unlist(arg_type), names(formals(linearization_function)))
-    , in_linearization_function_not_in_arg_type = setdiff(names(formals(linearization_function)), unlist(arg_type))
-    , in_arg_not_affected_by_domain_not_in_linearization_function = setdiff(arg_not_affected_by_domain, names(formals(linearization_function)))
+    in_arg_type_not_in_linearization_function = setdiff(unlist(arg_type), names(formals(linearization_function))), 
+    in_linearization_function_not_in_arg_type = setdiff(names(formals(linearization_function)), unlist(arg_type)), 
+    in_arg_not_affected_by_domain_not_in_linearization_function = setdiff(arg_not_affected_by_domain, names(formals(linearization_function)))
   )
   if(length(unlist(inconsistent_arg)) > 0) stop(
-    "Some arguments are inconsistent:"
-    , if(length(inconsistent_arg[[1]]) > 0) paste("\n  -", paste(inconsistent_arg[[1]], collapse = ", "), "in arg_type but not in linearization_function arguments") else ""
-    , if(length(inconsistent_arg[[2]]) > 0) paste("\n  -", paste(inconsistent_arg[[2]], collapse = ", "), "in linearization_function arguments but not in arg_type") else ""
-    , if(length(inconsistent_arg[[3]]) > 0) paste("\n  -", paste(inconsistent_arg[[3]], collapse = ", "), "in arg_not_affected_by_domain but not in linearization_function arguments") else ""
-    , call. = FALSE
+    "Some arguments are inconsistent:", 
+    if(length(inconsistent_arg[[1]]) > 0) paste("\n  -", paste(inconsistent_arg[[1]], collapse = ", "), "in arg_type but not in linearization_function arguments") else "", 
+    if(length(inconsistent_arg[[2]]) > 0) paste("\n  -", paste(inconsistent_arg[[2]], collapse = ", "), "in linearization_function arguments but not in arg_type") else "", 
+    if(length(inconsistent_arg[[3]]) > 0) paste("\n  -", paste(inconsistent_arg[[3]], collapse = ", "), "in arg_not_affected_by_domain but not in linearization_function arguments") else ""
   )
   if(is.null(arg_type$weight))
     stop("A weight argument must be provided in order to create a linearization wrapper.")
@@ -67,9 +66,9 @@ define_linearization_wrapper <- function(
   assign_all(objects = "standard_preparation", to = e, from = asNamespace("gustave"))
   assign_all(objects = c("linearization_function", "arg_type", "allow_factor", "arg_not_affected_by_domain", "display_function"), to = e, from = environment())
   linearization_wrapper <- change_enclosing(linearization_wrapper, envir = e)
-  linearization_wrapper <- structure(linearization_wrapper, class = c("function", "gustave_linearization_wrapper"))
-
-  return(linearization_wrapper)
+  
+  structure(linearization_wrapper, class = c("function", "gustave_linearization_wrapper"))
+  
 }
 
 standard_preparation <- function(..., 
@@ -146,7 +145,7 @@ standard_preparation <- function(...,
       ))))
   }), recursive = FALSE)
   
-  return(d)
+  d
 
 }
 
@@ -159,7 +158,7 @@ standard_display <- function(i, alpha){
   d$cv <- d$std * 100 / d$est
   d$lower <- d$est - stats::qnorm(1-alpha/2)*d$std
   d$upper <- d$est + stats::qnorm(1-alpha/2)*d$std
-  return(d)
+  d
 }
 standard_display <- change_enclosing(standard_display, globalenv())
 

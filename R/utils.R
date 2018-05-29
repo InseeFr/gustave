@@ -205,10 +205,10 @@ block_matrix <- function(y, by){
   if(any(is.na(by))){na <- is.na(y@j); y@x <- y@x[!na]; y@i <- y@i[!na]; y@j <- y@j[!na]}
   bycol <- rep(levels(by), each = p)
   bycol <- if(is.factor(byrow)) as.factor(bycol) else methods::as(bycol, class(byrow))
-  return(list(y = y, byrow = byrow, bycol = bycol))
+  list(y = y, byrow = byrow, bycol = bycol)
 }
 # TODO: export a matrix with rowby/colby attributes instead of a list, 
-# add an option for row/colnames adjustment (with a given separator)
+# add an option for row/colnames creation (with a given separator)
 
 change_enclosing <- function(FUN, envir = environment(FUN)){
   eval(parse(text = deparse(FUN)), envir = envir)

@@ -294,8 +294,8 @@ define_variance_wrapper <- function(
       }))
       d <- d[, sapply(d, function(i) !all(is.na(i)))]
       rownames(d) <- NULL
-      return(d)
-    }else return(invisible(d))
+      d
+    }else invisible(d)
 
   }
 
@@ -314,9 +314,7 @@ define_variance_wrapper <- function(
   assign_all(objects = objects_to_include, to = e2, from = objects_to_include_from)
   variance_wrapper <- change_enclosing(variance_wrapper, envir = e2)
 
-  variance_wrapper <- structure(variance_wrapper, class = c("function", "gustave_variance_wrapper"))
-
-  return(variance_wrapper)
+  structure(variance_wrapper, class = c("function", "gustave_variance_wrapper"))
 
 }
 
