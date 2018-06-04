@@ -9,4 +9,5 @@
 ^doc$
 ^.gitlab-ci.yml$
 ^Dockerfile$
+^cran-comments.md$
 

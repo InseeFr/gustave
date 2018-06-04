@@ -1,6 +1,6 @@
 # 0.1.3-0.1.7
 
-- No more dependecy to package pryr
+- No more dependency to package pryr
 - Add the generalized inverse in `varDT`
 - Other bug fixes
 
@@ -28,3 +28,13 @@
 # 0.2.7
 
 - Now linearization with all data parameters set to NULL are discarded from the estimation.
+
+# 0.3.0
+
+- Simulated data added
+- Significant increase of unit tests
+- Documentation completed
+- Simplification of the structure of the main object processed by the variance wrapper
+- Removal of unnecessary arguments in linearization wrappers
+- Removal of the linerization wrappers for the Laeken indicators based on the vardpoor package (better integration in a future release)
+

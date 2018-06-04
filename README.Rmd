@@ -1,7 +1,0 @@
----
-title: "README"
-output: md_document
----
-
-# gustave
-Gustave: a User-oriented Statistical Toolkit for Analytical Variance Estimation
