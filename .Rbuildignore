@@ -1,13 +1,11 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
+^README\.html$
 ^cran-comments\.md$
 ^NEWS\.md$
-^tar.gz$
 ^misc$
 ^data-raw$
-^doc$
 ^.gitlab-ci.yml$
 ^Dockerfile$
-^cran-comments.md$
 
