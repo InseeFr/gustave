@@ -5,10 +5,13 @@
 \alias{total}
 \alias{ratio}
 \alias{mean}
-\alias{diffratio}
+\alias{diff_or_ratio}
+\alias{ratio_of_ratio}
+\alias{total}
 \alias{ratio}
 \alias{mean}
-\alias{diffratio}
+\alias{diff_of_ratio}
+\alias{ratio_of_ratio}
 \title{Standard linearization wrappers}
 \usage{
 total(y, by = NULL, where = NULL, ...)
@@ -17,8 +20,60 @@ ratio(num, denom, by = NULL, where = NULL, ...)
 
 mean(y, by = NULL, where = NULL, ...)
 
-diffratio(num1, denom1, num2, denom2, by = NULL, where = NULL, ...)
+diff_of_ratio(num1, denom1, num2, denom2, by = NULL, where = NULL, ...)
+
+ratio_of_ratio(num1, denom1, num2, denom2, by = NULL, where = NULL, ...)
+}
+\arguments{
+\item{y}{A vector corresponding to the (sole) variable to estimate
+variance on. If not numeric (character or factor), it is 
+automatically discretized.}
+
+\item{by}{Factor vector (character vectors are coerced to factors) whose levels are used
+to break down the estimation by domains.}
+
+\item{where}{Logical vector indicating the domain to perform variance estimation on.}
+
+\item{...}{Technical parameters passed on to helper functions
+within the linearization wrapper.}
+
+\item{num, num1, num2}{Numerical vector(s) corresponding to the numerator(s) 
+to be used in the estimation.}
+
+\item{denom, denom1, denom2}{Numerical vector(s) corresponding to the denominator(s) 
+to be used in the estimation.}
 }
 \description{
-Standard linearization wrappers
+Functions to be used within variance estimation 
+  wrappers in order to perform on-the-fly linearizations (see Details).
+}
+\details{
+When the estimator is not the estimator of a total, the application of 
+  analytical variance estimation formulae developed for the estimator of a total 
+  is not straightforward (Deville, 1999). An asymptotically unbiased variance 
+  estimator can nonetheless be obtained if the estimation of variance is performed
+  on a variable obtained from the original data through a linerization step. 
+  
+  The \code{ratio}, \code{mean}, \code{diff_of_ratio} and 
+  \code{ratio_of_ratio} functions implement the standard linearization 
+  techniques respectively for the ratio, mean, difference of ratios and 
+  ratio of ratios estimators, as presented for example in (Caron, 1998). 
+  The \code{total} function does not perform any linearization
+  (as none is needed for the estimator of a total) and solely adds the technical 
+  features required to use the linearization wrapper within the \code{\link[=define_variance_wrapper]{variance wrappers}}.
+}
+\examples{
+# See define_variance_wrapper examples
+
+}
+\references{
+Caron N. (1998), "Le logiciel Poulpe : aspects méthodologiques", \emph{Actes 
+  des Journées de méthodologie statistique} \url{http://jms-insee.fr/jms1998s03_1/}
+  
+  Deville J.-C. (1999), "Variance estimation for complex statistics and 
+  estimators: linearization and residual techniques", \emph{Survey Methodology}, 
+  25:193–203
+}
+\seealso{
+\code{\link{define_variance_wrapper}}
 }

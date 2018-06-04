@@ -1,11 +1,12 @@
 
-#' Linearization wrappers for Laeken indicators
-#' @aliases arpr gini
+#' Linearization wrappers for some Laeken indicators based on the vardpoor package
 #' 
 #' 
 #' 
 #' 
 #' @name linearization_wrapper_laeken
+#' @aliases arpr gini
+
 NULL
 
 #' @rdname linearization_wrapper_laeken
