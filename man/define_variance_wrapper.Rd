@@ -129,7 +129,7 @@ variance_function <- function(y){
 }
 
 # Test of the variance function
-y <- as.matrix(ict_survey$big_data)
+y <- as.matrix(ict_survey$speed_quanti)
 rownames(y) <- ict_survey$firm_id
 variance_function(y)
 
