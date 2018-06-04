@@ -15,6 +15,7 @@ Suggests:
   magrittr
 Version: 0.3.0
 Authors@R: person("Martin", "Chevalier", role = c("aut", "cre", "cph"), email = "martin.chevalier@insee.fr")
+Author: Martin Chevalier [aut, cre, cph]
 Maintainer: Martin Chevalier <martin.chevalier@insee.fr>  
 URL: https://github.com/martinchevalier/gustave
 BugReports: https://github.com/martinchevalier/gustave/issues
