@@ -286,7 +286,9 @@ define_variance_wrapper <- function(
 
     # Step 1.7 : Display the results if requested (the default)
     if(display){
-      d <- lapply(d, function(i) i$display_function(i, alpha = alpha))
+      d <- lapply(d, function(i) with(i, 
+        display_function(var = var, metadata = metadata, alpha = alpha)
+      ))
       names <- unique(do.call(base::c, lapply(d, names)))
       d <- do.call(rbind, lapply(d, function(i){
         i[, setdiff(names, names(i))] <- NA

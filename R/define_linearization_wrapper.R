@@ -149,11 +149,11 @@ standard_preparation <- function(...,
 
 }
 
-standard_display <- function(i, alpha){
-  d <- as.data.frame(i$metadata[c("label", "call", "mod", "by")])
-  if(!is.null(i$metadata$n)) d$n <- i$metadata$n
-  d$est <- i$metadata$est
-  d$variance <- i$var[[1]]
+standard_display <- function(var, metadata, alpha){
+  d <- as.data.frame(metadata[c("label", "call", "mod", "by")])
+  if(!is.null(metadata$n)) d$n <- metadata$n
+  d$est <- metadata$est
+  d$variance <- var[[1]]
   d$std <- sqrt(d$variance)
   d$cv <- d$std * 100 / d$est
   d$lower <- d$est - stats::qnorm(1-alpha/2)*d$std
