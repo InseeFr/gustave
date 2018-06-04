@@ -16,6 +16,7 @@ total <- define_linearization_wrapper(
     total <- sum(y * weight)
     return(list(lin = list(y), metadata = list(est = total, n = sum(!na))))
   }, 
+  arg_type = list(data = "y" , weight = "weight"),
   allow_factor = TRUE
 )
 
@@ -37,6 +38,7 @@ mean <- define_linearization_wrapper(
   linearization_function = function(y, weight){
     environment(ratio)$linearization_function(num = y, denom = rep(1, length(y)), weight = weight)
   }, 
+  arg_type = list(data = "y" , weight = "weight"),
   allow_factor = TRUE
 )
 
