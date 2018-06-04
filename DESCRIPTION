@@ -11,12 +11,15 @@ Suggests:
   sampling,
   vardpoor,
   magrittr
-Depends:
-    R (>= 3.2.1)
-Version: 0.3.0.9001
+Version: 0.3.1
 Author: person("Martin", "Chevalier", "martin.chevalier@insee.fr", role = c("aut", "cre"))
 Maintainer: Martin Chevalier <martin.chevalier@insee.fr>
-Description: Blabla.
+Description: 
+  Provides a toolkit for analytical variance estimation in survey sampling. Apart from 
+  the implementation of standard variance estimators (Sen-Yates-Grundy, Deville-Tillé), 
+  its main feature is to help the methodologist produce easy-to-use variance estimation 
+  "wrappers", where systematic operations (linearization, domain estimation) are handled 
+  in a consistent and transparent way for the end user.
 License: GPL-3
 Collate: 'data.R' 'utils.R' 'define_variance_wrapper.R' 'variance_function.R' 'define_linearization_wrapper.R' 'linearization_wrapper_standard.R'
 Encoding: UTF-8
