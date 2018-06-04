@@ -85,6 +85,7 @@
 #' 
 #' # The subset of the (simulated) ICT survey has the following features: 
 #' # - stratified one-stage sampling design of 650 firms;
+#' # - 612 responding firms, non-response correction through reweighting 
 #' # in homogeneous response groups based on economic sub-sector and turnover;
 #' # - calibration on margins (number of firms and turnover broken down
 #' # by economic sub-sector).

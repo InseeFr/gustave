@@ -1,8 +1,8 @@
 Package: gustave
 Type: Package
 Title: A User-Oriented Statistical Toolkit for Analytical Variance Estimation
-Depends:
-  R (>=3.3.3)
+Depends: 
+  R(>= 3.3.3)
 Imports:
   Matrix,
   methods,

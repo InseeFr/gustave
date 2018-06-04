@@ -41,7 +41,7 @@ line calculated at the national level.}
 estimation, the data.frame row to be displayed by the variance estimation 
 wrapper. It uses three arguments: 
 \itemize{\item \code{var} the estimated variance \item \code{metadata} the 
-metadata associated with the estimation, especially the one outputed by 
+metadata associated with the estimation, especially the one outputted by 
 \code{linearization_function} (e.g. \code{est}, \code{n}) \item \code{alpha} 
 the level for the construction of confidence intervals (at execution time, 
 its value is taken from the \code{alpha} argument of the variance wrapper.)}
@@ -71,7 +71,7 @@ When the estimator is not the estimator of a total, the application of
   analytical variance estimation formulae developed for the estimator of a total 
   is not straightforward (Deville, 1999). An asymptotically unbiased variance 
   estimator can nonetheless be obtained if the estimation of variance is performed
-  on a variable obtained from the original data through a linerization step. 
+  on a variable obtained from the original data through a linearization step. 
   
   \code{define_linearization_wrapper} is the function used to create, given 
   a linearization \emph{function} implementing a given linearization 
@@ -88,8 +88,8 @@ When the estimator is not the estimator of a total, the application of
   
   \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}} 
   are included within the gustave package and  automatically added 
-  to the varance estimation wrappers. New linearization wrappers can be defined
-  using the \code{define_linearization_wrapper} and then explicitely added to the 
+  to the variance estimation wrappers. New linearization wrappers can be defined
+  using the \code{define_linearization_wrapper} and then explicitly added to the 
   variance estimation wrappers using the \code{objects_to_include} argument.
 }
 \examples{
