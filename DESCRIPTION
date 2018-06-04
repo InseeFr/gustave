@@ -14,8 +14,10 @@ Suggests:
   vardpoor,
   magrittr
 Version: 0.3.0
-Author: person("Martin", "Chevalier", "martin.chevalier@insee.fr", role = c("aut", "cre"))
-Maintainer: Martin Chevalier <martin.chevalier@insee.fr>
+Authors@R: person("Martin", "Chevalier", role = c("aut", "cre", "cph"), email = "martin.chevalier@insee.fr")
+Maintainer: Martin Chevalier <martin.chevalier@insee.fr>  
+URL: https://github.com/martinchevalier/gustave
+BugReports: https://github.com/martinchevalier/gustave/issues
 Description: 
   Provides a toolkit for analytical variance estimation in survey sampling. Apart from 
   the implementation of standard variance estimators (Sen-Yates-Grundy, Deville-Tillé), 
