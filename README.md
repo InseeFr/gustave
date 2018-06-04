@@ -25,14 +25,6 @@ In this example, we define a variance estimation wrapper adapted to the example 
 In this context, the variance estimation *function* can be defined as follows:
 
 ```
-library(gustave)
-
-# Calibration variables matrix
-x <- as.matrix(ict_survey[
-  order(ict_survey$firm_id),
-  c(paste0("N_", 58:63), paste0("turnover_", 58:63))
-])
-
 # Definition of the variance function
 variance_function <- function(y){
   
@@ -50,6 +42,13 @@ variance_function <- function(y){
   var_sampling + var_nr
   
 }
+
+# With x the calibration variables matrix
+library(gustave)
+x <- as.matrix(ict_survey[
+  order(ict_survey$firm_id),
+  c(paste0("N_", 58:63), paste0("turnover_", 58:63))
+])
 
 # Test of the variance function
 y <- as.matrix(ict_survey$speed_quanti)

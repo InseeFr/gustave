@@ -92,13 +92,6 @@
 #' 
 #' # Step 1 : Definition of a variance function
 #' 
-#' # Calibration variables matrix
-#' x <- as.matrix(ict_survey[
-#'   order(ict_survey$firm_id), 
-#'   c(paste0("N_", 58:63), paste0("turnover_", 58:63))
-#' ])
-#' 
-#' # Definition of a variance function
 #' variance_function <- function(y){
 #'   
 #'   # Calibration
@@ -115,6 +108,12 @@
 #'   var_sampling + var_nr
 #'   
 #' }
+#' 
+#' # With x the calibration variables matrix
+#' x <- as.matrix(ict_survey[
+#'   order(ict_survey$firm_id), 
+#'   c(paste0("N_", 58:63), paste0("turnover_", 58:63))
+#' ])
 #' 
 #' # Test of the variance function
 #' y <- as.matrix(ict_survey$speed_quanti)
