@@ -19,10 +19,10 @@ Maintainer: Martin Chevalier <martin.chevalier@insee.fr>
 URL: https://github.com/martinchevalier/gustave
 BugReports: https://github.com/martinchevalier/gustave/issues
 Description: 
-  Provides a toolkit for analytical variance estimation in survey sampling. Apart from 
-  the implementation of standard variance estimators, its main feature is to help the 
-  sampling expert produce easy-to-use variance estimation "wrappers", where systematic 
-  operations (linearization, domain estimation) are handled in a consistent and transparent 
+  Provides a toolkit for analytical variance estimation in survey sampling. Apart from
+  the implementation of standard variance estimators, its main feature is to help the
+  sampling expert produce easy-to-use variance estimation "wrappers", where systematic
+  operations (linearization, domain estimation) are handled in a consistent and transparent
   way for the end user.
 License: GPL-3
 Collate: 'data.R' 'utils.R' 'define_variance_wrapper.R' 'variance_function.R' 'define_linearization_wrapper.R' 'linearization_wrapper_standard.R'
