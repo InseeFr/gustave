@@ -2,7 +2,7 @@ Package: gustave
 Type: Package
 Title: A User-Oriented Statistical Toolkit for Analytical Variance Estimation
 Depends: 
-  R(>= 3.3.3)
+  R(>= 3.3.0)
 Imports:
   Matrix,
   methods,
@@ -11,8 +11,7 @@ Imports:
 Suggests:
   testthat,
   sampling,
-  vardpoor,
-  magrittr
+  vardpoor
 Version: 0.3.0
 Authors@R: person("Martin", "Chevalier", role = c("aut", "cre", "cph"), email = "martin.chevalier@insee.fr")
 Author: Martin Chevalier [aut, cre, cph]
