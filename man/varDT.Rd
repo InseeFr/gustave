@@ -191,5 +191,5 @@ Caron N., Deville J.-C., Sautory O. (1998), \emph{Estimation de
   \emph{Sankhya}, C n°37
 }
 \author{
-Martin Chevalier (Insee, French Statistical Institute)
+Martin Chevalier
 }

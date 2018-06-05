@@ -77,7 +77,7 @@
 #'    \item \code{envir}: an environment containing a binding to \code{data}
 #'  }
 #' 
-#' @author Martin Chevalier (Insee)
+#' @author Martin Chevalier
 #'    
 #' @seealso \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}} \code{\link{varDT}}
 #' 

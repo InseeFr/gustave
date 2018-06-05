@@ -63,7 +63,7 @@
 #'   default). \item \code{inv}: the inverse of \code{t(x) \%*\%
 #'   Matrix::Diagonal(x = w) \%*\% x} } }
 #'   
-#' @author Martin Chevalier (Insee, French Statistical Institute)
+#' @author Martin Chevalier
 #'
 #' @examples # Generating random data
 #' set.seed(1)
@@ -223,7 +223,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 #'   Matrix::Diagonal(x = ck) \%*\% t(A)} \item \code{diago}: the diagonal term
 #'   of the variance estimator } }
 #'   
-#' @author Martin Chevalier (Insee, French Statistical Institute)
+#' @author Martin Chevalier
 #'   
 #' @references Caron N., Deville J.-C., Sautory O. (1998), \emph{Estimation de
 #'   précision de données issues d'enquêtes : document méthodologique sur le
@@ -400,7 +400,7 @@ var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
 #' @return The estimated variances as a numerical vector of size the number of 
 #'   columns of y. 
 #'    
-#' @author Martin Chevalier (Insee, French Statistical Institute)
+#' @author Martin Chevalier
 #'   
 #' @references Rao, J.N.K (1975), "Unbiased variance estimation for multistage designs",
 #'   \emph{Sankhya}, C n°37

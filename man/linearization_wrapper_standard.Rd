@@ -77,3 +77,6 @@ Caron N. (1998), "Le logiciel Poulpe : aspects méthodologiques", \emph{Actes
 \seealso{
 \code{\link{define_variance_wrapper}}
 }
+\author{
+Martin Chevalier
+}

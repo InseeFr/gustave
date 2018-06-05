@@ -190,5 +190,5 @@ variance_wrapper(ict_survey, where = division == "58",
 \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}} \code{\link{varDT}}
 }
 \author{
-Martin Chevalier (Insee)
+Martin Chevalier
 }

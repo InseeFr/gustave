@@ -29,7 +29,7 @@
 #' sparse and keep_sparse is TRUE, then the result is also sparse (without names
 #' when it is a sparse vector, see keep_sparse argument for details).
 #' 
-#' @author Martin Chevalier (Insee, French Statistical Institute)
+#' @author Martin Chevalier
 #' 
 #' @examples # Data generation
 #' set.seed(1)
@@ -120,7 +120,7 @@ sumby <- function(y, by, w = NULL, na_rm = TRUE, keep_sparse = FALSE){
 #'
 #' @return A (sparse) matrix or data.frame depending on the type of y.
 #'
-#' @author Martin Chevalier (Insee, French Statistical Institute)
+#' @author Martin Chevalier
 #'
 #' @examples # Data generation
 #' set.seed(1)

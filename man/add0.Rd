@@ -48,5 +48,5 @@ add0(y, rownames, remove = FALSE)
 
 }
 \author{
-Martin Chevalier (Insee, French Statistical Institute)
+Martin Chevalier
 }

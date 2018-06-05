@@ -145,5 +145,5 @@ Deville J.-C. (1999), "Variance estimation for complex statistics and
   \code{\link{define_variance_wrapper}}
 }
 \author{
-Martin Chevalier (Insee)
+Martin Chevalier
 }

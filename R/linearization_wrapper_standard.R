@@ -42,6 +42,8 @@
 #'   
 #' @examples # See define_variance_wrapper examples
 #' 
+#' @author Martin Chevalier
+#' 
 #' @name linearization_wrapper_standard
 #' @aliases total ratio mean diff_or_ratio ratio_of_ratio
 

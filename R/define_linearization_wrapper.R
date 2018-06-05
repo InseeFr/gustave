@@ -77,7 +77,7 @@
 #'   \code{linearization_function} with the addition of \code{by} and \code{where} 
 #'   (for domain estimation, set to \code{NULL} by default). 
 #' 
-#' @author Martin Chevalier (Insee)
+#' @author Martin Chevalier
 #'    
 #' @seealso \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}} 
 #'   \code{\link{define_variance_wrapper}}

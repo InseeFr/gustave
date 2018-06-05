@@ -32,5 +32,5 @@ Rao, J.N.K (1975), "Unbiased variance estimation for multistage designs",
   \emph{Sankhya}, C n°37
 }
 \author{
-Martin Chevalier (Insee, French Statistical Institute)
+Martin Chevalier
 }

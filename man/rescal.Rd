@@ -111,5 +111,5 @@ identical(
 
 }
 \author{
-Martin Chevalier (Insee, French Statistical Institute)
+Martin Chevalier
 }
