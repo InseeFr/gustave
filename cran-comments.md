@@ -1,8 +1,8 @@
 # Round 1
 
 ## Test environments
-* Windows 7, R 3.3.3
-* xubutnu 18.04, R 3.4.4
+* ubuntu 18.04, R 3.4.4
+* win-builder, release and stable
 
 ## R CMD check results
 There were no ERRORs or WARNINGs. 
