@@ -38,7 +38,7 @@
 #'   Analytical variance estimation is often difficult to carry out by 
 #'   non-specialists owing to the complexity of the underlying sampling 
 #'   and estimation methodology. This complexity yields complex \emph{variance estimation 
-#'   functions} which are most often only used by the methodologists who 
+#'   functions} which are most often only used by the sampling expert who 
 #'   actually wrote them. A \emph{variance estimation wrapper} is an 
 #'   intermediate function that is "wrapped around" the (complex) variance 
 #'   estimation function in order to provide the non-specialist with 
@@ -47,7 +47,7 @@
 #'   \item domain estimation \item linearization of complex statistics (see 
 #'   \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}})}
 #'   
-#'   \code{define_variance_wrapper} allows the methodologist to define a 
+#'   \code{define_variance_wrapper} allows the sampling expert to define a 
 #'   variance estimation wrapper around a given variance estimation function and
 #'   set its default parameters. The produced variance estimation wrapper will 
 #'   be stand-alone in the sense that it can contain additional data which would
