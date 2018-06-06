@@ -5,7 +5,13 @@ Gustave (Gustave: a User-oriented Statistical Toolkit for Analytical Variance Es
 
 ## Install
 
-As gustave is not yet available on CRAN, for now the simplest way to install it on your computer is to use `devtools::install_github()`:
+gustave is available on CRAN and can therefore be installed with the `install.packages()` function:
+
+```
+install.packages("gustave")
+```
+
+However, if you wish to install the latest version of gustave, you can use `devtools::install_github()` to install it directly from this repository:
 
 ```
 install.packages("devtools")
