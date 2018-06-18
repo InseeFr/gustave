@@ -4,14 +4,13 @@ Title: A User-Oriented Statistical Toolkit for Analytical Variance Estimation
 Depends: 
   R(>= 3.3.0)
 Imports:
-  Matrix,
   methods,
   stats,
-  MASS
+  MASS,
+  Matrix
 Suggests:
   testthat,
-  sampling,
-  vardpoor
+  sampling
 Version: 0.3.1
 Authors@R: person("Martin", "Chevalier", role = c("aut", "cre", "cph"), email = "martin.chevalier@insee.fr")
 Author: Martin Chevalier [aut, cre, cph]
