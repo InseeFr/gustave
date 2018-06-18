@@ -5,7 +5,7 @@
 \title{Define a variance estimation wrapper}
 \usage{
 define_variance_wrapper(variance_function, reference_id, default = list(stat =
-  "total", alpha = 0.05), objects_to_include = NULL,
+  "total", alpha = 0.05), arg_type = NULL, objects_to_include = NULL,
   objects_to_include_from = parent.frame())
 }
 \arguments{
@@ -31,6 +31,14 @@ according to \code{reference_id}.}
   \item \code{alpha}: the default threshold for confidence interval derivation. 
   It is set to \code{0.05} by default.
 }}
+
+\item{arg_type}{A named list with three character vectors describing 
+the type of each argument of \code{variance_function}: \itemize{
+\item \code{data}: data argument(s), numerical vector(s) to be used in the
+variance estimation formula \item \code{aux}: auxiliary data arguments,
+information to be used within the variance estimation function \item \code{param}: 
+parameters, non-data arguments (most of the time boolean) to be used to 
+control some aspect of the variance estimation}}
 
 \item{objects_to_include}{A character vector indicating the name of 
 additional R objects to include within the variance wrapper. These objects 
