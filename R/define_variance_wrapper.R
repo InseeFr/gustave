@@ -10,6 +10,13 @@
 #'   other arguments (e.g. parameters affecting the estimation of variance), 
 #'   and output a numeric vector of estimated variances (or a list whose first 
 #'   element is a numeric vector of estimated variances).
+#' @param arg_type A named list with three character vectors describing 
+#'   the type of each argument of \code{variance_function}: \itemize{
+#'   \item \code{data}: data argument(s), numerical vector(s) to be used in the
+#'   variance estimation formula \item \code{aux}: auxiliary data arguments,
+#'   information to be used within the variance estimation function \item \code{param}: 
+#'   parameters, non-data arguments (most of the time boolean) to be used to 
+#'   control some aspect of the variance estimation}
 #' @param reference_id A vector containing the ids of all the responding units 
 #'   of the survey. It is compared with \code{default$id} to check whether some 
 #'   observations are missing in the survey file. Observations are reordered 
@@ -180,8 +187,10 @@
 #' @import Matrix
 
 define_variance_wrapper <- function(
-  variance_function, reference_id, 
+  variance_function, 
+  reference_id, 
   default = list(stat = "total", alpha = 0.05), 
+  arg_type = NULL,
   objects_to_include = NULL, objects_to_include_from = parent.frame()
 ){
 
@@ -191,9 +200,26 @@ define_variance_wrapper <- function(
   
   # TODO: enable magrittr pipe %>% operations
   
-  # Step 0 : Work with default argument
+  # Step 0.1 : Provide default arguments
   if(is.null(default$stat) && !("stat" %in% names(default))) default$stat <- "total"
   if(is.null(default$alpha) && !("alpha" %in% names(default))) default$alpha <- 0.05
+  args_variance_function <- names(formals(variance_function))
+  if(is.null(arg_type)) arg_type <- list(
+    data = args_variance_function[1], 
+    aux = setdiff(args_variance_function, args_variance_function[1]),
+    param = NULL
+  )
+  
+  # Step 0.2 : Control arguments consistency
+  inconsistent_arg <- list(
+    in_arg_type_not_in_variance_function = setdiff(unlist(arg_type), args_variance_function),
+    in_variance_function_not_in_arg_type = setdiff(args_variance_function, unlist(arg_type))
+  )
+  if(length(unlist(inconsistent_arg)) > 0) stop(
+    "Some arguments are inconsistent:", 
+    if(length(inconsistent_arg[[1]]) > 0) paste("\n  -", paste(inconsistent_arg[[1]], collapse = ", "), "in arg_type but not in variance_function arguments") else "", 
+    if(length(inconsistent_arg[[2]]) > 0) paste("\n  -", paste(inconsistent_arg[[2]], collapse = ", "), "in variance_function arguments but not in arg_type") else "", 
+  )
   
   # Step 1 : Creating the variance estimation wrapper
   variance_wrapper <- function(
