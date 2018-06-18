@@ -35,7 +35,7 @@ In this context, the variance estimation *function* can be defined as follows:
 variance_function <- function(y){
   
   # Calibration
-  y <- rescal(y, x = x)
+  y <- rescal(y, x = x, w = w)
   
   # Non-response
   y <- add0(y, rownames = ict_sample$firm_id)
@@ -49,12 +49,15 @@ variance_function <- function(y){
   
 }
 
-# With x the calibration variables matrix
+# With x the calibration variables matrix...
 library(gustave)
 x <- as.matrix(ict_survey[
-  order(ict_survey$firm_id),
+  order(ict_survey$firm_id), 
   c(paste0("N_", 58:63), paste0("turnover_", 58:63))
 ])
+
+# ... and w the reference weight (the one after calibration)
+w <- ict_survey$w_calib
 
 # Test of the variance function
 y <- as.matrix(ict_survey$speed_quanti)
@@ -72,7 +75,7 @@ variance_wrapper <- define_variance_wrapper(
   variance_function = variance_function,
   reference_id = ict_survey$firm_id,
   default = list(id = "firm_id", weight = "w_calib"),
-  objects_to_include = c("x", "ict_sample")
+  objects_to_include = c("x", "w", "ict_sample")
 )
 ```
 

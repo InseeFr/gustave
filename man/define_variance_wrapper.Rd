@@ -107,7 +107,7 @@ Defining variance estimation wrappers is the \strong{key feature} of
 variance_function <- function(y){
   
   # Calibration
-  y <- rescal(y, x = x)
+  y <- rescal(y, x = x, w = w)
   
   # Non-response
   y <- add0(y, rownames = ict_sample$firm_id)
@@ -121,11 +121,14 @@ variance_function <- function(y){
   
 }
 
-# With x the calibration variables matrix
+# With x the calibration variables matrix...
 x <- as.matrix(ict_survey[
   order(ict_survey$firm_id), 
   c(paste0("N_", 58:63), paste0("turnover_", 58:63))
 ])
+
+# ... and w the reference weight (the one after calibration)
+w <- ict_survey$w_calib
 
 # Test of the variance function
 y <- as.matrix(ict_survey$speed_quanti)
@@ -138,17 +141,17 @@ variance_wrapper <- define_variance_wrapper(
   variance_function = variance_function,
   reference_id = ict_survey$firm_id,
   default = list(id = "firm_id", weight = "w_calib"),
-  objects_to_include = c("x", "ict_sample")
+  objects_to_include = c("x", "w", "ict_sample")
 )
 
-# The objects "x" and "ict_sample" are embedded
+# The objects "x", "w" and "ict_sample" are embedded
 # within the function variance_wrapper
 ls(environment(variance_wrapper))
 # Note : variance_wrapper is a closure
 # (http://adv-r.had.co.nz/Functional-programming.html#closures)
 # As a consequence, the variance wrapper will work even if 
-# x is removed from globalenv()
-rm(x)
+# these objects are removed from globalenv()
+rm(x, w)
 
 # Step 3 : Features of the variance wrapper
 

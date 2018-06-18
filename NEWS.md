@@ -1,3 +1,7 @@
+# 0.3.1
+
+- Add calibrated weights to `define_variance_wrapper` example.
+
 
 # 0.3.0
 
