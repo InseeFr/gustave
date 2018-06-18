@@ -2,6 +2,7 @@
 
 export(add0)
 export(define_linearization_wrapper)
+export(define_simple_wrapper)
 export(define_variance_wrapper)
 export(rescal)
 export(sumby)
