@@ -3,18 +3,18 @@
 context("define_variance_wrapper")
 
 test_that("variance_wrapper can be defined in globalenv()", {
-  expect_error(
+  expect_error({
     variance_wrapper <<- define_variance_wrapper(
       variance_function = function(y) abs(colSums(y)), 
       reference_id = ict_survey$firm_id, 
       default = list(id = "firm_id", weight = "w_calib", stat = "mean")
-    ), 
-    regexp = NA)
-  expect_error(variance_wrapper(ict_survey, speed_quanti), regexp = NA)
+    )    
+    variance_wrapper(ict_survey, speed_quanti)
+  }, regexp = NA)
 })
 
 
-test_that("varwrap_test can be defined in another function", {
+test_that("variance_wrapper can be defined in another function", {
   expect_error({
     preparation_function <- function(){
       a <- 1
@@ -25,15 +25,31 @@ test_that("varwrap_test can be defined in another function", {
         objects_to_include = "a"
       )
     }
-    variance_wrapper2 <<- preparation_function()
+    variance_wrapper2 <- preparation_function()
+    variance_wrapper2(ict_survey, speed_quanti)
   }, regexp = NA)
-  expect_error(variance_wrapper2(ict_survey, speed_quanti), regexp = NA)
   expect_equal(
     variance_wrapper(ict_survey, speed_quanti)$variance + 1,
     variance_wrapper2(ict_survey, speed_quanti)$variance
   )
 })
 
+test_that("variance_wrapper may use a reference_id specified as an unevaluated expression", {
+  expect_error({
+    id_list <- list(firm = ict_survey$firm_id)
+    variance_wrapper <<- define_variance_wrapper(
+      variance_function = function(y, level = "firm") abs(colSums(y)), 
+      reference_id = quote(id_list[[level]]), 
+      default = list(id = "firm_id", weight = "w_calib", stat = "mean"),
+      objects_to_include = "id_list"
+    )
+    rm(id_list)
+    variance_wrapper(ict_survey, speed_quanti)
+  }, regexp = NA)
+})
+
+
+  
 
 test_that("variance_wrapper works in common situations", {
   expect_error(variance_wrapper(ict_survey, speed_quanti), regexp = NA)
