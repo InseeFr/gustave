@@ -118,12 +118,12 @@ variance_function <- function(y){
   y <- rescal(y, x = x, w = w)
   
   # Non-response
-  y <- add0(y, rownames = ict_sample$firm_id)
-  var_nr <- var_pois(y, pik = ict_sample$response_prob_est, w = ict_sample$w_sample)
+  y <- add0(y, rownames = samp$firm_id)
+  var_nr <- var_pois(y, pik = samp$response_prob_est, w = samp$w_sample)
   
   # Sampling
-  y <- y / ict_sample$response_prob_est
-  var_sampling <- var_srs(y, pik = 1 / ict_sample$w_sample, strata = ict_sample$division)
+  y <- y / samp$response_prob_est
+  var_sampling <- var_srs(y, pik = 1 / samp$w_sample, strata = samp$division)
   
   var_sampling + var_nr
   
@@ -135,8 +135,11 @@ x <- as.matrix(ict_survey[
   c(paste0("N_", 58:63), paste0("turnover_", 58:63))
 ])
 
-# ... and w the reference weight (the one after calibration)
+# ... w the reference weight (the one after calibration)...
 w <- ict_survey$w_calib
+
+# ... and samp the sample file of ict_sample
+samp <- ict_sample
 
 # Test of the variance function
 y <- as.matrix(ict_survey$speed_quanti)
@@ -149,7 +152,7 @@ variance_wrapper <- define_variance_wrapper(
   variance_function = variance_function,
   reference_id = ict_survey$firm_id,
   default = list(id = "firm_id", weight = "w_calib"),
-  objects_to_include = c("x", "w", "ict_sample")
+  objects_to_include = c("x", "w", "samp")
 )
 
 # The objects "x", "w" and "ict_sample" are embedded
