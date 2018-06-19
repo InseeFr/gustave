@@ -7,20 +7,28 @@
 #'   linearization).
 #'   
 #' @param variance_function An R function, with input a data matrix and possibly 
-#'   other arguments (e.g. parameters affecting the estimation of variance), 
-#'   and output a numeric vector of estimated variances (or a list whose first 
-#'   element is a numeric vector of estimated variances).
+#'   other arguments (see \code{arg_type}) and output a numeric vector of estimated 
+#'   variances (or a list whose first element is a numeric vector of estimated variances).
 #' @param arg_type A named list with three character vectors describing 
 #'   the type of each argument of \code{variance_function}: \itemize{
-#'   \item \code{data}: data argument(s), numerical vector(s) to be used in the
-#'   variance estimation formula \item \code{aux}: auxiliary data arguments,
-#'   information to be used within the variance estimation function \item \code{param}: 
-#'   parameters, non-data arguments (most of the time boolean) to be used to 
-#'   control some aspect of the variance estimation}
-#' @param reference_id A vector containing the ids of all the responding units 
-#'   of the survey. It is compared with \code{default$id} to check whether some 
-#'   observations are missing in the survey file. Observations are reordered 
-#'   according to \code{reference_id}.
+#'   \item \code{data}: data argument (only one allowed), the numerical matrix of 
+#'   variables of interest to be used in the variance estimation formula 
+#'   \item \code{aux}: auxiliary data arguments, information to be used within 
+#'   the variance estimation function 
+#'   \item \code{param}: parameters, non-data arguments (most of the time boolean) to 
+#'   be used to control some aspect of the variance estimation} 
+#'   If \code{NULL}, the first argument of \code{variance_function} is considered 
+#'   as the data argument and all others as auxiliary data arguments (no parameters 
+#'   by default).
+#' @param auxiliary_data A named list of all auxiliary data needed to perform the variance
+#'   estimation. It includes: \itemize{
+#'   \item \code{reference_id}: a vector containing the ids 
+#'   of all the responding units of the survey. It is compared with \code{default$id} (see below) 
+#'   to check whether some observations are missing in the survey file. Observations are reordered 
+#'   according to \code{auxiliary_data$reference_id} prior to the variance estimation. 
+#'   \item arguments
+#'   of \code{variance_function} described as auxiliary data arguments (\code{aux}) in \code{arg_type}
+#'   \item any other additional data objects that might be used during the process.}
 #' @param default a named list specifying the default values for: \itemize{
 #'   \item \code{id}: the name of the default identifying variable in the survey 
 #'   file. It can also be an unevaluated expression (enclosed in \code{substitute()}) to be 
@@ -38,6 +46,9 @@
 #'   are to be used to carry out the variance estimation.
 #' @param objects_to_include_from The environment to which the additional R 
 #'   objects belong.
+#' @param reference_id (Deprecated) Replaced by auxiliary_data$reference_id (see above).
+
+#' 
 #'   
 #' @details Defining variance estimation wrappers is the \strong{key feature} of
 #'   the \code{gustave} package.
@@ -99,7 +110,7 @@
 #' 
 #' # Step 1 : Definition of a variance function
 #' 
-#' variance_function <- function(y){
+#' variance_function <- function(y, x, w, samp){
 #'   
 #'   # Calibration
 #'   y <- rescal(y, x = x, w = w)
@@ -131,25 +142,25 @@
 #' # Test of the variance function
 #' y <- as.matrix(ict_survey$speed_quanti)
 #' rownames(y) <- ict_survey$firm_id
-#' variance_function(y)
+#' variance_function(y, x = x, w = w, samp = samp)
 #' 
 #' # Step 2 : Definition of a variance wrapper
 #' 
 #' variance_wrapper <- define_variance_wrapper(
 #'   variance_function = variance_function,
-#'   reference_id = ict_survey$firm_id,
-#'   default = list(id = "firm_id", weight = "w_calib"),
-#'   objects_to_include = c("x", "w", "samp")
+#'   auxiliary_data = list(reference_id = ict_survey$firm_id, x = x, w = w, samp = samp),
+#'   default = list(id = "firm_id", weight = "w_calib")
 #' )
 #' 
-#' # The objects "x", "w" and "ict_sample" are embedded
-#' # within the function variance_wrapper
+#' # The object "auxiliary_data" is embedded within the function 
+#' # variance_wrapper together with variance_function
 #' ls(environment(variance_wrapper))
+#' ls(environment(variance_wrapper)$auxiliary_data)
 #' # Note : variance_wrapper is a closure
 #' # (http://adv-r.had.co.nz/Functional-programming.html#closures)
 #' # As a consequence, the variance wrapper will work even if 
 #' # these objects are removed from globalenv()
-#' rm(x, w)
+#' rm(x, w, samp)
 #' 
 #' # Step 3 : Features of the variance wrapper
 #' 
@@ -191,10 +202,11 @@
 
 define_variance_wrapper <- function(
   variance_function, 
-  reference_id, 
-  default = list(stat = "total", alpha = 0.05), 
   arg_type = NULL,
-  objects_to_include = NULL, objects_to_include_from = parent.frame()
+  auxiliary_data = list(reference_id = NULL),
+  default = list(id = NULL, weight = NULL, stat = "total", alpha = 0.05), 
+  objects_to_include = NULL, objects_to_include_from = parent.frame(),
+  reference_id = NULL #deprecated
 ){
 
   # TODO: add some sort of startup message on first run of the function
@@ -206,22 +218,35 @@ define_variance_wrapper <- function(
   # Step 0.1 : Provide default arguments
   if(is.null(default$stat) && !("stat" %in% names(default))) default$stat <- "total"
   if(is.null(default$alpha) && !("alpha" %in% names(default))) default$alpha <- 0.05
-  args_variance_function <- names(formals(variance_function))
+  names_formals_variance_function <- names(formals(variance_function))
   if(is.null(arg_type)) arg_type <- list(
-    data = args_variance_function[1], 
-    aux = setdiff(args_variance_function, args_variance_function[1]),
+    data = names_formals_variance_function[1], 
+    aux = setdiff(names_formals_variance_function, names_formals_variance_function[1]),
     param = NULL
   )
-  
+  if(is.null(auxiliary_data)) auxiliary_data <- list(reference_id = NULL)
+  if((is.null(auxiliary_data$reference_id)) && !is.null(reference_id)){
+    warning("reference_id is deprecated since version 0.3.1. Consider using auxiliary_data$reference_id instead (see examples).")
+    auxiliary_data$reference_id <- eval(substitute(reference_id))
+  }
+
   # Step 0.2 : Control arguments consistency
+  if(length(arg_type$data) == 0)
+    stop("A data argument is expected in variance_function and should be described as such in arg_type.")
+  if(length(arg_type$data) > 1)
+    stop("Only one data argument is expected in variance_function and should be described as such in arg_type.")
+  if(is.null(auxiliary_data$reference_id))
+    stop("A reference id must be provided by setting auxiliary_data$reference_id (see examples).")
   inconsistent_arg <- list(
-    in_arg_type_not_in_variance_function = setdiff(unlist(arg_type), args_variance_function),
-    in_variance_function_not_in_arg_type = setdiff(args_variance_function, unlist(arg_type))
+    in_arg_type_not_in_variance_function = setdiff(unlist(arg_type), names_formals_variance_function),
+    in_variance_function_not_in_arg_type = setdiff(names_formals_variance_function, unlist(arg_type)),
+    aux_arg_not_in_auxiliary_data = setdiff(arg_type$aux, names(auxiliary_data))
   )
   if(length(unlist(inconsistent_arg)) > 0) stop(
     "Some arguments are inconsistent:", 
     if(length(inconsistent_arg[[1]]) > 0) paste("\n  -", paste(inconsistent_arg[[1]], collapse = ", "), "in arg_type but not in variance_function arguments") else "", 
-    if(length(inconsistent_arg[[2]]) > 0) paste("\n  -", paste(inconsistent_arg[[2]], collapse = ", "), "in variance_function arguments but not in arg_type") else ""
+    if(length(inconsistent_arg[[2]]) > 0) paste("\n  -", paste(inconsistent_arg[[2]], collapse = ", "), "in variance_function arguments but not in arg_type") else "",
+    if(length(inconsistent_arg[[3]]) > 0) paste("\n  -", paste(inconsistent_arg[[3]], collapse = ", "), "identified as auxiliary data argument in arg_type but not in auxiliary_data") else ""
   )
   
   # Step 1 : Creating the variance estimation wrapper
@@ -241,7 +266,7 @@ define_variance_wrapper <- function(
     eval_data <- eval(substitute_data, evaluation_envir)
     
     # Step 1.1 : Control identifiers
-    reference_id <- eval(reference_id)
+    reference_id <- eval(auxiliary_data$reference_id, envir = auxiliary_data, enclos = execution_envir)
     id <- if(is.character(id)) eval_data[, id] else eval(id, eval_data)      
     in_reference_id_not_in_id <- setdiff(reference_id, id)
     if(length(in_reference_id_not_in_id) > 0)
@@ -298,9 +323,10 @@ define_variance_wrapper <- function(
 
     # Step 1.5 : Call the variance estimation function
     variance_function_args <- c(
-      list(d_matrix)
-      , lapply(names(formals(variance_function))[-1], get, envir = execution_envir)
-    )
+      stats::setNames(list(d_matrix), arg_type$data)
+      , stats::setNames(lapply(arg_type$param, get, envir = execution_envir), arg_type$param)
+      , auxiliary_data
+    )[names(formals(variance_function))]
     r <- suppressMessages(do.call(variance_function, variance_function_args))
     if(is.data.frame(r)) r <- as.matrix(r)
     if(!is.list(r)) r <- list(var = r)
@@ -332,18 +358,25 @@ define_variance_wrapper <- function(
 
   }
 
-  # Step 2 : Modify variance_wrapper arguments depending on the context
+  # Step 2.1: Modify variance_wrapper arguments depending on the context
   if(!is.null(default$id)) formals(variance_wrapper)$id <- substitute(default$id)
   if(!is.null(default$weight)) formals(variance_wrapper)$weight <- substitute(default$weight)
   if(!is.null(default$stat)) formals(variance_wrapper)$stat <- default$stat
   if(!is.null(default$alpha)) formals(variance_wrapper)$alpha <- default$alpha
-  formals(variance_wrapper) <- c(formals(variance_wrapper), formals(variance_function)[names(formals(variance_function))[-1]])
-
+  
+  # Step 2.2: Add variance_function parameters to variance_wrapper arguments
+  # (just after the ...)
+  add_variance_function_param_after <- match("...", names(formals(variance_wrapper)))
+  formals(variance_wrapper) <- c(formals(variance_wrapper)[1:add_variance_function_param_after], 
+                                 formals(variance_function)[arg_type$param],
+                                 formals(variance_wrapper)[(add_variance_function_param_after + 1):length(formals(variance_wrapper))]
+  )
+  
   # Step 3 : Include objects in variance_wrapper enclosing environment
   e1 <- new.env(parent = globalenv())
   assign_all(objects = ls(asNamespace("gustave")), to = e1, from = asNamespace("gustave"))
   e2 <- new.env(parent = e1)
-  assign_all(objects = c("variance_function", "reference_id"), to = e2, from = environment())
+  assign_all(objects = c("variance_function", "auxiliary_data", "arg_type"), to = e2, from = environment())
   assign_all(objects = objects_to_include, to = e2, from = objects_to_include_from)
   variance_wrapper <- change_enclosing(variance_wrapper, envir = e2)
 

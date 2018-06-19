@@ -6,7 +6,7 @@ test_that("variance_wrapper can be defined in globalenv()", {
   expect_error({
     variance_wrapper <<- define_variance_wrapper(
       variance_function = function(y) abs(colSums(y)), 
-      reference_id = ict_survey$firm_id, 
+      auxiliary_data = list(reference_id = ict_survey$firm_id),
       default = list(id = "firm_id", weight = "w_calib", stat = "mean")
     )    
     variance_wrapper(ict_survey, speed_quanti)
@@ -20,7 +20,7 @@ test_that("variance_wrapper can be defined in another function", {
       a <- 1
       define_variance_wrapper(
         variance_function = function(y) abs(colSums(y)) + 1, 
-        reference_id = ict_survey$firm_id, 
+        auxiliary_data = list(reference_id = ict_survey$firm_id),
         default = list(id = "firm_id", weight = "w_calib", stat = "mean"), 
         objects_to_include = "a"
       )
@@ -35,19 +35,29 @@ test_that("variance_wrapper can be defined in another function", {
 })
 
 test_that("variance_wrapper may use a reference_id specified as an unevaluated expression", {
-  expect_error({
+  expect_warning({
     id_list <- list(firm = ict_survey$firm_id)
-    variance_wrapper <<- define_variance_wrapper(
+    variance_wrapper <- define_variance_wrapper(
       variance_function = function(y, level = "firm") abs(colSums(y)), 
-      reference_id = quote(id_list[[level]]), 
-      default = list(id = "firm_id", weight = "w_calib", stat = "mean"),
-      objects_to_include = "id_list"
+      auxiliary_data = list(reference_id = ict_survey$firm_id, id_list = id_list),
+      arg_type = list(data = "y", param = "level", aux = NULL),
+      default = list(id = "firm_id", weight = "w_calib", stat = "mean")
     )
     rm(id_list)
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = NA)
 })
 
+test_that("variance_wrapper can be defined using reference_id backward compatibility", {
+  expect_warning({
+    variance_wrapper <<- define_variance_wrapper(
+      variance_function = function(y) abs(colSums(y)), 
+      reference_id = ict_survey$firm_id,
+      default = list(id = "firm_id", weight = "w_calib", stat = "mean")
+    )    
+    variance_wrapper(ict_survey, speed_quanti)
+  }, regexp = "reference_id is deprecated")
+})
 
   
 

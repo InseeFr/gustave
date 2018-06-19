@@ -1,4 +1,6 @@
-variance_function <- function(y, niveau = "men"){
+rm(list = ls(all.names = TRUE))
+
+variance_function <- function(y, niveau = "men", samp, x, w){
 
   # Calibration
   y <- rescal(y, x = x, w = w)
@@ -30,7 +32,7 @@ samp <- ict_sample
 # Test of the variance function
 y <- as.matrix(ict_survey$speed_quanti)
 rownames(y) <- ict_survey$firm_id
-variance_function(y)
+variance_function(y, samp = samp, x = x, w = w)
 
 ident <- list()
 ident[["men"]] <- ict_survey$firm_id
@@ -39,13 +41,11 @@ ident[["men"]] <- ict_survey$firm_id
 
 variance_wrapper <- define_variance_wrapper(
   variance_function = variance_function,
-  reference_id = quote(ident[[niveau]]),
+  arg_type = list(data = "y", param = "niveau", aux = c("x", "w", "samp")),
+  auxiliary_data = list(ident = ident, x = x, w = w, samp = samp),
   default = list(id = "firm_id", weight = "w_calib"),
-  objects_to_include = c("x", "w", "samp", "ident")
+  reference_id = quote(ident[[niveau]])
 )
-rm(x, w, ident, samp, y, variance_function)
-
-# Step 3 : Features of the variance wrapper
-
-# Better display of results
 variance_wrapper(ict_survey, speed_quanti)
+
+ls.str(environment(variance_wrapper))

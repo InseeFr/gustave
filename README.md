@@ -32,7 +32,7 @@ In this context, the variance estimation *function* can be defined as follows:
 
 ```
 # Definition of the variance function
-variance_function <- function(y){
+variance_function <- function(y, x, w, samp){
   
   # Calibration
   y <- rescal(y, x = x, w = w)
@@ -62,7 +62,7 @@ w <- ict_survey$w_calib
 # Test of the variance function
 y <- as.matrix(ict_survey$speed_quanti)
 rownames(y) <- ict_survey$firm_id
-variance_function(y)
+variance_function(y, x = x, w = w, samp = samp)
 ```
 
 
@@ -73,13 +73,12 @@ The next step is the definition of a variance *wrapper*, which is easier to use 
 ```
 variance_wrapper <- define_variance_wrapper(
   variance_function = variance_function,
-  reference_id = ict_survey$firm_id,
-  default = list(id = "firm_id", weight = "w_calib"),
-  objects_to_include = c("x", "w", "ict_sample")
+  auxiliary_data = list(reference_id = ict_survey$firm_id, x = x, w = w, samp = samp),
+  default = list(id = "firm_id", weight = "w_calib")
 )
 ```
 
-**Note** The objects `x` and `ict_sample` are embedded within the function `variance_wrapper()` (`variance_wrapper` is a [closure](http://adv-r.had.co.nz/Functional-programming.html#closures))
+**Note** The object `auxiliary_data` is embedded within the function `variance_wrapper()` together with the variance function (`variance_wrapper` is a [closure](http://adv-r.had.co.nz/Functional-programming.html#closures)).
 
 ### Step 3: Features of the variance wrapper
 

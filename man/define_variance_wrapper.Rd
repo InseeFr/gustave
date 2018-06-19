@@ -4,20 +4,37 @@
 \alias{define_variance_wrapper}
 \title{Define a variance estimation wrapper}
 \usage{
-define_variance_wrapper(variance_function, reference_id, default = list(stat =
-  "total", alpha = 0.05), arg_type = NULL, objects_to_include = NULL,
-  objects_to_include_from = parent.frame())
+define_variance_wrapper(variance_function, arg_type = NULL,
+  auxiliary_data = list(reference_id = NULL), default = list(id = NULL,
+  weight = NULL, stat = "total", alpha = 0.05), objects_to_include = NULL,
+  objects_to_include_from = parent.frame(), reference_id = NULL)
 }
 \arguments{
 \item{variance_function}{An R function, with input a data matrix and possibly 
-other arguments (e.g. parameters affecting the estimation of variance), 
-and output a numeric vector of estimated variances (or a list whose first 
-element is a numeric vector of estimated variances).}
+other arguments (see \code{arg_type}) and output a numeric vector of estimated 
+variances (or a list whose first element is a numeric vector of estimated variances).}
 
-\item{reference_id}{A vector containing the ids of all the responding units 
-of the survey. It is compared with \code{default$id} to check whether some 
-observations are missing in the survey file. Observations are reordered 
-according to \code{reference_id}.}
+\item{arg_type}{A named list with three character vectors describing 
+the type of each argument of \code{variance_function}: \itemize{
+\item \code{data}: data argument (only one allowed), the numerical matrix of 
+variables of interest to be used in the variance estimation formula 
+\item \code{aux}: auxiliary data arguments, information to be used within 
+the variance estimation function 
+\item \code{param}: parameters, non-data arguments (most of the time boolean) to 
+be used to control some aspect of the variance estimation} 
+If \code{NULL}, the first argument of \code{variance_function} is considered 
+as the data argument and all others as auxiliary data arguments (no parameters 
+by default).}
+
+\item{auxiliary_data}{A named list of all auxiliary data needed to perform the variance
+estimation. It includes: \itemize{
+\item \code{reference_id}: a vector containing the ids 
+of all the responding units of the survey. It is compared with \code{default$id} (see below) 
+to check whether some observations are missing in the survey file. Observations are reordered 
+according to \code{auxiliary_data$reference_id} prior to the variance estimation. 
+\item arguments
+of \code{variance_function} described as auxiliary data arguments (\code{aux}) in \code{arg_type}
+\item any other additional data objects that might be used during the process.}}
 
 \item{default}{a named list specifying the default values for: \itemize{
   \item \code{id}: the name of the default identifying variable in the survey 
@@ -32,20 +49,14 @@ according to \code{reference_id}.}
   It is set to \code{0.05} by default.
 }}
 
-\item{arg_type}{A named list with three character vectors describing 
-the type of each argument of \code{variance_function}: \itemize{
-\item \code{data}: data argument(s), numerical vector(s) to be used in the
-variance estimation formula \item \code{aux}: auxiliary data arguments,
-information to be used within the variance estimation function \item \code{param}: 
-parameters, non-data arguments (most of the time boolean) to be used to 
-control some aspect of the variance estimation}}
-
 \item{objects_to_include}{A character vector indicating the name of 
 additional R objects to include within the variance wrapper. These objects 
 are to be used to carry out the variance estimation.}
 
 \item{objects_to_include_from}{The environment to which the additional R 
 objects belong.}
+
+\item{reference_id}{(Deprecated) Replaced by auxiliary_data$reference_id (see above).}
 }
 \value{
 An R function that makes the estimation of variance based on the provided 
@@ -112,7 +123,7 @@ Defining variance estimation wrappers is the \strong{key feature} of
 
 # Step 1 : Definition of a variance function
 
-variance_function <- function(y){
+variance_function <- function(y, x, w, samp){
   
   # Calibration
   y <- rescal(y, x = x, w = w)
@@ -144,25 +155,25 @@ samp <- ict_sample
 # Test of the variance function
 y <- as.matrix(ict_survey$speed_quanti)
 rownames(y) <- ict_survey$firm_id
-variance_function(y)
+variance_function(y, x = x, w = w, samp = samp)
 
 # Step 2 : Definition of a variance wrapper
 
 variance_wrapper <- define_variance_wrapper(
   variance_function = variance_function,
-  reference_id = ict_survey$firm_id,
-  default = list(id = "firm_id", weight = "w_calib"),
-  objects_to_include = c("x", "w", "samp")
+  auxiliary_data = list(reference_id = ict_survey$firm_id, x = x, w = w, samp = samp),
+  default = list(id = "firm_id", weight = "w_calib")
 )
 
-# The objects "x", "w" and "ict_sample" are embedded
-# within the function variance_wrapper
+# The object "auxiliary_data" is embedded within the function 
+# variance_wrapper together with variance_function
 ls(environment(variance_wrapper))
+ls(environment(variance_wrapper)$auxiliary_data)
 # Note : variance_wrapper is a closure
 # (http://adv-r.had.co.nz/Functional-programming.html#closures)
 # As a consequence, the variance wrapper will work even if 
 # these objects are removed from globalenv()
-rm(x, w)
+rm(x, w, samp)
 
 # Step 3 : Features of the variance wrapper
 
