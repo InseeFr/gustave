@@ -50,14 +50,16 @@ variance_function <- function(y, x, w, samp){
 }
 
 # With x the calibration variables matrix...
-library(gustave)
 x <- as.matrix(ict_survey[
   order(ict_survey$firm_id), 
   c(paste0("N_", 58:63), paste0("turnover_", 58:63))
 ])
 
-# ... and w the reference weight (the one after calibration)
+# ... w the reference weight (the one after calibration)...
 w <- ict_survey$w_calib
+
+# ... and samp the sample file of ict_sample
+samp <- ict_sample
 
 # Test of the variance function
 y <- as.matrix(ict_survey$speed_quanti)
