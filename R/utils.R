@@ -229,18 +229,16 @@ assign_all <- function(objects, to, from = parent.frame(), not_closure = c(list(
   }
 }
 
-
 # 
 # add_names_to_list <- function(l){
-#   
-#   names_l <- names(l)
-#   if(is.null(names_l)) names_l <- rep(NA, length(l))
-#   unname(as.list(substitute(l))[-1])
-# 
+#   if(!is.language(l)) stop("l must be an unevaluated evaluation (you may want to use substitute() in the function call.)")
+#   l <- as.list(l)
+#   names_l <- if(!is.null(names(l)[-1])) names(l) else rep(NA, length(l))
+#   symbol_l <- sapply(unname(l), function(x) if(is.symbol(x)) deparse(x) else "")
+#   names_l[names_l == ""] <- symbol_l[names_l == ""]
+#   as.call(stats::setNames(l, names_l))
 # }
-# 
-# samp <- 1
-# 
-# list(reference_id = 2, samp)
-# 
-# str(add_names_to_list(list(reference_id = 2, samp)))
+# identical(
+#   add_names_to_list(substitute(list(reference_id = fsndf, bsfsdf))),
+#   substitute(list(reference_id = fsndf, bsfsdf = bsfsdf))
+# )
