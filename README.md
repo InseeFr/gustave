@@ -49,22 +49,26 @@ variance_function <- function(y, x, w, samp){
   
 }
 
-# With x the calibration variables matrix...
-x <- as.matrix(ict_survey[
-  order(ict_survey$firm_id), 
-  c(paste0("N_", 58:63), paste0("turnover_", 58:63))
-])
+# y is the matrix of variables of interest, x, w, and samp are some technical data:
+technical_data <- list(
+  
+  # x: calibration variables matrix
+  x = as.matrix(ict_survey[
+    order(ict_survey$firm_id),
+    c(paste0("N_", 58:63), paste0("turnover_", 58:63))
+  ]),
 
-# ... w the reference weight (the one after calibration)...
-w <- ict_survey$w_calib
-
-# ... and samp the sample file of ict_sample
-samp <- ict_sample
+  # w: calibrated weights
+  w = ict_survey$w_calib[order(ict_survey$firm_id)],
+  
+  # samp: sample file
+  samp = ict_sample
+  
+)
 
 # Test of the variance function
-y <- as.matrix(ict_survey$speed_quanti)
-rownames(y) <- ict_survey$firm_id
-variance_function(y, x = x, w = w, samp = samp)
+y <- matrix(ict_survey$speed_quanti, dimnames = list(ict_survey$firm_id))
+with(technical_data, variance_function(y, samp = samp, x = x, w = w))
 ```
 
 
@@ -75,7 +79,8 @@ The next step is the definition of a variance *wrapper*, which is easier to use 
 ```
 variance_wrapper <- define_variance_wrapper(
   variance_function = variance_function,
-  auxiliary_data = list(reference_id = ict_survey$firm_id, x = x, w = w, samp = samp),
+  reference_id = ict_survey$firm_id, 
+  technical_data = technical_data,
   default = list(id = "firm_id", weight = "w_calib")
 )
 ```

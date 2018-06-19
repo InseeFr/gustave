@@ -3,7 +3,7 @@ context("linearization_wrapper")
 
 variance_wrapper <- define_variance_wrapper(
   variance_function = function(y) abs(colSums(y)), 
-  auxiliary_data = list(reference_id = ict_survey$firm_id),
+  reference_id = ict_survey$firm_id,
   default = list(id = "firm_id", weight = "w_calib", stat = "mean")
 )
 

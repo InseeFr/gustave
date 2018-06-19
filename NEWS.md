@@ -1,8 +1,7 @@
 # 0.3.1
 
 - Hotfix: Add calibrated weights to `define_variance_wrapper` example.
-- New feature: new auxiliary_data argument in define_variance_wrapper offers a more consistent way to include auxiliary data within the variance wrapper (more precisely, within its enclosing environment) and use it for variance estimation. objects_to_include is kept for non-data objects, such as additional linearization wrappers.
-- Deprecated: reference_id (replaced by auxiliary_data$reference_id, see above).
+- New feature: new technical_data argument in define_variance_wrapper offers a more consistent way to include technical data within the variance wrapper (more precisely, within its enclosing environment) and use it for variance estimation. objects_to_include is kept for non-data objects (such as additional linearization wrappers) or advanced customization.
 
 # 0.3.0
 
