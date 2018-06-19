@@ -190,8 +190,6 @@ add0 <- function(y, rownames, remove = TRUE){
 
 # Unexported (and undocumented) functions
 
-#' @import Matrix
-
 block_matrix <- function(y, by){
   # y <- as(Matrix(TRUE, ncol = 10, nrow = length(rowby)), "TsparseMatrix"); by <- rowby; p <- 2
   # y <- x; by <- strata
@@ -230,3 +228,19 @@ assign_all <- function(objects, to, from = parent.frame(), not_closure = c(list(
     }
   }
 }
+
+
+# 
+# add_names_to_list <- function(l){
+#   
+#   names_l <- names(l)
+#   if(is.null(names_l)) names_l <- rep(NA, length(l))
+#   unname(as.list(substitute(l))[-1])
+# 
+# }
+# 
+# samp <- 1
+# 
+# list(reference_id = 2, samp)
+# 
+# str(add_names_to_list(list(reference_id = 2, samp)))
