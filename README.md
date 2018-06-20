@@ -94,7 +94,7 @@ variance_wrapper_ict <- define_variance_wrapper(
 )
 ```
 
-**Note** The object `technical_data_ict` is embedded within the function `variance_wrapper_ict()` (`variance_wrapper_ict` is a [closure](http://adv-r.had.co.nz/Functional-programming.html#closures)).
+**Note** The object `technical_data_ict` is embedded within the function `variance_wrapper_ict()` (`variance_wrapper_ict()` is a [closure](http://adv-r.had.co.nz/Functional-programming.html#closures)).
 
 ```
 ls(environment(variance_wrapper_ict))
