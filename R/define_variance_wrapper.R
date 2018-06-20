@@ -153,15 +153,14 @@
 #'   default = list(id = "firm_id", weight = "w_calib")
 #' )
 #' 
-#' # The object "technical_data" is embedded within the function 
-#' # variance_wrapper together with variance_function
+#' # The object "technical_data" is embedded within 
+#' # the function variance_wrapper
 #' ls(environment(variance_wrapper))
-#' ls(environment(variance_wrapper)$technical_data)
 #' # Note : variance_wrapper is a closure
 #' # (http://adv-r.had.co.nz/Functional-programming.html#closures)
 #' # As a consequence, the variance wrapper will work even if 
-#' # these objects are removed from globalenv()
-#' rm(x, w, samp)
+#' # technical_data is removed from globalenv()
+#' rm(technical_data)
 #' 
 #' # Step 3 : Features of the variance wrapper
 #' 
