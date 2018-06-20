@@ -106,8 +106,6 @@ As a consequence, the variance wrapper will work even if `technical_data_ict` is
 rm(technical_data_ict)
 ```
 
-#' rm(technical_data_ict)
-
 ### Step 3: Features of the variance wrapper
 
 ```
