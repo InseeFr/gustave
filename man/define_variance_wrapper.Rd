@@ -4,36 +4,34 @@
 \alias{define_variance_wrapper}
 \title{Define a variance estimation wrapper}
 \usage{
-define_variance_wrapper(variance_function, arg_type = NULL,
-  reference_id = NULL, technical_data = NULL, default = list(id = NULL,
-  weight = NULL, stat = "total", alpha = 0.05), objects_to_include = NULL,
-  objects_to_include_from = parent.frame())
+define_variance_wrapper(variance_function, reference_id, default = list(id =
+  NULL, weight = NULL, stat = "total", alpha = 0.05), technical_data = NULL,
+  arg_type = NULL, objects_to_include = NULL)
 }
 \arguments{
-\item{variance_function}{An R function, with input a data matrix and possibly 
-other arguments (see \code{arg_type}) and output a numeric vector of estimated 
-variances (or a list whose first element is a numeric vector of estimated variances).}
-
-\item{arg_type}{A named list with three character vectors describing 
-the type of each argument of \code{variance_function}: \itemize{
-\item \code{data}: data argument (only one allowed), the numerical matrix of 
-variables of interest to be used in the variance estimation formula 
-\item \code{tech}: technical data arguments, information to be used within 
-the variance estimation function 
-\item \code{param}: parameters, non-data arguments to be used to control 
-some aspect of the variance estimation} 
-If \code{NULL}, the first argument of \code{variance_function} is considered 
-as the data argument and all others as technical data arguments (no parameters 
-by default).}
+\item{variance_function}{An R function. It is the methodological workhorse of 
+the estimation of variance: from a set of arguments including the variables 
+of interest (see below), it should return a vector of estimated variances 
+(or a list whose first element is a vector of estimated variances).
+Its arguments fall into three types: \itemize{
+\item the data argument (mandatory, only one allowed): the numerical matrix of 
+variables of interest to apply the variance estimation formula on
+\item technical data arguments (optional, one or more allowed): technical 
+and methodological information used by the variance estimation function
+(e.g. sampling strata, first- or second-order probabilities of inclusion, 
+estimated response probabilities, calibration variables)
+\item parameters (optional, one or more allowed): non-data arguments to be used 
+to control some aspect of the variance estimation (e.g. alternative methodology)
+}
+\code{define_variance_wrapper} tries to determine the type of each argument
+of \code{variance_function}. This behaviour can be overriden using the
+\code{arg_type} argument (see below).}
 
 \item{reference_id}{A vector containing the ids of all the responding units
 of the survey. It is compared with \code{default$id} (see below) to check
-whether some observations are missing in the survey file. Observations are
-reordered according to \code{reference_id} prior to the variance estimation.}
-
-\item{technical_data}{A named list of all technical data needed to perform the variance
-estimation. It must be consistent with \code{variance_function} arguments described as 
-technical data arguments (\code{tech}) in \code{arg_type}.}
+whether some observations are missing in the survey file. The matrix of variables
+of interest is reordered according to \code{reference_id} before being processed
+by \code{variance_function}.}
 
 \item{default}{A named list specifying the default values for: \itemize{
   \item \code{id}: the name of the default identifying variable in the survey 
@@ -48,11 +46,27 @@ technical data arguments (\code{tech}) in \code{arg_type}.}
   It is set to \code{0.05} by default.
 }}
 
-\item{objects_to_include}{A character vector indicating the name of 
-additional R objects to include within the variance wrapper.}
+\item{technical_data}{A named list of all technical data needed to perform 
+the variance estimation (e.g. sampling strata, first- or second-order 
+probabilities of inclusion, estimated response probabilities, calibration 
+variables). Its names should match the names of the arguments 
+of \code{variance_function}.}
 
-\item{objects_to_include_from}{The environment to which the additional R 
-objects belong.}
+\item{arg_type}{(Advanced use) A named list with three character vectors 
+describing the type of each argument of \code{variance_function} (see
+above). In most cases it should not be necessary to explicitly set its 
+value as it is automatically determined based on the following rules: 
+\itemize{
+\item the first argument of \code{variance_function} is considered 
+as the data argument
+\item all arguments of \code{variance_function} matching elements of 
+\code{technical_data} are considered as technical data arguments
+\item all remaining arguments of \code{variance_function} are considered 
+as parameters
+}}
+
+\item{objects_to_include}{(Advanced use) A character vector indicating the name of 
+additional R objects to include within the variance wrapper.}
 }
 \value{
 An R function that makes the estimation of variance based on the provided 
@@ -166,15 +180,14 @@ variance_wrapper <- define_variance_wrapper(
   default = list(id = "firm_id", weight = "w_calib")
 )
 
-# The object "technical_data" is embedded within the function 
-# variance_wrapper together with variance_function
+# The object "technical_data" is embedded within 
+# the function variance_wrapper
 ls(environment(variance_wrapper))
-ls(environment(variance_wrapper)$technical_data)
 # Note : variance_wrapper is a closure
 # (http://adv-r.had.co.nz/Functional-programming.html#closures)
 # As a consequence, the variance wrapper will work even if 
-# these objects are removed from globalenv()
-rm(x, w, samp)
+# technical_data is removed from globalenv()
+rm(technical_data)
 
 # Step 3 : Features of the variance wrapper
 

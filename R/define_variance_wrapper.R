@@ -6,27 +6,28 @@
 #'   \emph{wrapper} easier to use (e.g. automatic domain estimation, 
 #'   linearization).
 #'   
-#' @param variance_function An R function, with input a data matrix and possibly 
-#'   other arguments (see \code{arg_type}) and output a numeric vector of estimated 
-#'   variances (or a list whose first element is a numeric vector of estimated variances).
-#' @param arg_type A named list with three character vectors describing 
-#'   the type of each argument of \code{variance_function}: \itemize{
-#'   \item \code{data}: data argument (only one allowed), the numerical matrix of 
-#'   variables of interest to be used in the variance estimation formula 
-#'   \item \code{tech}: technical data arguments, information to be used within 
-#'   the variance estimation function 
-#'   \item \code{param}: parameters, non-data arguments to be used to control 
-#'   some aspect of the variance estimation} 
-#'   If \code{NULL}, the first argument of \code{variance_function} is considered 
-#'   as the data argument and all others as technical data arguments (no parameters 
-#'   by default).
+#' @param variance_function An R function. It is the methodological workhorse of 
+#'   the estimation of variance: from a set of arguments including the variables 
+#'   of interest (see below), it should return a vector of estimated variances 
+#'   (or a list whose first element is a vector of estimated variances).
+#'   Its arguments fall into three types: \itemize{
+#'   \item the data argument (mandatory, only one allowed): the numerical matrix of 
+#'   variables of interest to apply the variance estimation formula on
+#'   \item technical data arguments (optional, one or more allowed): technical 
+#'   and methodological information used by the variance estimation function
+#'   (e.g. sampling strata, first- or second-order probabilities of inclusion, 
+#'   estimated response probabilities, calibration variables)
+#'   \item parameters (optional, one or more allowed): non-data arguments to be used 
+#'   to control some aspect of the variance estimation (e.g. alternative methodology)
+#'   }
+#'   \code{define_variance_wrapper} tries to determine the type of each argument
+#'   of \code{variance_function}. This behaviour can be overriden using the
+#'   \code{arg_type} argument (see below).
 #' @param reference_id A vector containing the ids of all the responding units
 #'   of the survey. It is compared with \code{default$id} (see below) to check
-#'   whether some observations are missing in the survey file. Observations are
-#'   reordered according to \code{reference_id} prior to the variance estimation.
-#' @param technical_data A named list of all technical data needed to perform the variance
-#'   estimation. It must be consistent with \code{variance_function} arguments described as 
-#'   technical data arguments (\code{tech}) in \code{arg_type}.
+#'   whether some observations are missing in the survey file. The matrix of variables
+#'   of interest is reordered according to \code{reference_id} before being processed
+#'   by \code{variance_function}.
 #' @param default A named list specifying the default values for: \itemize{
 #'   \item \code{id}: the name of the default identifying variable in the survey 
 #'   file. It can also be an unevaluated expression (enclosed in \code{substitute()}) to be 
@@ -39,10 +40,26 @@
 #'   \item \code{alpha}: the default threshold for confidence interval derivation. 
 #'   It is set to \code{0.05} by default.
 #' }
-#' @param objects_to_include A character vector indicating the name of 
+#' @param technical_data A named list of all technical data needed to perform 
+#'   the variance estimation (e.g. sampling strata, first- or second-order 
+#'   probabilities of inclusion, estimated response probabilities, calibration 
+#'   variables). Its names should match the names of the arguments 
+#'   of \code{variance_function}.
+#' @param arg_type (Advanced use) A named list with three character vectors 
+#'   describing the type of each argument of \code{variance_function} (see
+#'   above). In most cases it should not be necessary to explicitly set its 
+#'   value as it is automatically determined based on the following rules: 
+#'   \itemize{
+#'   \item the first argument of \code{variance_function} is considered 
+#'   as the data argument
+#'   \item all arguments of \code{variance_function} matching elements of 
+#'   \code{technical_data} are considered as technical data arguments
+#'   \item all remaining arguments of \code{variance_function} are considered 
+#'   as parameters
+#'   }
+#'   
+#' @param objects_to_include (Advanced use) A character vector indicating the name of 
 #'   additional R objects to include within the variance wrapper.
-#' @param objects_to_include_from The environment to which the additional R 
-#'   objects belong.
 
 #' 
 #'   
@@ -202,12 +219,11 @@
 
 define_variance_wrapper <- function(
   variance_function, 
-  arg_type = NULL,
-  reference_id = NULL,
+  reference_id,
   technical_data = NULL,
   default = list(id = NULL, weight = NULL, stat = "total", alpha = 0.05), 
-  objects_to_include = NULL, 
-  objects_to_include_from = parent.frame()
+  arg_type = NULL,
+  objects_to_include = NULL
 ){
 
   # TODO: add some sort of startup message on first run of the function
@@ -215,15 +231,22 @@ define_variance_wrapper <- function(
   # "Variance wrapper generated by the gustave V.V on DD/MM/YYYY. See https://github.com/martinchevalier/gustave" for documentation and bug reports."
   
   # TODO: enable magrittr pipe %>% operations
-  
-  # Step 0.1 : Provide default arguments
+
+  # Step 0.0: Control if arguments are missing
+  if(missing(variance_function)) 
+    stop("A variance estimation function must be provided (see variance_function argument).")
+  if(missing(reference_id)) 
+    stop("A reference id must be provided (see reference_id argument).")
+
+  # Step 0.1: Provide default values
   if(is.null(default$stat) && !("stat" %in% names(default))) default$stat <- "total"
   if(is.null(default$alpha) && !("alpha" %in% names(default))) default$alpha <- 0.05
   names_formals_variance_function <- names(formals(variance_function))
+  names_technical_data <- names(technical_data)
   if(is.null(arg_type)) arg_type <- list(
-    data = names_formals_variance_function[1], 
-    tech = setdiff(names_formals_variance_function, names_formals_variance_function[1]),
-    param = NULL
+    data = names_formals_variance_function[1],
+    tech = names_technical_data,
+    param = setdiff(names_formals_variance_function, c(names_formals_variance_function[1], names_technical_data))
   )
 
   # Step 0.2 : Control arguments consistency
@@ -231,13 +254,11 @@ define_variance_wrapper <- function(
     stop("A data argument is expected in variance_function and should be described as such in arg_type.")
   if(length(arg_type$data) > 1)
     stop("Only one data argument is expected in variance_function and should be described as such in arg_type.")
-  if(is.null(reference_id))
-    stop("A reference id must be provided (see examples).")
   inconsistent_arg <- list(
     in_arg_type_not_in_variance_function = setdiff(unlist(arg_type), names_formals_variance_function),
     in_variance_function_not_in_arg_type = setdiff(names_formals_variance_function, unlist(arg_type)),
-    tech_arg_not_in_technical_data = setdiff(arg_type$tech, names(technical_data)),
-    technical_data_not_in_tech_arg = setdiff(names(technical_data), arg_type$tech)
+    tech_arg_not_in_technical_data = setdiff(arg_type$tech, names_technical_data),
+    technical_data_not_in_tech_arg = setdiff(names_technical_data, arg_type$tech)
   )
   if(length(unlist(inconsistent_arg)) > 0) stop(
     "Some arguments are inconsistent:", 
@@ -376,7 +397,7 @@ define_variance_wrapper <- function(
   assign_all(objects = ls(asNamespace("gustave")), to = e1, from = asNamespace("gustave"))
   e2 <- new.env(parent = e1)
   assign_all(objects = c("variance_function", "reference_id", "technical_data", "arg_type"), to = e2, from = environment())
-  assign_all(objects = objects_to_include, to = e2, from = objects_to_include_from)
+  assign_all(objects = objects_to_include, to = e2, from = parent.frame())
   variance_wrapper <- change_enclosing(variance_wrapper, envir = e2)
 
   structure(variance_wrapper, class = c("function", "gustave_variance_wrapper"))

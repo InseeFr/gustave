@@ -2,6 +2,17 @@
 
 context("define_variance_wrapper")
 
+test_that("common error messages do work", {
+  expect_error(
+    define_variance_wrapper(), 
+    regexp = "A variance estimation function"
+  )
+  expect_error(
+    define_variance_wrapper(variance_function = function(y) abs(colSums(y))),
+    regexp = "A reference id"
+  )
+})
+
 test_that("variance_wrapper can be defined in globalenv()", {
   expect_error({
     variance_wrapper <<- define_variance_wrapper(
@@ -40,7 +51,6 @@ test_that("variance_wrapper may use a reference_id specified as an unevaluated e
     variance_wrapper <- define_variance_wrapper(
       variance_function = function(y, level = "firm") abs(colSums(y)), 
       reference_id = quote(id_list[[level]]),
-      arg_type = list(data = "y", param = "level", aux = NULL),
       default = list(id = "firm_id", weight = "w_calib", stat = "mean"),
       objects_to_include = "id_list"
     )
