@@ -26,6 +26,14 @@ In this example, we define a variance estimation wrapper adapted to the example 
 - 612 responding firms, non-response correction through reweighting in homogeneous response groups based on economic sub-sector and turnover;
 - calibration on margins (number of firms and turnover broken down by economic sub-sector).
 
+The ICT data files are shipped with the gustave package:
+
+```
+library(gustave)
+data(package = "gustave")
+? ict_survey
+```
+
 ### Step 1: Define the variance *function*
 
 In this context, the variance estimation *function* specific to the ICT survey can be defined as follows:
@@ -77,6 +85,7 @@ with(technical_data_ict, variance_function_ict(y, samp = samp, x = x, w = w))
 The next step is the definition of a variance *wrapper*, which is easier to use than the variance function: 
 
 ```
+# Definition of the variance wrapper
 variance_wrapper_ict <- define_variance_wrapper(
   variance_function = variance_function_ict,
   reference_id = ict_survey$firm_id, 
