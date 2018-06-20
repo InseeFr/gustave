@@ -123,7 +123,10 @@
 #' 
 #' # Step 1 : Definition of a variance function
 #' 
-#' variance_function <- function(y, x, w, samp){
+#' # In this context, the variance estimation function specific to the ICT 
+#' # survey can be defined as follows:
+#' 
+#' variance_function_ict <- function(y, x, w, samp){
 #'   
 #'   # Calibration
 #'   y <- rescal(y, x = x, w = w)
@@ -141,7 +144,7 @@
 #' }
 #' 
 #' # y is the matrix of variables of interest, x, w, and samp are some technical data:
-#' technical_data <- list(
+#' technical_data_ict <- list(
 #'   
 #'   # x: calibration variables matrix
 #'   x = as.matrix(ict_survey[
@@ -159,58 +162,58 @@
 #' 
 #' # Test of the variance function
 #' y <- matrix(ict_survey$speed_quanti, dimnames = list(ict_survey$firm_id))
-#' with(technical_data, variance_function(y, samp = samp, x = x, w = w))
+#' with(technical_data_ict, variance_function_ict(y, samp = samp, x = x, w = w))
 #' 
 #' # Step 2 : Definition of a variance wrapper
 #' 
-#' variance_wrapper <- define_variance_wrapper(
-#'   variance_function = variance_function,
+#' variance_wrapper_ict <- define_variance_wrapper(
+#'   variance_function = variance_function_ict,
 #'   reference_id = ict_survey$firm_id, 
-#'   technical_data = technical_data,
+#'   technical_data = technical_data_ict,
 #'   default = list(id = "firm_id", weight = "w_calib")
 #' )
 #' 
-#' # The object "technical_data" is embedded within 
-#' # the function variance_wrapper
-#' ls(environment(variance_wrapper))
-#' # Note : variance_wrapper is a closure
+#' # The object technical_data_ict is embedded within 
+#' # the function variance_wrapper_ict
+#' ls(environment(variance_wrapper_ict))
+#' # Note : variance_wrapper_ict is a closure
 #' # (http://adv-r.had.co.nz/Functional-programming.html#closures)
 #' # As a consequence, the variance wrapper will work even if 
-#' # technical_data is removed from globalenv()
-#' rm(technical_data)
+#' # technical_data_ict is removed from globalenv()
+#' rm(technical_data_ict)
 #' 
 #' # Step 3 : Features of the variance wrapper
 #' 
 #' # Better display of results
-#' variance_wrapper(ict_survey, speed_quanti)
+#' variance_wrapper_ict(ict_survey, speed_quanti)
 #' 
 #' # Mean linearization
-#' variance_wrapper(ict_survey, mean(speed_quanti))
+#' variance_wrapper_ict(ict_survey, mean(speed_quanti))
 #' # Ratio linearization
-#' variance_wrapper(ict_survey, ratio(turnover, employees))
+#' variance_wrapper_ict(ict_survey, ratio(turnover, employees))
 #' 
 #' # Discretization of qualitative variables
-#' variance_wrapper(ict_survey, speed_quali)
+#' variance_wrapper_ict(ict_survey, speed_quali)
 #' # On-the-fly recoding
-#' variance_wrapper(ict_survey, speed_quali == "Between 2 and 10 Mbs")
+#' variance_wrapper_ict(ict_survey, speed_quali == "Between 2 and 10 Mbs")
 #' 
 #' # 1-domain estimation
-#' variance_wrapper(ict_survey, speed_quanti, where = division == "58")
+#' variance_wrapper_ict(ict_survey, speed_quanti, where = division == "58")
 #' # Multiple domains estimation
-#' variance_wrapper(ict_survey, speed_quanti, by = division)
+#' variance_wrapper_ict(ict_survey, speed_quanti, by = division)
 #' 
 #' # Multiple variables at a time
-#' variance_wrapper(ict_survey, speed_quanti, big_data)
-#' variance_wrapper(ict_survey, speed_quanti, mean(big_data))
+#' variance_wrapper_ict(ict_survey, speed_quanti, big_data)
+#' variance_wrapper_ict(ict_survey, speed_quanti, mean(big_data))
 #' # Flexible syntax for where and by arguments
 #' # (similar to the aes() function in ggplot2)
-#' variance_wrapper(ict_survey, where = division == "58", 
+#' variance_wrapper_ict(ict_survey, where = division == "58", 
 #'   mean(speed_quanti), mean(big_data * 100)
 #' )
-#' variance_wrapper(ict_survey, where = division == "58", 
+#' variance_wrapper_ict(ict_survey, where = division == "58", 
 #'   mean(speed_quanti), mean(big_data * 100, where = division == "61")
 #' )
-#' variance_wrapper(ict_survey, where = division == "58", 
+#' variance_wrapper_ict(ict_survey, where = division == "58", 
 #'   mean(speed_quanti), mean(big_data * 100, where = NULL)
 #' )
 #' 
