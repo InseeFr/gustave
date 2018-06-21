@@ -14,6 +14,9 @@
 #'   required to prepare the variance estimation process (see other arguments 
 #'   below). Note that this file should contain all the units sampled, 
 #'   including the out-of-scope and non-responding units.
+#' @param id The identification variable of the units in \code{data}. 
+#'   It should be unique for each row in \code{data} and not contain any 
+#'   missing values.
 #'
 #' @param sampling_weight A character vector of length 1, the name of the 
 #'   numeric variable in \code{data} corresponding to the sampling weights 
@@ -66,7 +69,7 @@
 #' 
 #' 
 #' @export 
-define_simple_wrapper <- function(data,
+define_simple_wrapper <- function(data, id,
                                   sampling_weight, strata = NULL,
                                   scope = NULL,
                                   nrc_weight = NULL, resp = NULL,
@@ -77,6 +80,7 @@ define_simple_wrapper <- function(data,
   
   # Step 1.1: Arguments consistency
   if(missing(data)) stop("A data file must be provided (data argument).")
+  if(missing(id)) stop("An identifier of the units must be provided (id argument).")
   if(missing(sampling_weight)) stop("A sampling weight must be provided (sampling_weight argument).")
   inconsistency <- list(
     nrc_weight_but_no_resp = !is.null(nrc_weight) && is.null(resp),
@@ -113,6 +117,7 @@ define_simple_wrapper <- function(data,
   # Do the elements to which all other arguments refer exist and are
   # variable names (or vector of variable names for calib_var)
   param_is_variable_name <- c(
+    id = is.null(id) || is_variable_name(id),
     sampling_weight = is.null(sampling_weight) || is_variable_name(sampling_weight),
     strata = is.null(strata) || is_variable_name(strata),
     scope = is.null(scope) || is_variable_name(scope),

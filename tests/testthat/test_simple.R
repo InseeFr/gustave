@@ -51,32 +51,36 @@ test_that("inconsitency detection works as expected", {
   )
   expect_error(
     define_simple_wrapper(data = blabla), 
+    regexp = "An identifier of the units must be provided"
+  )
+  expect_error(
+    define_simple_wrapper(data = blabla, id = "blabla"), 
     regexp = "A sampling weight"
   )
   expect_error(
     define_simple_wrapper(
-      data = blabla, 
+      data = blabla, id = "blabla",
       sampling_weight = "blabla",
       nrc_weight = "blabla"
     ), regexp = "Some arguments are inconsistent:\n  - weights after non-response"
   )
   expect_error(
     define_simple_wrapper(
-      data = blabla, 
+      data = blabla, id = "blabla", 
       sampling_weight = "blabla",
       resp = "blabla"
     ), regexp = "Some arguments are inconsistent:\n  - a variable indicating responding units"
   )
   expect_error(
     define_simple_wrapper(
-      data = ict_sample, 
+      data = ict_sample, id = "blabla", 
       sampling_weight = "blabla",
       calib = "blabla"
     ), regexp = "Some arguments are inconsistent:\n  - a variable indicating the units taking part"
   )
   expect_error(
     define_simple_wrapper(
-      data = ict_sample, 
+      data = ict_sample, id = "blabla", 
       sampling_weight = "blabla",
       calib_weight = "blabla"
     ), regexp = "Some arguments are inconsistent:\n  - calibrated weights are provided"
@@ -126,25 +130,25 @@ test_that("inconsitency detection works as expected", {
 test_that("argument validity controls work as expected", {
   expect_error(
     define_simple_wrapper(
-      data = blabla, 
+      data = blabla, id = "blabla", 
       sampling_weight = "blabla"
     ), regexp = "obj"
   )
   expect_error(
-    define_simple_wrapper(data = matrix(1:10), sampling_weight = "blabla"), 
-    regexp = "data argument must point to a data.frame"
+    define_simple_wrapper(data = matrix(1:10), id = "blabla", sampling_weight = "blabla"), 
+    regexp = "data argument must refer to a data.frame"
   )
   expect_error(
-    define_simple_wrapper(data = tibble::as.tibble(ict_sample), sampling_weight = "blabla"), 
+    define_simple_wrapper(data = tibble::as.tibble(ict_sample), id = "blabla", sampling_weight = "blabla"), 
     regexp = NA
   )
   expect_error(
-    define_simple_wrapper(data = ict_sample, sampling_weight = c("blabla", "bloblo")),
+    define_simple_wrapper(data = ict_sample, id = "blabla", sampling_weight = c("blabla", "bloblo")),
     regexp = "The following arguments do not refer to a variable name"
   )
   expect_error(
     define_simple_wrapper(
-      data = ict_sample, sampling_weight = "blabla",
+      data = ict_sample, id = "blabla", sampling_weight = "blabla",
       calib_weight = "blabla", calib_var = 2
     ), 
     regexp = "The following arguments do not refer to a vector of variable names"

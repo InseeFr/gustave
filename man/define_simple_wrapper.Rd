@@ -4,15 +4,19 @@
 \alias{define_simple_wrapper}
 \title{Define a simple variance wrapper}
 \usage{
-define_simple_wrapper(data, sampling_weight, strata = NULL, scope = NULL,
-  nrc_weight = NULL, resp = NULL, calib_weight = NULL, calib = NULL,
-  calib_var = NULL)
+define_simple_wrapper(data, id, sampling_weight, strata = NULL,
+  scope = NULL, nrc_weight = NULL, resp = NULL, calib_weight = NULL,
+  calib = NULL, calib_var = NULL)
 }
 \arguments{
 \item{data}{The \code{data.frame} containing all the technical information
 required to prepare the variance estimation process (see other arguments 
 below). Note that this file should contain all the units sampled, 
 including the out-of-scope and non-responding units.}
+
+\item{id}{The identification variable of the units in \code{data}. 
+It should be unique for each row in \code{data} and not contain any 
+missing values.}
 
 \item{sampling_weight}{A character vector of length 1, the name of the 
 numeric variable in \code{data} corresponding to the sampling weights 
