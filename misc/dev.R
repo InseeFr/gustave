@@ -3,8 +3,8 @@ rm(list = ls(all.names = TRUE))
 define_simple_wrapper(
   data = ict_sample, id = "firm_id",
   sampling_weight = "w_sample", strata = "division",
-  nrc_weight = "w_nr", resp = "resp2",
-  calib_weight = "w_calib", calib_var = c("blabla", "bloblo")
+  nrc_weight = "w_nr", resp = "resp2"
+  # calib_weight = "w_calib", calib_var = c("blabla", "bloblo")
 )
 
 

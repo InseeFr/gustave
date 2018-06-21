@@ -118,59 +118,48 @@ define_simple_wrapper <- function(data, id,
   )
   
   # Step 2: Control that arguments exist
-  
-  # Step 2.1: Existence and type of data
-  # Does data exists and is it a data.frame ?
+
+  # Step 2.0: Evaluation of all arguments
   if(!is.data.frame(data)) error("data argument must refer to a data.frame")
+  arg <- lapply(as.list(match.call())[-1], eval)
   
-  # Step 2.1: Existence and type of all other arguments
-  # Do the elements to which all other arguments refer exist and are
-  # variable names (or vector of variable names for calib_var)
-  arg_is_variable_name <- c(
-    id = is.null(id) || is_variable_name(id),
-    sampling_weight = is.null(sampling_weight) || is_variable_name(sampling_weight),
-    strata = is.null(strata) || is_variable_name(strata),
-    scope = is.null(scope) || is_variable_name(scope),
-    nrc_weight = is.null(nrc_weight) || is_variable_name(nrc_weight),
-    resp = is.null(resp) || is_variable_name(resp),
-    calib_weight = is.null(calib_weight) || is_variable_name(calib_weight),
-    calib = is.null(calib) || is_variable_name(calib)
+  # Step 2.1: Expected types
+  should_be_single_variable_name <- c(
+    "id", "sampling_weight", "strata", "scope", "nrc_weight", 
+    "resp", "calib_weight", "calib"
   )
-  if(any(!arg_is_variable_name)) error(
+  should_be_variable_name_vector <- c("calib_var")
+  should_be_variable_name <- c(should_be_single_variable_name, should_be_variable_name_vector)
+  
+  # Step 2.2: Types
+  is_single_variable_name <- sapply(
+    arg[should_be_single_variable_name], 
+    function(arg) is.null(arg) || is_variable_name(arg, max_length = 1)
+  )
+  if(any(!is_single_variable_name)) error(
     "The following arguments do not refer to a variable name (character vector of length 1): ", 
-    names(arg_is_variable_name)[!arg_is_variable_name]
+    names(is_single_variable_name)[!is_single_variable_name]
   )
-  arg_is_variable_name_vector <- c(
-    calib_var = is.null(calib_var) || is_variable_name(calib_var, max_length = Inf)
+  is_variable_name_vector <- sapply(
+    arg[should_be_variable_name_vector], 
+    function(arg) is.null(arg) || is_variable_name(arg, max_length = Inf)
   )
-  if(any(!arg_is_variable_name_vector)) error(
+  if(any(!is_variable_name_vector)) error(
     "The following arguments do not refer to a vector of variable names: ", 
-    names(arg_is_variable_name_vector)[!arg_is_variable_name_vector]
+    names(is_variable_name_vector)[!is_variable_name_vector]
   )
-  
-  # Step 2.3: Existence of the corresponding variables in data
-  arg_variable_not_in_data <- list(
-    id = variable_not_in_data(id, data),
-    sampling_weight = variable_not_in_data(sampling_weight, data),
-    strata = variable_not_in_data(strata, data),
-    scope = variable_not_in_data(scope, data),
-    nrc_weight = variable_not_in_data(nrc_weight, data),
-    resp = variable_not_in_data(resp, data),
-    calib_weight = variable_not_in_data(calib_weight, data),
-    calib = variable_not_in_data(calib, data),
-    calib_var = variable_not_in_data(calib_var, data)
-  )
-  arg_variable_not_in_data <- lapply(seq_along(arg_variable_not_in_data), function(i){
-    if(!is.null(arg_variable_not_in_data[[i]])) paste0(
-      "\n  - ", names(arg_variable_not_in_data[i]), " argument: ",
-      paste0(arg_variable_not_in_data[[i]], collapse = " ")
-    ) else NULL
+
+  # Step 2.3: variables in data
+  is_not_in_data <- lapply(should_be_variable_name, function(param){
+    # param <- "id"
+    tmp <- variable_not_in_data(var = arg[[param]], data = data)
+    if(is.null(tmp)) return(NULL)
+    paste0("\n  - ", param, " argument: ", paste0(tmp, collapse = " "))
   })
-  if(length(unlist(arg_variable_not_in_data)) > 0) error(
+  if(length(unlist(is_not_in_data)) > 0) error(
     "Some variables do not exist in ", deparse(substitute(data)), ": ",
-    unlist(arg_variable_not_in_data[!is.null(arg_variable_not_in_data)])
+    unlist(is_not_in_data[!is.null(is_not_in_data)])
   )
-  
   
   
   
