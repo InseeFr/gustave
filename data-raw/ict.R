@@ -1,5 +1,7 @@
 
-
+# TODO: move the calibration variables in ict_sample and 
+# change the examples
+# TODO: correct the estimated probabilities
 
 
 # Information and communication sector

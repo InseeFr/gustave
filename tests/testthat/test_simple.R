@@ -129,17 +129,31 @@ test_that("inconsitency detection works as expected", {
 
 test_that("argument validity controls work as expected", {
   expect_error(
-    define_simple_wrapper(
-      data = blabla, id = "blabla", 
-      sampling_weight = "blabla"
-    ), regexp = "obj"
+    define_simple_wrapper(data = blabla, id = "blabla", sampling_weight = "blabla"), 
+    regexp = "obj"
   )
   expect_error(
     define_simple_wrapper(data = matrix(1:10), id = "blabla", sampling_weight = "blabla"), 
     regexp = "data argument must refer to a data.frame"
   )
   expect_error(
-    define_simple_wrapper(data = tibble::as.tibble(ict_sample), id = "blabla", sampling_weight = "blabla"), 
+    define_simple_wrapper(data = ict_sample, id = "firm_id", sampling_weight = "w_sample"), 
+    regexp = NA
+  )
+  expect_error(
+    define_simple_wrapper(
+      data = tibble::as.tibble(ict_sample), 
+      id = "firm_id", 
+      sampling_weight = "w_sample"
+    ), 
+    regexp = NA
+  )
+  expect_error(
+    define_simple_wrapper(
+      data = data.table::as.data.table(ict_sample), 
+      id = "firm_id", 
+      sampling_weight = "w_sample"
+    ), 
     regexp = NA
   )
   expect_error(
@@ -153,5 +167,12 @@ test_that("argument validity controls work as expected", {
     ), 
     regexp = "The following arguments do not refer to a vector of variable names"
   )
-  
+  expect_error(
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id",
+      sampling_weight = "w_sample", strata = "division",
+      nrc_weight = "w_nr", resp = "blabla"
+    ), 
+    regexp = "Some variables do not exist in ict_sample: \n  - resp argument: blabla"
+  )
 })

@@ -6,7 +6,7 @@
 \usage{
 define_simple_wrapper(data, id, sampling_weight, strata = NULL,
   scope = NULL, nrc_weight = NULL, resp = NULL, calib_weight = NULL,
-  calib = NULL, calib_var = NULL)
+  calib = NULL, calib_var = NULL, force = FALSE)
 }
 \arguments{
 \item{data}{The \code{data.frame} containing all the technical information
@@ -68,6 +68,9 @@ Character and factor variables are automatically discretized.
 \code{calib_var} should be defined as long as a \code{calib_weight} is 
 provided. All units taking part in the calibration process should have
 only non-missing values for all variables in \code{calib_var}.}
+
+\item{force}{(Advanced use) A logical vector of lentgh one: should all
+error messages be considered as warnings? Use at your own risks.}
 }
 \description{
 define_simple_wrapper is a convenience wrapper
