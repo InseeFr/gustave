@@ -117,20 +117,20 @@ define_simple_wrapper <- function(data, id,
     "\n"
   )
   
-  # Step 2: Control that arguments exist
+  # Step 2: Control that arguments do exist and retrive their value
 
-  # Step 2.0: Evaluation of all arguments
+  # Step 2.1: Evaluation of all arguments
   if(!is.data.frame(data)) error("data argument must refer to a data.frame")
   arg <- lapply(as.list(match.call())[-1], eval)
-  
-  # Step 2.1: Expected types
-  should_be_single_variable_name <- c(
+
+  # Step 2.2: Expected types
+  should_be_single_variable_name <- intersect(c(
     "id", "sampling_weight", "strata", "scope", "nrc_weight", 
     "resp", "calib_weight", "calib"
-  )
-  should_be_variable_name_vector <- c("calib_var")
+  ), names(arg))
+  should_be_variable_name_vector <- intersect(c("calib_var"), names(arg))
   should_be_variable_name <- c(should_be_single_variable_name, should_be_variable_name_vector)
-  
+
   # Step 2.2: Types
   is_single_variable_name <- sapply(
     arg[should_be_single_variable_name], 
@@ -160,6 +160,20 @@ define_simple_wrapper <- function(data, id,
     "Some variables do not exist in ", deparse(substitute(data)), ": ",
     unlist(is_not_in_data[!is.null(is_not_in_data)])
   )
+  
+  # Step 2.4: Retrieve the value of the arguments
+  arg[should_be_single_variable_name] <- lapply(
+    arg[intersect(names(arg), should_be_single_variable_name)],
+    function(param) data[, param]
+  )
+  arg[should_be_variable_name_vector] <- lapply(
+    arg[intersect(names(arg), should_be_variable_name_vector)],
+    function(param) data[, param, drop = FALSE]
+  )
+  list2env(arg, envir = environment())
+  
+  
+  # Step 3: Methodological controls
   
   
   
