@@ -66,12 +66,46 @@
 #' 
 #' 
 #' @export 
-define_simple_wrapper <-function(data,
-                                 sampling_weight, strata = NULL,
-                                 scope = NULL,
-                                 nrc_weight = NULL, resp = NULL,
-                                 calib_weight = NULL, calib = NULL, calib_var = NULL
+define_simple_wrapper <- function(data,
+                                  sampling_weight, strata = NULL,
+                                  scope = NULL,
+                                  nrc_weight = NULL, resp = NULL,
+                                  calib_weight = NULL, calib = NULL, calib_var = NULL
 ){
+  
+  # Step 1: Control arguments consistency and display the welcome message
+  
+  # Step 1.1: Arguments consistency
+  if(missing(data)) stop("A data file must be provided (data argument).")
+  if(missing(sampling_weight)) stop("A sampling weight must be provided (sampling_weight argument).")
+  inconsistency <- list(
+    nrc_weight_but_no_resp = !is.null(nrc_weight) && is.null(resp),
+    resp_but_no_nrc_weight = is.null(nrc_weight) && !is.null(resp),
+    calib_weight_but_no_calib_var = !is.null(calib_weight) && is.null(calib_var),
+    calib_or_calib_var_but_no_calib_weight = is.null(calib_weight) && (!is.null(calib) || !is.null(calib_var))
+  )
+  if(any(unlist(inconsistency))) stop(
+    "Some arguments are inconsistent:", 
+    if(inconsistency$nrc_weight_but_no_resp) "\n  - weights after non-response correction are provided (nrc_weight argument) but no variable indicating responding units (resp argument)" else "", 
+    if(inconsistency$resp_but_no_nrc_weight) "\n  - a variable indicating responding units is provided (resp argument) but no weights after non-response correction (nrc_weight argument)" else "" ,
+    if(inconsistency$calib_weight_but_no_calib_var) "\n  - calibrated weights are provided (calib_weight argument) but no calibration variables (calib_var argument)" else "" ,
+    if(inconsistency$calib_or_calib_var_but_no_calib_weight) "\n  - a variable indicating the units taking part in a calibration process and/or calibration variables are provided (calib and calib_var arguments) but no calibrated weights (calib_weight argument)" else "" 
+  )
+
+  # Step 1.2: Welcome message
+  message(
+    "Variance wrapper definition using the dataset : ", deparse(substitute(data)),
+    "\n\nThe following features are taken into account:",
+    if(!is.null(strata)) "\n  - stratified simple random sampling" else 
+      "\n  - simple random sampling WITHOUT stratification",
+    if(!is.null(scope)) "\n  - out-of-scope units" else "",
+    if(!is.null(nrc_weight)) "\n  - non-response correction through reweighting" else "",
+    if(!is.null(calib_weight)) "\n  - calibration on margins" else ""
+  )
+  
+
+  
+  
   
 }
 
@@ -99,3 +133,5 @@ var_simple <- function(y, samp, nr, calib){
   
 }
 
+is_variable_name <- function(param, max_length = 1)
+  is.character(param) && length(param) > 0 && length(param) <= max_length
