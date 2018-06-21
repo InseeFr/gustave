@@ -1,5 +1,14 @@
 rm(list = ls(all.names = TRUE))
 
+define_simple_wrapper(
+  data = ict_sample,
+  sampling_weight = "blabla", strata = "blabla",
+  scope = "blabla",
+  nrc_weight = "blabla", resp = "blabla",
+  calib_weight = "blabla", calib_var = 2
+)
+names_arg <- spy
+
 variance_function <- function(y, niveau = "men", samp, x, w){
 
   # Calibration

@@ -103,8 +103,37 @@ define_simple_wrapper <- function(data,
     if(!is.null(calib_weight)) "\n  - calibration on margins" else ""
   )
   
-
+  # Step 2: Control that arguments exist
   
+  # Step 2.1: Existence and type of data
+  # Does data exists and is it a data.frame ?
+  if(!is.data.frame(data)) stop("data argument must refer to a data.frame")
+  
+  # Step 2.1: Existence and type of all other arguments
+  # Do the elements to which all other arguments refer exist and are
+  # variable names (or vector of variable names for calib_var)
+  param_is_variable_name <- c(
+    sampling_weight = is.null(sampling_weight) || is_variable_name(sampling_weight),
+    strata = is.null(strata) || is_variable_name(strata),
+    scope = is.null(scope) || is_variable_name(scope),
+    nrc_weight = is.null(nrc_weight) || is_variable_name(nrc_weight),
+    resp = is.null(resp) || is_variable_name(resp),
+    calib_weight = is.null(calib_weight) || is_variable_name(calib_weight),
+    calib = is.null(calib) || is_variable_name(calib)
+  )
+  if(any(!param_is_variable_name)) stop(
+    "The following arguments do not refer to a variable name (character vector of length 1): ", 
+    names(param_is_variable_name)[!param_is_variable_name]
+  )
+  param_is_variable_name_vector <- c(
+    calib_var = is.null(calib_var) || is_variable_name(calib_var, max_length = Inf)
+  )
+  if(any(!param_is_variable_name_vector)) stop(
+    "The following arguments do not refer to a vector of variable names: ", 
+    names(param_is_variable_name_vector)[!param_is_variable_name_vector]
+  )
+  
+  # Step 2.3: Existence of the corresponding variables in data
   
   
 }
@@ -135,3 +164,5 @@ var_simple <- function(y, samp, nr, calib){
 
 is_variable_name <- function(param, max_length = 1)
   is.character(param) && length(param) > 0 && length(param) <= max_length
+
+variable_exists <- function(data, var) var %in% names(data)

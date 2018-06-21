@@ -82,52 +82,72 @@ test_that("inconsitency detection works as expected", {
     ), regexp = "Some arguments are inconsistent:\n  - calibrated weights are provided"
   )
 })
+# 
+# test_that("welcome message works as expected", {
+#   welcome <- "Variance wrapper definition using the dataset : blabla\n\nThe following features are taken into account:"
+#   expect_message(
+#     define_simple_wrapper(
+#       data = blabla, 
+#       sampling_weight = "blabla"
+#     ), regexp = paste0(welcome, "\n  - simple random sampling WITHOUT stratification")
+#   )
+#   expect_message(
+#     define_simple_wrapper(
+#       data = blabla, 
+#       sampling_weight = "blabla", strata = "blabla"
+#     ), regexp = tmp <- paste0(welcome, "\n  - stratified simple random sampling")
+#   )
+#   expect_message(
+#     define_simple_wrapper(
+#       data = blabla, 
+#       sampling_weight = "blabla", strata = "blabla",
+#       scope = "blabla"
+#     ), regexp = tmp <- paste0(tmp, "\n  - out-of-scope units")
+#   )
+#   expect_message(
+#     define_simple_wrapper(
+#       data = blabla, 
+#       sampling_weight = "blabla", strata = "blabla",
+#       scope = "blabla",
+#       nrc_weight = "blabla", resp = "blabla"
+#     ), regexp = tmp <- paste0(tmp, "\n  - non-response correction through reweighting")
+#   )
+#   expect_message(
+#     define_simple_wrapper(
+#       data = blabla, 
+#       sampling_weight = "blabla", strata = "blabla",
+#       scope = "blabla",
+#       nrc_weight = "blabla", resp = "blabla",
+#       calib_weight = "blabla", calib_var = "blabla"
+#     ), regexp = paste0(tmp, "\n  - calibration on margins")
+#   )
+# })
 
-test_that("welcome message works as expected", {
-  welcome <- "Variance wrapper definition using the dataset : blabla\n\nThe following features are taken into account:"
-  expect_message(
+test_that("argument validity controls work as expected", {
+  expect_error(
     define_simple_wrapper(
       data = blabla, 
       sampling_weight = "blabla"
-    ), regexp = paste0(welcome, "\n  - simple random sampling WITHOUT stratification")
+    ), regexp = "obj"
   )
-  expect_message(
+  expect_error(
+    define_simple_wrapper(data = matrix(1:10), sampling_weight = "blabla"), 
+    regexp = "data argument must point to a data.frame"
+  )
+  expect_error(
+    define_simple_wrapper(data = tibble::as.tibble(ict_sample), sampling_weight = "blabla"), 
+    regexp = NA
+  )
+  expect_error(
+    define_simple_wrapper(data = ict_sample, sampling_weight = c("blabla", "bloblo")),
+    regexp = "The following arguments do not refer to a variable name"
+  )
+  expect_error(
     define_simple_wrapper(
-      data = blabla, 
-      sampling_weight = "blabla", strata = "blabla"
-    ), regexp = tmp <- paste0(welcome, "\n  - stratified simple random sampling")
+      data = ict_sample, sampling_weight = "blabla",
+      calib_weight = "blabla", calib_var = 2
+    ), 
+    regexp = "The following arguments do not refer to a vector of variable names"
   )
-  expect_message(
-    define_simple_wrapper(
-      data = blabla, 
-      sampling_weight = "blabla", strata = "blabla",
-      scope = "blabla"
-    ), regexp = tmp <- paste0(tmp, "\n  - out-of-scope units")
-  )
-  expect_message(
-    define_simple_wrapper(
-      data = blabla, 
-      sampling_weight = "blabla", strata = "blabla",
-      scope = "blabla",
-      nrc_weight = "blabla", resp = "blabla"
-    ), regexp = tmp <- paste0(tmp, "\n  - non-response correction through reweighting")
-  )
-  expect_message(
-    define_simple_wrapper(
-      data = blabla, 
-      sampling_weight = "blabla", strata = "blabla",
-      scope = "blabla",
-      nrc_weight = "blabla", resp = "blabla",
-      calib_weight = "blabla", calib_var = "blabla"
-    ), regexp = paste0(tmp, "\n  - calibration on margins")
-  )
+  
 })
-
-
-# define_simple_wrapper(
-#   data = blabla, 
-#   sampling_weight = "blabla", strata = c("blabla", "bkre"),
-#   scope = "blabla",
-#   nrc_weight = "blabla", resp = "blabla",
-#   calib_weight = "blabla", calib_var = "blabla"
-# )
