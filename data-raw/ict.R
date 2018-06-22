@@ -60,6 +60,7 @@ ict_sample$w_nrc <- ict_sample$w_sample / ict_sample$response_prob_est
 
 
 # Calibration
+ict_sample$calib <- ict_sample$resp
 calib_var <- c(paste0("N_", division), paste0("turnover_", division))
 ict_sample$N_58 <- (ict_sample$division == "58") * 1
 ict_sample$N_59 <- (ict_sample$division == "59") * 1
