@@ -18,7 +18,7 @@
 #'   It should be unique for each row in \code{data} and not contain any 
 #'   missing values.
 #'
-#' @param sampling_weight A character vector of length 1, the name of the 
+#' @param samp_weight A character vector of length 1, the name of the 
 #'   numeric variable in \code{data} corresponding to the sampling weights 
 #'   of the survey. It should not contain any missing values.
 #' @param strata A character vector of length 1, the name of the factor 
@@ -71,7 +71,7 @@
 #' 
 #' @export 
 define_simple_wrapper <- function(data, id,
-                                  sampling_weight, strata = NULL,
+                                  samp_weight, strata = NULL,
                                   scope = NULL,
                                   nrc_weight = NULL, resp = NULL,
                                   calib_weight = NULL, calib = NULL, calib_var = NULL,
@@ -90,7 +90,7 @@ define_simple_wrapper <- function(data, id,
   # Step 1.1: Arguments consistency
   if(missing(data)) stop_("A data file must be provided (data argument).")
   if(missing(id)) stop_("An identifier of the units must be provided (id argument).")
-  if(missing(sampling_weight)) stop_("Sampling weights must be provided (sampling_weight argument).")
+  if(missing(samp_weight)) stop_("Sampling weights must be provided (samp_weight argument).")
   inconsistency <- list(
     nrc_weight_but_no_resp = !is.null(nrc_weight) && is.null(resp),
     resp_but_no_nrc_weight = is.null(nrc_weight) && !is.null(resp),
@@ -127,7 +127,7 @@ define_simple_wrapper <- function(data, id,
 
   # Step 2.2: Expected types
   should_be_single_variable_name <- intersect(c(
-    "id", "sampling_weight", "strata", "scope", "nrc_weight", 
+    "id", "samp_weight", "strata", "scope", "nrc_weight", 
     "resp", "calib_weight", "calib"
   ), names(arg))
   should_be_variable_name_vector <- intersect(c("calib_var"), names(arg))
@@ -164,9 +164,17 @@ define_simple_wrapper <- function(data, id,
   )
   
   # Step 2.4: Retrieve the value of the arguments
+  data <- data[order(data[[arg$id]]), ]
   list2env(c(
-    lapply(arg[should_be_single_variable_name], function(param) data[[param]]),
-    lapply(arg[should_be_variable_name_vector], function(param) data[param])
+    lapply(
+      arg[should_be_single_variable_name], function(param) 
+        stats::setNames(data[[param]], data[[arg$id]])
+    ),
+    lapply(arg[should_be_variable_name_vector], function(param){
+      tmp <- data[param]
+      row.names(tmp) <- data[[arg$id]]
+      tmp
+    })
   ), envir = environment())
 
   
@@ -181,14 +189,15 @@ define_simple_wrapper <- function(data, id,
   if(any(duplicated(id)))
     stop_("The id variable (", arg$id, ") should not contain any duplicated values.")
   
-  # sampling_weight
-  if(!is.numeric(sampling_weight))
-    stop_("The sampling weights (", arg$sampling_weight, ") should be numeric.")
-  if(anyNA(sampling_weight))
-    stop_("The sampling weights (", arg$sampling_weight, ") should not contain any missing (NA) values.")
-  reference_weight <- sampling_weight
+  # samp_weight
+  if(!is.numeric(samp_weight))
+    stop_("The sampling weights (", arg$samp_weight, ") should be numeric.")
+  if(anyNA(samp_weight))
+    stop_("The sampling weights (", arg$samp_weight, ") should not contain any missing (NA) values.")
+  reference_weight <- samp_weight
 
   # strata
+  if(is.null(strata)) strata <- factor(rep("1", length(id)))
   if(!is.null(strata)){
     if(is.character(strata)){
       message("Note: The strata variable (", arg$strata, ") is of type character. It is automatically coerced to factor.\n")
@@ -231,7 +240,7 @@ define_simple_wrapper <- function(data, id,
       stop_("The weights after non-response correction (", arg$nrc_weight, ") should be numeric.")
     if(anyNA(nrc_weight[resp %in% TRUE]))
       stop_("The weights after non-response correction (", arg$nrc_weight, ") should not contain any missing (NA) values for responding units.")
-    reference_weight <- sampling_weight
+    reference_weight <- samp_weight
   }
   
   # calib
@@ -259,10 +268,10 @@ define_simple_wrapper <- function(data, id,
         if(!is.null(nrc_weight)){
           paste0("the weights after non-response correction (", arg$nrc_weight, ").")
         }else{
-          paste0("the sampling weights (", arg$sampling_weight, ").")
+          paste0("the sampling weights (", arg$samp_weight, ").")
         } 
       )
-    reference_weight <- sampling_weight
+    reference_weight <- samp_weight
   }
   
   # calib_var
@@ -287,10 +296,38 @@ define_simple_wrapper <- function(data, id,
   
   # Step 4: Define methodological quantities ----
   
+  tech <- list()
+  
+  # Sampling
+  tech$samp_id <- id
+  tech$samp_weight <- samp_weight[tech$samp_id]
+  tech$strata <- strata[tech$samp_id]
+  tech$samp_precalc <- var_srs(y = NULL, pik = 1 / samp_weight[], strata = strata)
+  
+  # Calibration
+  if(!is.null(calib_weight)){
+    tech$calib_id <- id[calib]
+    tech$calib_weight <- calib_weight[tech$calib_id]
+    tech$calib_var <- calib_var[tech$calib_id, ]
+    tech$calib_var[calib_var_quali] <- lapply(calib_var_quali, function(var){
+      Matrix::sparse.model.matrix(~ . -1, data = stats::model.frame(~ ., data = tech$calib_var[var]))
+    })
+    tech$calib_var <- do.call(cbind, tech$calib_var)
+    tech$calib_precalc <- rescal(y = NULL, x = tech$calib_var, w = tech$calib_weight)
+  }else tech$calib_id <- NULL
+  
+  # Non-reponse
+  if(!is.null(nrc_weight)){
+    tech$samp_weight <- samp_weight
+    response_prob <- samp_weight / nrc_weight
+  }
+  
+  spy <<- tech
+  
 
   
+  reference_id <- id[resp]
   
-
 }
 
 
@@ -303,17 +340,20 @@ var_simple <- function(y, samp, nr, calib){
   var <- list()
   
   # Calibration    
-  if(!is.null(calib)) y <- rescal(y = y, x = calib$x, w = calib$w)
+  if(!is.null(calib_id)){
+    y[calib_id, , drop = FALSE] <- 
+      rescal(y = y[calib_id, , drop = FALSE], precalc = calib_precalc)
+  } 
 
   # Non-response
   if(!is.null(nr)){
-    y <- add0(y, rownames = nr$id)
-    var[["nr"]] <- var_pois(y = y, pik = nr$response_prob, w = nr$w_sample)
+    var[["nr"]] <- var_pois(y = y, pik = nr$response_prob, w = nr$samp_weight)
     y <- y / nr$response_prob
   }
 
   # Sampling
-  var[["sampling"]] <- var_srs(y = y, pik = 1 / samp$w_sample, strata = samp$strata)
+  y <- add0(y, rownames = samp$id)
+  var[["sampling"]] <- var_srs(y = y, pik = 1 / samp$samp_weight, strata = samp$strata)
 
   # Final summation
   Reduce(`+`, var)

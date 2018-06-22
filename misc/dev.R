@@ -2,7 +2,7 @@ rm(list = ls(all.names = TRUE))
 
 define_simple_wrapper(
   data = ict_sample, id = "firm_id",
-  sampling_weight = "w_sample", strata = "division",
+  samp_weight = "w_sample", strata = "division",
   nrc_weight = "w_nrc", resp = "resp",
   calib_weight = "w_calib", calib_var =  c("division", "turnover_58", "turnover_59")
 )

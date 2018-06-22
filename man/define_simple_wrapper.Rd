@@ -4,9 +4,9 @@
 \alias{define_simple_wrapper}
 \title{Define a simple variance wrapper}
 \usage{
-define_simple_wrapper(data, id, sampling_weight, strata = NULL,
-  scope = NULL, nrc_weight = NULL, resp = NULL, calib_weight = NULL,
-  calib = NULL, calib_var = NULL, force = FALSE)
+define_simple_wrapper(data, id, samp_weight, strata = NULL, scope = NULL,
+  nrc_weight = NULL, resp = NULL, calib_weight = NULL, calib = NULL,
+  calib_var = NULL, force = FALSE)
 }
 \arguments{
 \item{data}{The \code{data.frame} containing all the technical information
@@ -18,7 +18,7 @@ including the out-of-scope and non-responding units.}
 It should be unique for each row in \code{data} and not contain any 
 missing values.}
 
-\item{sampling_weight}{A character vector of length 1, the name of the 
+\item{samp_weight}{A character vector of length 1, the name of the 
 numeric variable in \code{data} corresponding to the sampling weights 
 of the survey. It should not contain any missing values.}
 
