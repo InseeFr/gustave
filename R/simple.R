@@ -78,19 +78,19 @@ define_simple_wrapper <- function(data, id,
                                   force = FALSE
 ){
   
-  # Step 0: Define how stop_ are handled depending on the force parameter
+  # Step 0: Define how stop_ are handled depending on the force parameter ----
   if(!is.logical(force) || length(force) != 1)
     stop("The force argument should be a logical vector of length 1.")
   warn_ <- function(...) warning(..., call. = FALSE, immediate. = TRUE)
   stop_ <- if(!force) function(...) stop(..., call. = FALSE) else warn_
   
 
-  # Step 1: Control arguments consistency and display the welcome message
+  # Step 1: Control arguments consistency and display the welcome message ----
   
   # Step 1.1: Arguments consistency
   if(missing(data)) stop_("A data file must be provided (data argument).")
   if(missing(id)) stop_("An identifier of the units must be provided (id argument).")
-  if(missing(sampling_weight)) stop_("A sampling weight must be provided (sampling_weight argument).")
+  if(missing(sampling_weight)) stop_("Sampling weights must be provided (sampling_weight argument).")
   inconsistency <- list(
     nrc_weight_but_no_resp = !is.null(nrc_weight) && is.null(resp),
     resp_but_no_nrc_weight = is.null(nrc_weight) && !is.null(resp),
@@ -100,7 +100,9 @@ define_simple_wrapper <- function(data, id,
   if(any(unlist(inconsistency))) stop_(
     "Some arguments are inconsistent:", 
     if(inconsistency$nrc_weight_but_no_resp) "\n  - weights after non-response correction are provided (nrc_weight argument) but no variable indicating responding units (resp argument)" else "", 
-    if(inconsistency$resp_but_no_nrc_weight) "\n  - a variable indicating responding units is provided (resp argument) but no weights after non-response correction (nrc_weight argument)" else "" ,
+    if(inconsistency$resp_but_no_nrc_weight) "\n  - a variable indicating responding units is provided (resp argument) but no weights after non-response correction (nrc_weight argument)." else "" ,
+    # TODO: better handle the case of a user who has no non-response but 
+    # uses the resp argument with a logical variable with only TRUE values.
     if(inconsistency$calib_weight_but_no_calib_var) "\n  - calibrated weights are provided (calib_weight argument) but no calibration variables (calib_var argument)" else "" ,
     if(inconsistency$calib_or_calib_var_but_no_calib_weight) "\n  - a variable indicating the units taking part in a calibration process and/or calibration variables are provided (calib and calib_var arguments) but no calibrated weights (calib_weight argument)" else "" 
   )
@@ -117,7 +119,7 @@ define_simple_wrapper <- function(data, id,
     "\n"
   )
   
-  # Step 2: Control that arguments do exist and retrive their value
+  # Step 2: Control that arguments do exist and retrive their value ----
 
   # Step 2.1: Evaluation of all arguments
   if(!is.data.frame(data)) stop_("data argument must refer to a data.frame")
@@ -168,19 +170,23 @@ define_simple_wrapper <- function(data, id,
   ), envir = environment())
 
   
-  # Step 3: Control arguments value (type and NA mostly)
+  # Step 3: Control arguments value ----
+  
+  # Note: some useful variable are created or normalized: 
+  # resp, calib (if !is.null(calib_weight)), reference_weight
   
   # id
-  if(any(is.na(id)))
+  if(anyNA(id))
     stop_("The id variable (", arg$id, ") should not contain any missing (NA) values.")
   if(any(duplicated(id)))
     stop_("The id variable (", arg$id, ") should not contain any duplicated values.")
   
   # sampling_weight
   if(!is.numeric(sampling_weight))
-    stop_("The sampling weight (", arg$sampling_weight, ") should be numeric.")
-  if(any(is.na(sampling_weight)))
-    stop_("The sampling weight (", arg$sampling_weight, ") should not contain any missing (NA) values.")
+    stop_("The sampling weights (", arg$sampling_weight, ") should be numeric.")
+  if(anyNA(sampling_weight))
+    stop_("The sampling weights (", arg$sampling_weight, ") should not contain any missing (NA) values.")
+  reference_weight <- sampling_weight
   
   # strata
   if(!is.null(strata)){
@@ -190,7 +196,7 @@ define_simple_wrapper <- function(data, id,
     }
     if(!is.factor(strata))
       stop_("The strata variable (", arg$strata, ") should be of type factor or character.")
-    if(any(is.na(strata)))
+    if(anyNA(strata))
       stop_("The strata variable (", arg$strata, ") should not contain any missing (NA) values.")
   }
   
@@ -202,11 +208,12 @@ define_simple_wrapper <- function(data, id,
     }
     if(!is.logical(scope))
       stop_("The scope variable (", arg$scope, ") should be of type logical or numeric.")
-    if(any(is.na(scope)))
+    if(anyNA(scope))
       stop_("The scope variable (", arg$scope, ") should not contain any missing (NA) values.")
   }
   
   # resp
+  if(is.null(resp)) resp <- rep(TRUE, length(id))
   if(!is.null(resp)){
     if(is.numeric(resp)){
       message("Note: The variable indicating the responding units (", arg$resp, ") is of type numeric. It is automatically coerced to logical.\n")
@@ -214,35 +221,82 @@ define_simple_wrapper <- function(data, id,
     }
     if(!is.logical(resp))
       stop_("The variable indicating the responding units (", arg$resp, ") should be of type logical or numeric.")
-    if(any(is.na(resp)))
+    if(anyNA(resp))
       stop_("The variable indicating the responding units (", arg$resp, ") should not contain any missing (NA) values.")
   }
     
   # nrc_weight
   if(!is.null(nrc_weight)){
     if(!is.numeric(nrc_weight))
-      stop_("The weight after non-response correction (", arg$nrc_weight, ") should be numeric.")
-    if(any(is.na(nrc_weight[resp])))
-      stop_("The weight after non-response correction (", arg$nrc_weight, ") should not contain any missing (NA) values for responding units.")
+      stop_("The weights after non-response correction (", arg$nrc_weight, ") should be numeric.")
+    if(anyNA(nrc_weight[resp %in% TRUE]))
+      stop_("The weights after non-response correction (", arg$nrc_weight, ") should not contain any missing (NA) values for responding units.")
+    reference_weight <- sampling_weight
   }
   
+  # calib
+  if(is.null(calib) && !is.null(calib_weight)) calib <- resp
+  if(!is.null(calib)){
+    if(is.numeric(calib)){
+      message("Note: The variable indicating the units used in the calibation process (", arg$calib, ") is of type numeric. It is automatically coerced to logical.\n")
+      calib <- as.logical(calib)
+    }
+    if(!is.logical(calib))
+      stop_("The variable indicating the units used in the calibation process (", arg$calib, ") should be of type logical or numeric.")
+    if(anyNA(calib[resp %in% TRUE]))
+      stop_("The variable indicating the units used in the calibation process (", arg$calib, ") should not contain any missing (NA) values for responding units.")
+  }
+  
+  # calib_weight
+  if(!is.null(calib_weight)){
+    if(!is.numeric(calib_weight))
+      stop_("The weights after calibration (", arg$calib_weight, ") should be numeric.")
+    if(anyNA(calib_weight[calib %in% TRUE]))
+      stop_("The weights after calibration (", arg$calib_weight, ") should not contain any missing (NA) values for units used in the calibration process.")
+    if(any((reference_weight != calib_weight)[resp %in% TRUE & calib %in% FALSE]))
+      stop_(
+        "For the responding units not used in the calibration process, the weights after calibration (", arg$calib_weight, ") should exactly match ", 
+        if(!is.null(nrc_weight)){
+          paste0("the weights after non-response correction (", arg$nrc_weight, ").")
+        }else{
+          paste0("the sampling weights (", arg$sampling_weight, ").")
+        } 
+      )
+    reference_weight <- sampling_weight
+  }
+  
+  # calib_var
+  if(!is.null(calib_var)){
+    calib_var_quanti <- names(which(sapply(calib_var, function(var) is.numeric(var) || is.logical(var))))
+    calib_var_quali <- names(which(sapply(calib_var, function(var) is.factor(var) || is.character(var))))
+    calib_var_pb_type <- setdiff(arg$calib_var, c(calib_var_quanti, calib_var_quali))
+    if(length(calib_var_pb_type) > 0) stop_(
+      "The following calibration variables are neither quantitative (numeric, logical) nor qualitative (factor, character): ",
+      paste(calib_var_pb_type, collapse = " ")
+    )
+    if(length(calib_var_quali) > 0) message(
+      "Note: The following calibration variables are qualitative (factor, character): ",
+      paste(calib_var_quali, collapse = " "), ". They will be automatically discretized."
+    )
+    calib_var_pb_NA <- names(which(sapply(calib_var, function(var) anyNA(var[calib %in% TRUE]))))
+    if(length(calib_var_pb_NA) > 0) stop_(
+      "The following calibration variables contain missing (NA) values for units used in the calibration process: ",
+      paste(calib_var_pb_NA, collapse = " ")
+    )
+  }
+  
+  # Step 4: Define methodological quantities ----
   
   
-  # TODO: for units not taking part in the calibration process,
-  # verify whether they have a value in calib_weight and (if one) compare 
-  # it to the value before calibration (nrc_weight or sampling_weight
-  # depending on the context).
-  
-  
-  # Step 3.1: Control types and coerce if necessary
-  
-  # Step 3.2: Control NA values
   
   
   
 }
 
-# Unexported (and undocumented) function
+
+
+
+# Unexported (and undocumented) functions
 # TODO: use precalculated data in var_simple
 var_simple <- function(y, samp, nr, calib){
   

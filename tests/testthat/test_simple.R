@@ -55,7 +55,7 @@ test_that("inconsitency detection works as expected", {
   )
   expect_error(
     define_simple_wrapper(data = blabla, id = "blabla"), 
-    regexp = "A sampling weight"
+    regexp = "Sampling weights must be provided"
   )
   expect_error(
     define_simple_wrapper(
@@ -265,49 +265,137 @@ test_that("argument value controls work as expected", {
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
-      nrc_weight = "w_nr", resp = "division"
+      nrc_weight = "w_nrc", resp = "division"
     )
   }, regexp = "should be of type logical or numeric.")
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
-      nrc_weight = "w_nr", resp = "resp"
+      nrc_weight = "w_nrc", resp = "resp"
     )
   }, regexp = NA)
   ict_sample$resp[1] <- NA
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
-      nrc_weight = "w_nr", resp = "resp"
+      nrc_weight = "w_nrc", resp = "resp"
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
   
   # nrc_weight
-  ict_sample$w_nr <- as.character(ict_sample$w_nr)
+  ict_sample$w_nrc <- as.character(ict_sample$w_nrc)
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
-      nrc_weight = "w_nr", resp = "resp"
+      nrc_weight = "w_nrc", resp = "resp"
     )
   }, regexp = "should be numeric.")
   rm(ict_sample)
-  ict_sample$w_nr[match(TRUE, ict_sample$resp)] <- NA
+  ict_sample$w_nrc[match(TRUE, ict_sample$resp)] <- NA
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
-      nrc_weight = "w_nr", resp = "resp"
+      nrc_weight = "w_nrc", resp = "resp"
     )
   }, regexp = "should not contain any missing \\(NA\\) values for responding units.")
   rm(ict_sample)
-  ict_sample$w_nr[match(FALSE, ict_sample$resp)] <- NA
+  ict_sample$w_nrc[match(FALSE, ict_sample$resp)] <- NA
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
-      nrc_weight = "w_nr", resp = "resp"
+      nrc_weight = "w_nrc", resp = "resp"
     )
   }, regexp = NA)
   rm(ict_sample)
+  
+  # calib
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      nrc_weight = "w_nrc", resp = "resp",
+      calib_weight = "w_calib", calib = "division", calib_var =  c("N_58", "N_59")
+    )
+  }, regexp = "should be of type logical or numeric.")
+  ict_sample$calib[match(TRUE, ict_sample$resp)] <- NA
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      nrc_weight = "w_nrc", resp = "resp",
+      calib_weight = "w_calib", calib = "calib", calib_var =  c("N_58", "N_59")
+    )
+  }, regexp = "should not contain any missing \\(NA\\) values for responding units.")
+  rm(ict_sample)
+  ict_sample$calib[match(FALSE, ict_sample$resp)] <- NA
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      nrc_weight = "w_nrc", resp = "resp",
+      calib_weight = "w_calib", calib = "calib", calib_var =  c("N_58", "N_59")
+    )
+  }, regexp = NA)
+  rm(ict_sample)
+  
+  # calib_weight
+  ict_sample$w_calib <- as.character(ict_sample$w_calib)
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      nrc_weight = "w_nrc", resp = "resp",
+      calib_weight = "w_calib", calib = "calib", calib_var =  c("N_58", "N_59")
+    )
+  }, regexp = "should be numeric.")
+  rm(ict_sample)
+  ict_sample$w_calib[match(TRUE, ict_sample$calib)] <- NA
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      nrc_weight = "w_nrc", resp = "resp",
+      calib_weight = "w_calib", calib = "calib", calib_var =  c("N_58", "N_59")
+    )
+  }, regexp = "should not contain any missing \\(NA\\) values for units used in the calibration process.")
+  rm(ict_sample)
+  ict_sample$w_calib[match(FALSE, ict_sample$calib)] <- NA
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      nrc_weight = "w_nrc", resp = "resp",
+      calib_weight = "w_calib", calib = "calib", calib_var =  c("N_58", "N_59")
+    )
+  }, regexp = NA)
+  rm(ict_sample)
+  ict_sample$calib[match(TRUE, ict_sample$calib)] <- FALSE
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      nrc_weight = "w_nrc", resp = "resp",
+      calib_weight = "w_calib", calib = "calib", calib_var =  c("N_58", "N_59")
+    )
+  }, regexp = "For the responding units not used in the calibration process,")
+  rm(ict_sample)
+  
+  # calib_var
+  ict_sample$complex <- complex(real = 1:NROW(ict_sample), imaginary = 1:NROW(ict_sample))
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id",
+      sampling_weight = "w_sample", strata = "division",
+      nrc_weight = "w_nrc", resp = "resp",
+      calib_weight = "w_calib", calib_var =  "complex"
+    )
+  }, regexp = "The following calibration variables are neither quantitative")
+  rm(ict_sample)
+  ict_sample[match(TRUE, ict_sample$calib), c("N_58", "N_59")] <- NA
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id",
+      sampling_weight = "w_sample", strata = "division",
+      nrc_weight = "w_nrc", resp = "resp",
+      calib_weight = "w_calib", calib_var =  c("N_58", "N_59")
+    )
+  }, regexp = "contain missing \\(NA\\) values for units used in the calibration process:")
+  rm(ict_sample)
+  
   
   
 })
