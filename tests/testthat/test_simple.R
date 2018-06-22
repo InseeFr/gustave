@@ -3,8 +3,8 @@ context("simple")
 
 technical_data_ict <- list(
   calib = list(
-    x = as.matrix(ict_survey[
-      order(ict_survey$firm_id),
+    x = as.matrix(ict_sample[
+      ict_survey$firm_id,
       c(paste0("N_", 58:63), paste0("turnover_", 58:63))
       ]),
     w = ict_survey$w_calib[order(ict_survey$firm_id)]
@@ -170,7 +170,7 @@ test_that("argument validity controls work as expected", {
     define_simple_wrapper(
       data = ict_sample, id = "firm_id",
       sampling_weight = "w_sample", strata = "division",
-      nrc_weight = "w_nr", resp = "blabla"
+      nrc_weight = "w_nrc", resp = "blabla"
     ), 
     regexp = "Some variables do not exist in ict_sample: \n  - resp argument: blabla"
   )

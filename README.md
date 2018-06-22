@@ -61,8 +61,8 @@ variance_function_ict <- function(y, x, w, samp){
 technical_data_ict <- list(
   
   # x: calibration variables matrix
-  x = as.matrix(ict_survey[
-    order(ict_survey$firm_id),
+  x = as.matrix(ict_sample[
+    ict_survey$firm_id,
     c(paste0("N_", 58:63), paste0("turnover_", 58:63))
   ]),
 

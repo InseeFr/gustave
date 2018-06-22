@@ -1,8 +1,5 @@
+rm(list = ls(all.names = TRUE))
 
-# TODO: move the calibration variables in ict_sample and 
-# change the examples
-# TODO: correct the estimated probabilities
-# TODO: rename w_nr > w_nrc
 
 
 # Information and communication sector
@@ -56,38 +53,41 @@ ict_sample$hrg <- with(ict_sample, paste0(
   division, "_", as.integer(cut(ict_sample$turnover, c(-Inf, quantile(ict_sample$turnover, c(0.2, 0.4, 0.6, 0.8)), Inf)))
 ))
 table(ict_sample$resp, ict_sample$hrg)
-response_prob_est <- sapply(split(ict_sample, ict_sample$hrg), function(hrg) with(hrg, sum(w_sample) / sum(w_sample * resp)))
+response_prob_est <- sapply(split(ict_sample, ict_sample$hrg), function(hrg) with(hrg, sum(w_sample * resp) / sum(w_sample)))
 ict_sample$response_prob_est <- response_prob_est[ict_sample$hrg]
-ict_sample$w_nr <- ict_sample$w_sample * ict_sample$response_prob_est
+ict_sample$w_nrc <- ict_sample$w_sample / ict_sample$response_prob_est
 
 
 
 # Calibration
-ict_survey <- ict_sample[ict_sample$resp, setdiff(names(ict_sample), c("hrg", "resp", "response_prob_est"))]
 calib_var <- c(paste0("N_", division), paste0("turnover_", division))
-ict_survey$N_58 <- (ict_survey$division == "58") * 1
-ict_survey$N_59 <- (ict_survey$division == "59") * 1
-ict_survey$N_60 <- (ict_survey$division == "60") * 1
-ict_survey$N_61 <- (ict_survey$division == "61") * 1
-ict_survey$N_62 <- (ict_survey$division == "62") * 1
-ict_survey$N_63 <- (ict_survey$division == "63") * 1
-ict_survey$turnover_58 <- ict_survey$N_58 * ict_survey$turnover
-ict_survey$turnover_59 <- ict_survey$N_59 * ict_survey$turnover
-ict_survey$turnover_60 <- ict_survey$N_60 * ict_survey$turnover
-ict_survey$turnover_61 <- ict_survey$N_61 * ict_survey$turnover
-ict_survey$turnover_62 <- ict_survey$N_62 * ict_survey$turnover
-ict_survey$turnover_63 <- ict_survey$N_63 * ict_survey$turnover
+ict_sample$N_58 <- (ict_sample$division == "58") * 1
+ict_sample$N_59 <- (ict_sample$division == "59") * 1
+ict_sample$N_60 <- (ict_sample$division == "60") * 1
+ict_sample$N_61 <- (ict_sample$division == "61") * 1
+ict_sample$N_62 <- (ict_sample$division == "62") * 1
+ict_sample$N_63 <- (ict_sample$division == "63") * 1
+ict_sample$turnover_58 <- ict_sample$N_58 * ict_sample$turnover
+ict_sample$turnover_59 <- ict_sample$N_59 * ict_sample$turnover
+ict_sample$turnover_60 <- ict_sample$N_60 * ict_sample$turnover
+ict_sample$turnover_61 <- ict_sample$N_61 * ict_sample$turnover
+ict_sample$turnover_62 <- ict_sample$N_62 * ict_sample$turnover
+ict_sample$turnover_63 <- ict_sample$N_63 * ict_sample$turnover
+ict_sample[!ict_sample$resp, calib_var] <- NA
 calib_total <- with(ict_pop, c(table(division), tapply(turnover, division, sum)))
 names(calib_total) <- calib_var
-ict_survey$w_calib <- ict_survey$w_nr * sampling::calib(
-  Xs = ict_survey[, calib_var], 
-  d = ict_survey$w_nr,
-  total = calib_total,
-  method = "raking"
-)
+ict_sample$w_calib[ict_sample$resp] <- 
+  ict_sample$w_nrc[ict_sample$resp] * sampling::calib(
+    Xs = ict_sample[ict_sample$resp, calib_var], 
+    d = ict_sample$w_nrc[ict_sample$resp],
+    total = calib_total,
+    method = "raking"
+  )
 
 
 # Survey variables (without and with NA values)
+
+ict_survey <- ict_sample[ict_sample$resp, c("firm_id", "division", "employees", "turnover", "w_calib")]
 
 # - internet connection speed (qualitative polytomous variable)
 fiber_prob <- pmin(ict_survey$turnover / 5e4, 1)

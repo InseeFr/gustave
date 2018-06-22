@@ -1,9 +1,8 @@
 
 context("data")
 
-test_that("non-response correction and calibration went well", {
-  expect_equal(sum(ict_sample$w_sample), sum(ict_sample$w_nr[ict_sample$resp]))
-  expect_equal(sum(ict_sample$w_sample), sum(ict_survey$w_nr))
+test_that("example data are OK", {
+  expect_equal(sum(ict_sample$w_sample), sum(ict_sample$w_nrc[ict_sample$resp]))
   expect_equal(sum(ict_sample$w_sample), sum(ict_survey$w_calib))
   expect_equal(
     tapply(ict_pop$turnover, ict_pop$division, sum),
@@ -13,4 +12,5 @@ test_that("non-response correction and calibration went well", {
     tapply(ict_pop$firm_id, ict_pop$division, length),
     tapply(ict_survey$w_calib, ict_survey$division, sum)
   )
+  expect_true(all(ict_sample$response_prob_est <= 1, na.rm = TRUE))
 })

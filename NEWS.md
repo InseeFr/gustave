@@ -3,6 +3,7 @@
 - Hotfix: Add calibrated weights to `define_variance_wrapper` example.
 - New feature: new technical_data argument in define_variance_wrapper offers a more consistent way to include technical data within the variance wrapper (more precisely, within its enclosing environment) and use it for variance estimation. objects_to_include is kept for non-data objects (such as additional linearization wrappers) or advanced customization.
 - Deprecated: `objects_to_include_from` argument in `define_variance_wrapper`
+- Example data modified: calibration variables in ict_sample instead of ict_survey
 
 # 0.3.0
 
