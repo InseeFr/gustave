@@ -195,6 +195,7 @@ define_simple_wrapper <- function(data, id,
   if(anyNA(samp_weight))
     stop_("The sampling weights (", arg$samp_weight, ") should not contain any missing (NA) values.")
   reference_weight <- samp_weight
+  reference_weight_name <- arg$samp_weight
 
   # strata
   if(is.null(strata)) strata <- factor(rep("1", length(id)))
@@ -240,7 +241,8 @@ define_simple_wrapper <- function(data, id,
       stop_("The weights after non-response correction (", arg$nrc_weight, ") should be numeric.")
     if(anyNA(nrc_weight[resp_dummy %in% TRUE]))
       stop_("The weights after non-response correction (", arg$nrc_weight, ") should not contain any missing (NA) values for responding units.")
-    reference_weight <- samp_weight
+    reference_weight <- nrc_weight
+    reference_weight_name <- arg$nrc_weight
   }
   
   # calib_dummy
@@ -271,7 +273,8 @@ define_simple_wrapper <- function(data, id,
           paste0("the sampling weights (", arg$samp_weight, ").")
         } 
       )
-    reference_weight <- samp_weight
+    reference_weight <- calib_weight
+    reference_weight_name <- arg$calib_weight
   }
   
   # calib_var
@@ -296,38 +299,46 @@ define_simple_wrapper <- function(data, id,
   
   # Step 4: Define methodological quantities ----
   
-  tech <- list()
-  
   # Sampling
-  tech$samp_id <- id
-  tech$samp_weight <- samp_weight[tech$samp_id]
-  tech$strata <- strata[tech$samp_id]
-  tech$samp_precalc <- var_srs(y = NULL, pik = 1 / samp_weight[], strata = strata)
-  
-  # Calibration
-  if(!is.null(calib_weight)){
-    tech$calib_id <- id[calib_dummy]
-    tech$calib_weight <- calib_weight[tech$calib_id]
-    tech$calib_var <- calib_var[tech$calib_id, ]
-    tech$calib_var[calib_var_quali] <- lapply(calib_var_quali, function(var){
-      Matrix::sparse.model.matrix(~ . -1, data = stats::model.frame(~ ., data = tech$calib_var[var]))
-    })
-    tech$calib_var <- do.call(cbind, tech$calib_var)
-    tech$calib_precalc <- rescal(y = NULL, x = tech$calib_var, w = tech$calib_weight)
-  }else tech$calib_id <- NULL
-  
+  samp <- list()
+  samp$id <- id
+  samp$weight <- samp_weight[samp$id]
+  samp$strata <- strata[samp$id]
+  samp$precalc <- var_srs(y = NULL, pik = 1 / samp$weight, strata = samp$strata)
+  samp <- samp[c("id", "precalc")]
+
   # Non-reponse
   if(!is.null(nrc_weight)){
-    tech$samp_weight <- samp_weight
-    response_prob <- samp_weight / nrc_weight
-  }
-  
-  spy <<- tech
-  
+    nrc <- list()
+    nrc$id <- id[resp_dummy]
+    nrc$samp_weight <- samp_weight[nrc$id]
+    nrc$response_prob <- (samp_weight / nrc_weight)[nrc$id]
+  }else nrc <- NULL
 
+  # Calibration
+  if(!is.null(calib_weight)){
+    calib <- list()
+    calib$id <- id[calib_dummy]
+    calib$weight <- calib_weight[calib$id]
+    calib$var <- calib_var[calib$id, ]
+    calib$var[calib_var_quali] <- lapply(calib_var_quali, function(var){
+      Matrix::sparse.model.matrix(~ . -1, data = stats::model.frame(~ ., data = calib$var[var]))
+    })
+    calib$var <- do.call(cbind, calib$var)
+    calib$precalc <- rescal(y = NULL, x = calib$var, w = calib$weight)
+    calib <- calib[c("id", "precalc")]
+  }else calib <- NULL
   
-  reference_id <- id[resp_dummy]
+  # Step 5: Define the variance wrapper ----
+  simple_wrapper <- define_variance_wrapper(
+    variance_function = var_simple,
+    reference_id = id[resp_dummy],
+    technical_data = list(samp = samp, nrc = nrc, calib = calib),
+    default = list(id = arg$id, weight = reference_weight_name)
+  )
   
+  simple_wrapper
+
 }
 
 
@@ -335,25 +346,26 @@ define_simple_wrapper <- function(data, id,
 
 # Unexported (and undocumented) functions
 # TODO: use precalculated data in var_simple
-var_simple <- function(y, samp, nr, calib){
+var_simple <- function(y, samp, nrc, calib){
   
   var <- list()
   
   # Calibration    
-  if(!is.null(calib_id)){
-    y[calib_id, , drop = FALSE] <- 
-      rescal(y = y[calib_id, , drop = FALSE], precalc = calib_precalc)
+  if(!is.null(calib)){
+    y[calib$id, ] <- 
+      rescal(y = y[calib$id, , drop = FALSE], precalc = calib$precalc)
   } 
 
   # Non-response
-  if(!is.null(nr)){
-    var[["nr"]] <- var_pois(y = y, pik = nr$response_prob, w = nr$samp_weight)
-    y <- y / nr$response_prob
+  if(!is.null(nrc)){
+    y <- y[nrc$id, , drop = FALSE]
+    var[["nr"]] <- var_pois(y = y, pik = nrc$response_prob, w = nrc$samp_weight)
+    y <- y / nrc$response_prob
   }
 
   # Sampling
   y <- add0(y, rownames = samp$id)
-  var[["sampling"]] <- var_srs(y = y, pik = 1 / samp$samp_weight, strata = samp$strata)
+  var[["sampling"]] <- var_srs(y = y, precalc = samp$precalc)
 
   # Final summation
   Reduce(`+`, var)
