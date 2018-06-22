@@ -143,8 +143,7 @@ test_that("argument validity controls work as expected", {
   expect_error(
     define_simple_wrapper(
       data = tibble::as.tibble(ict_sample), 
-      id = "firm_id", 
-      sampling_weight = "w_sample"
+      id = "firm_id", sampling_weight = "w_sample"
     ), 
     regexp = NA
   )
@@ -175,4 +174,140 @@ test_that("argument validity controls work as expected", {
     ), 
     regexp = "Some variables do not exist in ict_sample: \n  - resp argument: blabla"
   )
+})
+
+test_that("argument value controls work as expected", {
+  
+  # id
+  ict_sample$firm_id[1] <- NA
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id",
+      sampling_weight = "w_sample"
+    )
+  }, regexp = "contain any missing \\(NA\\) values.")
+  rm(ict_sample)
+  ict_sample$firm_id[1] <- ict_sample$firm_id[2]
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id",
+      sampling_weight = "w_sample"
+    )
+  }, regexp = "contain any duplicated values.")
+  rm(ict_sample)
+
+  # sampling_weight
+  ict_sample$w_sample <- as.character(ict_sample$w_sample)
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id",
+      sampling_weight = "w_sample"
+    )
+  }, regexp = "should be numeric.")
+  rm(ict_sample)
+  ict_sample$w_sample[1] <- NA
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id",
+      sampling_weight = "w_sample"
+    )
+  }, regexp = "contain any missing \\(NA\\) values.")
+  rm(ict_sample)
+
+  # strata
+  ict_sample$division <- as.numeric(ict_sample$division)
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id",
+      sampling_weight = "w_sample", strata = "division"
+    )
+  }, regexp = " should be of type factor or character.")
+  rm(ict_sample)
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id",
+      sampling_weight = "w_sample", strata = "division"
+    )
+  }, regexp = NA)
+  ict_sample$division[1] <- NA
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id",
+      sampling_weight = "w_sample", strata = "division"
+    )
+  }, regexp = "should not contain any missing \\(NA\\) values.")
+  rm(ict_sample)
+  
+  # scope
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      scope = "division"
+    )
+  }, regexp = "should be of type logical or numeric.")
+  ict_sample$scope <- c(FALSE, rep(TRUE, NROW(ict_sample) - 1))
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      scope = "scope"
+    )
+  }, regexp = NA)
+  ict_sample$scope[1] <- NA
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      scope = "scope"
+    )
+  }, regexp = "should not contain any missing \\(NA\\) values.")
+  rm(ict_sample)
+  
+  # resp
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      nrc_weight = "w_nr", resp = "division"
+    )
+  }, regexp = "should be of type logical or numeric.")
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      nrc_weight = "w_nr", resp = "resp"
+    )
+  }, regexp = NA)
+  ict_sample$resp[1] <- NA
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      nrc_weight = "w_nr", resp = "resp"
+    )
+  }, regexp = "should not contain any missing \\(NA\\) values.")
+  rm(ict_sample)
+  
+  # nrc_weight
+  ict_sample$w_nr <- as.character(ict_sample$w_nr)
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      nrc_weight = "w_nr", resp = "resp"
+    )
+  }, regexp = "should be numeric.")
+  rm(ict_sample)
+  ict_sample$w_nr[match(TRUE, ict_sample$resp)] <- NA
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      nrc_weight = "w_nr", resp = "resp"
+    )
+  }, regexp = "should not contain any missing \\(NA\\) values for responding units.")
+  rm(ict_sample)
+  ict_sample$w_nr[match(FALSE, ict_sample$resp)] <- NA
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", sampling_weight = "w_sample", 
+      nrc_weight = "w_nr", resp = "resp"
+    )
+  }, regexp = NA)
+  rm(ict_sample)
+  
+  
 })

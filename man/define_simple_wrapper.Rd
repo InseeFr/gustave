@@ -70,7 +70,7 @@ provided. All units taking part in the calibration process should have
 only non-missing values for all variables in \code{calib_var}.}
 
 \item{force}{(Advanced use) A logical vector of lentgh one: should all
-error messages be considered as warnings? Use at your own risks.}
+stop_ messages be considered as warnings? Use at your own risks.}
 }
 \description{
 define_simple_wrapper is a convenience wrapper

@@ -66,7 +66,7 @@
 #'   only non-missing values for all variables in \code{calib_var}.
 #' 
 #' @param force (Advanced use) A logical vector of lentgh one: should all
-#'   error messages be considered as warnings? Use at your own risks.
+#'   stop_ messages be considered as warnings? Use at your own risks.
 #' 
 #' 
 #' @export 
@@ -78,26 +78,26 @@ define_simple_wrapper <- function(data, id,
                                   force = FALSE
 ){
   
-  # Step 0: Define how error are handled depending on the force parameter
-  error <- if(!force){
-    function(...) stop(..., call. = FALSE)
-  }else{
-    function(...) warning(..., call. = FALSE, immediate. = TRUE)
-  }
+  # Step 0: Define how stop_ are handled depending on the force parameter
+  if(!is.logical(force) || length(force) != 1)
+    stop("The force argument should be a logical vector of length 1.")
+  warn_ <- function(...) warning(..., call. = FALSE, immediate. = TRUE)
+  stop_ <- if(!force) function(...) stop(..., call. = FALSE) else warn_
   
+
   # Step 1: Control arguments consistency and display the welcome message
   
   # Step 1.1: Arguments consistency
-  if(missing(data)) error("A data file must be provided (data argument).")
-  if(missing(id)) error("An identifier of the units must be provided (id argument).")
-  if(missing(sampling_weight)) error("A sampling weight must be provided (sampling_weight argument).")
+  if(missing(data)) stop_("A data file must be provided (data argument).")
+  if(missing(id)) stop_("An identifier of the units must be provided (id argument).")
+  if(missing(sampling_weight)) stop_("A sampling weight must be provided (sampling_weight argument).")
   inconsistency <- list(
     nrc_weight_but_no_resp = !is.null(nrc_weight) && is.null(resp),
     resp_but_no_nrc_weight = is.null(nrc_weight) && !is.null(resp),
     calib_weight_but_no_calib_var = !is.null(calib_weight) && is.null(calib_var),
     calib_or_calib_var_but_no_calib_weight = is.null(calib_weight) && (!is.null(calib) || !is.null(calib_var))
   )
-  if(any(unlist(inconsistency))) error(
+  if(any(unlist(inconsistency))) stop_(
     "Some arguments are inconsistent:", 
     if(inconsistency$nrc_weight_but_no_resp) "\n  - weights after non-response correction are provided (nrc_weight argument) but no variable indicating responding units (resp argument)" else "", 
     if(inconsistency$resp_but_no_nrc_weight) "\n  - a variable indicating responding units is provided (resp argument) but no weights after non-response correction (nrc_weight argument)" else "" ,
@@ -120,7 +120,7 @@ define_simple_wrapper <- function(data, id,
   # Step 2: Control that arguments do exist and retrive their value
 
   # Step 2.1: Evaluation of all arguments
-  if(!is.data.frame(data)) error("data argument must refer to a data.frame")
+  if(!is.data.frame(data)) stop_("data argument must refer to a data.frame")
   arg <- lapply(as.list(match.call())[-1], eval)
 
   # Step 2.2: Expected types
@@ -136,7 +136,7 @@ define_simple_wrapper <- function(data, id,
     arg[should_be_single_variable_name], 
     function(arg) is.null(arg) || is_variable_name(arg, max_length = 1)
   )
-  if(any(!is_single_variable_name)) error(
+  if(any(!is_single_variable_name)) stop_(
     "The following arguments do not refer to a variable name (character vector of length 1): ", 
     names(is_single_variable_name)[!is_single_variable_name]
   )
@@ -144,7 +144,7 @@ define_simple_wrapper <- function(data, id,
     arg[should_be_variable_name_vector], 
     function(arg) is.null(arg) || is_variable_name(arg, max_length = Inf)
   )
-  if(any(!is_variable_name_vector)) error(
+  if(any(!is_variable_name_vector)) stop_(
     "The following arguments do not refer to a vector of variable names: ", 
     names(is_variable_name_vector)[!is_variable_name_vector]
   )
@@ -156,24 +156,87 @@ define_simple_wrapper <- function(data, id,
     if(is.null(tmp)) return(NULL)
     paste0("\n  - ", param, " argument: ", paste0(tmp, collapse = " "))
   })
-  if(length(unlist(is_not_in_data)) > 0) error(
+  if(length(unlist(is_not_in_data)) > 0) stop_(
     "Some variables do not exist in ", deparse(substitute(data)), ": ",
     unlist(is_not_in_data[!is.null(is_not_in_data)])
   )
   
   # Step 2.4: Retrieve the value of the arguments
-  arg[should_be_single_variable_name] <- lapply(
-    arg[intersect(names(arg), should_be_single_variable_name)],
-    function(param) data[, param]
-  )
-  arg[should_be_variable_name_vector] <- lapply(
-    arg[intersect(names(arg), should_be_variable_name_vector)],
-    function(param) data[, param, drop = FALSE]
-  )
-  list2env(arg, envir = environment())
+  list2env(c(
+    lapply(arg[should_be_single_variable_name], function(param) data[[param]]),
+    lapply(arg[should_be_variable_name_vector], function(param) data[param])
+  ), envir = environment())
+
+  
+  # Step 3: Control arguments value (type and NA mostly)
+  
+  # id
+  if(any(is.na(id)))
+    stop_("The id variable (", arg$id, ") should not contain any missing (NA) values.")
+  if(any(duplicated(id)))
+    stop_("The id variable (", arg$id, ") should not contain any duplicated values.")
+  
+  # sampling_weight
+  if(!is.numeric(sampling_weight))
+    stop_("The sampling weight (", arg$sampling_weight, ") should be numeric.")
+  if(any(is.na(sampling_weight)))
+    stop_("The sampling weight (", arg$sampling_weight, ") should not contain any missing (NA) values.")
+  
+  # strata
+  if(!is.null(strata)){
+    if(is.character(strata)){
+      message("Note: The strata variable (", arg$strata, ") is of type character. It is automatically coerced to factor.\n")
+      strata <- factor(strata)
+    }
+    if(!is.factor(strata))
+      stop_("The strata variable (", arg$strata, ") should be of type factor or character.")
+    if(any(is.na(strata)))
+      stop_("The strata variable (", arg$strata, ") should not contain any missing (NA) values.")
+  }
+  
+  # scope
+  if(!is.null(scope)){
+    if(is.numeric(scope)){
+      message("Note: The scope variable (", arg$scope, ") is of type numeric. It is automatically coerced to logical.\n")
+      scope <- as.logical(scope)
+    }
+    if(!is.logical(scope))
+      stop_("The scope variable (", arg$scope, ") should be of type logical or numeric.")
+    if(any(is.na(scope)))
+      stop_("The scope variable (", arg$scope, ") should not contain any missing (NA) values.")
+  }
+  
+  # resp
+  if(!is.null(resp)){
+    if(is.numeric(resp)){
+      message("Note: The variable indicating the responding units (", arg$resp, ") is of type numeric. It is automatically coerced to logical.\n")
+      resp <- as.logical(resp)
+    }
+    if(!is.logical(resp))
+      stop_("The variable indicating the responding units (", arg$resp, ") should be of type logical or numeric.")
+    if(any(is.na(resp)))
+      stop_("The variable indicating the responding units (", arg$resp, ") should not contain any missing (NA) values.")
+  }
+    
+  # nrc_weight
+  if(!is.null(nrc_weight)){
+    if(!is.numeric(nrc_weight))
+      stop_("The weight after non-response correction (", arg$nrc_weight, ") should be numeric.")
+    if(any(is.na(nrc_weight[resp])))
+      stop_("The weight after non-response correction (", arg$nrc_weight, ") should not contain any missing (NA) values for responding units.")
+  }
   
   
-  # Step 3: Methodological controls
+  
+  # TODO: for units not taking part in the calibration process,
+  # verify whether they have a value in calib_weight and (if one) compare 
+  # it to the value before calibration (nrc_weight or sampling_weight
+  # depending on the context).
+  
+  
+  # Step 3.1: Control types and coerce if necessary
+  
+  # Step 3.2: Control NA values
   
   
   

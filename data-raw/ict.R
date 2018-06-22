@@ -2,6 +2,7 @@
 # TODO: move the calibration variables in ict_sample and 
 # change the examples
 # TODO: correct the estimated probabilities
+# TODO: rename w_nr > w_nrc
 
 
 # Information and communication sector
