@@ -373,7 +373,7 @@ test_that("argument value controls work as expected", {
     )
   }, regexp = "For the responding units not used in the calibration process,")
   rm(ict_sample)
-  
+
   # calib_var
   ict_sample$complex <- complex(real = 1:NROW(ict_sample), imaginary = 1:NROW(ict_sample))
   expect_error({

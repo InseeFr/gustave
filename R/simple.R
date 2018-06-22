@@ -174,7 +174,7 @@ define_simple_wrapper <- function(data, id,
   
   # Note: some useful variable are created or normalized: 
   # resp, calib (if !is.null(calib_weight)), reference_weight
-  
+
   # id
   if(anyNA(id))
     stop_("The id variable (", arg$id, ") should not contain any missing (NA) values.")
@@ -187,7 +187,7 @@ define_simple_wrapper <- function(data, id,
   if(anyNA(sampling_weight))
     stop_("The sampling weights (", arg$sampling_weight, ") should not contain any missing (NA) values.")
   reference_weight <- sampling_weight
-  
+
   # strata
   if(!is.null(strata)){
     if(is.character(strata)){
@@ -246,7 +246,7 @@ define_simple_wrapper <- function(data, id,
     if(anyNA(calib[resp %in% TRUE]))
       stop_("The variable indicating the units used in the calibation process (", arg$calib, ") should not contain any missing (NA) values for responding units.")
   }
-  
+
   # calib_weight
   if(!is.null(calib_weight)){
     if(!is.numeric(calib_weight))
@@ -287,10 +287,10 @@ define_simple_wrapper <- function(data, id,
   
   # Step 4: Define methodological quantities ----
   
+
   
   
-  
-  
+
 }
 
 
