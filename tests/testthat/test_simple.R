@@ -79,7 +79,7 @@ test_that("inconsitency detection works as expected", {
     define_simple_wrapper(
       data = ict_sample, id = "blabla", 
       samp_weight = "blabla",
-      calib = "blabla"
+      calib_dummy = "blabla"
     ), regexp = "Some arguments are inconsistent:\n  - a variable indicating the units taking part"
   )
   expect_error(
@@ -110,14 +110,14 @@ test_that("welcome message works as expected", {
     define_simple_wrapper(
       data = blabla,
       samp_weight = "blabla", strata = "blabla",
-      scope = "blabla"
+      scope_dummy = "blabla"
     ), regexp = tmp <- paste0(tmp, "\n  - out-of-scope units")
   )
   expect_message(
     define_simple_wrapper(
       data = blabla,
       samp_weight = "blabla", strata = "blabla",
-      scope = "blabla",
+      scope_dummy = "blabla",
       nrc_weight = "blabla", resp = "blabla"
     ), regexp = tmp <- paste0(tmp, "\n  - non-response correction through reweighting")
   )
@@ -125,7 +125,7 @@ test_that("welcome message works as expected", {
     define_simple_wrapper(
       data = blabla,
       samp_weight = "blabla", strata = "blabla",
-      scope = "blabla",
+      scope_dummy = "blabla",
       nrc_weight = "blabla", resp = "blabla",
       calib_weight = "blabla", calib_var = "blabla"
     ), regexp = paste0(tmp, "\n  - calibration on margins")
@@ -177,9 +177,9 @@ test_that("argument validity controls work as expected", {
     define_simple_wrapper(
       data = ict_sample, id = "firm_id",
       samp_weight = "w_sample", strata = "division",
-      nrc_weight = "w_nrc", resp = "blabla"
-    ), 
-    regexp = "Some variables do not exist in ict_sample: \n  - resp argument: blabla"
+      nrc_weight = "w_nrc", resp_dummy = "blabla"
+    ),
+    regexp = "Some variables do not exist in ict_sample: \n  - resp_dummy argument: blabla"
   )
 })
 
@@ -245,47 +245,47 @@ test_that("argument value controls work as expected", {
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
   
-  # scope
+  # scope_dummy
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      scope = "division"
+      scope_dummy = "division"
     )
   }, regexp = "should be of type logical or numeric.")
   ict_sample$scope <- c(FALSE, rep(TRUE, NROW(ict_sample) - 1))
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      strata = "division", scope = "scope"
+      strata = "division", scope_dummy = "scope"
     )
   }, regexp = NA)
   ict_sample$scope[1] <- NA
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      scope = "scope"
+      scope_dummy = "scope"
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
   
-  # resp
+  # resp_dummy
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      nrc_weight = "w_nrc", resp = "division"
+      nrc_weight = "w_nrc", resp_dummy = "division"
     )
   }, regexp = "should be of type logical or numeric.")
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      strata = "division", nrc_weight = "w_nrc", resp = "resp"
+      strata = "division", nrc_weight = "w_nrc", resp_dummy = "resp"
     )
   }, regexp = NA)
   ict_sample$resp[1] <- NA
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      nrc_weight = "w_nrc", resp = "resp"
+      nrc_weight = "w_nrc", resp_dummy = "resp"
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -295,7 +295,7 @@ test_that("argument value controls work as expected", {
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      nrc_weight = "w_nrc", resp = "resp"
+      nrc_weight = "w_nrc", resp_dummy = "resp"
     )
   }, regexp = "should be numeric.")
   rm(ict_sample)
@@ -303,7 +303,7 @@ test_that("argument value controls work as expected", {
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      nrc_weight = "w_nrc", resp = "resp"
+      nrc_weight = "w_nrc", resp_dummy = "resp"
     )
   }, regexp = "should not contain any missing \\(NA\\) values for responding units.")
   rm(ict_sample)
@@ -311,25 +311,25 @@ test_that("argument value controls work as expected", {
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      strata = "division", nrc_weight = "w_nrc", resp = "resp"
+      strata = "division", nrc_weight = "w_nrc", resp_dummy = "resp"
     )
   }, regexp = NA)
   rm(ict_sample)
   
-  # calib
+  # calib_dummy
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      nrc_weight = "w_nrc", resp = "resp",
-      calib_weight = "w_calib", calib = "division", calib_var =  c("N_58", "N_59")
+      nrc_weight = "w_nrc", resp_dummy = "resp",
+      calib_weight = "w_calib", calib_dummy = "division", calib_var =  c("N_58", "N_59")
     )
   }, regexp = "should be of type logical or numeric.")
   ict_sample$calib <- NA
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      nrc_weight = "w_nrc", resp = "resp",
-      calib_weight = "w_calib", calib = "calib", calib_var =  c("N_58", "N_59")
+      nrc_weight = "w_nrc", resp_dummy = "resp",
+      calib_weight = "w_calib", calib_dummy = "calib", calib_var =  c("N_58", "N_59")
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -339,8 +339,8 @@ test_that("argument value controls work as expected", {
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      nrc_weight = "w_nrc", resp = "resp",
-      calib_weight = "w_calib", calib = "calib", calib_var =  c("N_58", "N_59")
+      nrc_weight = "w_nrc", resp_dummy = "resp",
+      calib_weight = "w_calib", calib_dummy = "calib", calib_var =  c("N_58", "N_59")
     )
   }, regexp = "should be numeric.")
   rm(ict_sample)
@@ -348,8 +348,8 @@ test_that("argument value controls work as expected", {
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      nrc_weight = "w_nrc", resp = "resp",
-      calib_weight = "w_calib", calib = "calib", calib_var =  c("N_58", "N_59")
+      nrc_weight = "w_nrc", resp_dummy = "resp",
+      calib_weight = "w_calib", calib_dummy = "calib", calib_var =  c("N_58", "N_59")
     )
   }, regexp = "should not contain any missing \\(NA\\) values for units used in the calibration process.")
   rm(ict_sample)
@@ -357,8 +357,8 @@ test_that("argument value controls work as expected", {
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      strata = "division", nrc_weight = "w_nrc", resp = "resp",
-      calib_weight = "w_calib", calib = "calib", calib_var =  c("N_58", "N_59")
+      strata = "division", nrc_weight = "w_nrc", resp_dummy = "resp",
+      calib_weight = "w_calib", calib_dummy = "calib", calib_var =  c("N_58", "N_59")
     )
   }, regexp = NA)
   rm(ict_sample)
@@ -366,8 +366,8 @@ test_that("argument value controls work as expected", {
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      nrc_weight = "w_nrc", resp = "resp",
-      calib_weight = "w_calib", calib = "calib", calib_var =  c("N_58", "N_59")
+      nrc_weight = "w_nrc", resp_dummy = "resp",
+      calib_weight = "w_calib", calib_dummy = "calib", calib_var =  c("N_58", "N_59")
     )
   }, regexp = "For the responding units not used in the calibration process,")
   rm(ict_sample)
@@ -378,7 +378,7 @@ test_that("argument value controls work as expected", {
     define_simple_wrapper(
       data = ict_sample, id = "firm_id",
       samp_weight = "w_sample", strata = "division",
-      nrc_weight = "w_nrc", resp = "resp",
+      nrc_weight = "w_nrc", resp_dummy = "resp",
       calib_weight = "w_calib", calib_var =  "complex"
     )
   }, regexp = "The following calibration variables are neither quantitative")
@@ -388,7 +388,7 @@ test_that("argument value controls work as expected", {
     define_simple_wrapper(
       data = ict_sample, id = "firm_id",
       samp_weight = "w_sample", strata = "division",
-      nrc_weight = "w_nrc", resp = "resp",
+      nrc_weight = "w_nrc", resp_dummy = "resp",
       calib_weight = "w_calib", calib_var =  c("N_58", "N_59")
     )
   }, regexp = "contain missing \\(NA\\) values for units used in the calibration process:")
