@@ -5,8 +5,7 @@
 \title{Define a linearization wrapper}
 \usage{
 define_linearization_wrapper(linearization_function, arg_type,
-  allow_factor = FALSE, arg_not_affected_by_domain = NULL,
-  display_function = standard_display)
+  arg_not_affected_by_domain = NULL, display_function = standard_display)
 }
 \arguments{
 \item{linearization_function}{An R function with input the quantities 
@@ -26,11 +25,6 @@ to be used as row weights in the linearization formula \item \code{param}:
 parameters, non-data arguments (most of the time boolean) to be used to 
 control some aspect of the linearization formula}}
 
-\item{allow_factor}{A logical vector of length 1 (\code{FALSE} by default)
-indicating whether factor variable are accepted as-is by the linearization
-wrappers. This should be the case when the linearization function only has
-one data argument (e.g. \code{total} or \code{mean} linearization formulae).}
-
 \item{arg_not_affected_by_domain}{A character vector indicating the (data) 
 arguments which should not be affected by domain-splitting. Such parameters
 may appear in some complex linearization formula, for instance when the 
@@ -48,7 +42,7 @@ its value is taken from the \code{alpha} argument of the variance wrapper.)}
 The default display function (\code{standard_display}) uses standard metadata
 to display usual variance indicator (variance, standard deviation, coefficient
 of variation, confidence interval) broken down by linearization wrapper, domain 
-(if any) and level (if the variable is a factor, see argument \code{allow_factor}).}
+(if any) and level (if the variable is a factor).}
 }
 \value{
 A function to be used within a variance estimation wrapper to perform
@@ -129,8 +123,7 @@ mean2 <- define_linearization_wrapper(
       metadata = list(est = est, n = length(y))
     )
   },
-  arg_type = list(data = "y", weight = "weight"),
-  allow_factor = TRUE
+  arg_type = list(data = "y", weight = "weight")
 )
 variance_wrapper(ict_survey, mean(speed_quanti), mean2(speed_quanti))
 

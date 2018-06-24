@@ -25,10 +25,6 @@
 #'   to be used as row weights in the linearization formula \item \code{param}: 
 #'   parameters, non-data arguments (most of the time boolean) to be used to 
 #'   control some aspect of the linearization formula}
-#' @param allow_factor A logical vector of length 1 (\code{FALSE} by default)
-#'   indicating whether factor variable are accepted as-is by the linearization
-#'   wrappers. This should be the case when the linearization function only has
-#'   one data argument (e.g. \code{total} or \code{mean} linearization formulae).
 #' @param arg_not_affected_by_domain A character vector indicating the (data) 
 #'   arguments which should not be affected by domain-splitting. Such parameters
 #'   may appear in some complex linearization formula, for instance when the 
@@ -45,7 +41,7 @@
 #'   The default display function (\code{standard_display}) uses standard metadata
 #'   to display usual variance indicator (variance, standard deviation, coefficient
 #'   of variation, confidence interval) broken down by linearization wrapper, domain 
-#'   (if any) and level (if the variable is a factor, see argument \code{allow_factor}).
+#'   (if any) and level (if the variable is a factor).
 #'   
 #' @details When the estimator is not the estimator of a total, the application of 
 #'   analytical variance estimation formulae developed for the estimator of a total 
@@ -123,8 +119,7 @@
 #'       metadata = list(est = est, n = length(y))
 #'     )
 #'   },
-#'   arg_type = list(data = "y", weight = "weight"),
-#'   allow_factor = TRUE
+#'   arg_type = list(data = "y", weight = "weight")
 #' )
 #' variance_wrapper(ict_survey, mean(speed_quanti), mean2(speed_quanti))
 #' 
@@ -132,7 +127,6 @@
 
 define_linearization_wrapper <- function(linearization_function, 
                                          arg_type, 
-                                         allow_factor = FALSE, 
                                          arg_not_affected_by_domain = NULL, 
                                          display_function = standard_display
 ){
@@ -151,7 +145,7 @@ define_linearization_wrapper <- function(linearization_function,
   )
   if(is.null(arg_type$weight))
     stop("A weight argument must be provided in order to create a linearization wrapper.")
-
+  
   # Step 1 : Create the linearization wrapper
   linearization_wrapper <- function(by = NULL, where = NULL, ...){
     
@@ -160,7 +154,7 @@ define_linearization_wrapper <- function(linearization_function,
     call_display_arg <- c(1, which(names(call) %in% setdiff(names(formals(sys.function())), "...") & !sapply(call, is.null)))
     call_display <- paste(deparse(call[call_display_arg], width.cutoff = 500L), collapse = "")
     call_list <- c(as.list(call)[-1], list(
-      allow_factor = allow_factor, arg_type = arg_type, 
+      arg_type = arg_type, 
       arg_not_affected_by_domain = arg_not_affected_by_domain,
       call = call_display
     ))
@@ -192,7 +186,7 @@ define_linearization_wrapper <- function(linearization_function,
   # Step 3 : Include objects in linearization_wrapper enclosing environment
   e <- new.env(parent = globalenv())
   assign_all(objects = "standard_preparation", to = e, from = asNamespace("gustave"))
-  assign_all(objects = c("linearization_function", "arg_type", "allow_factor", "arg_not_affected_by_domain", "display_function"), to = e, from = environment())
+  assign_all(objects = c("linearization_function", "arg_type", "arg_not_affected_by_domain", "display_function"), to = e, from = environment())
   linearization_wrapper <- change_enclosing(linearization_wrapper, envir = e)
   
   structure(linearization_wrapper, class = c("function", "gustave_linearization_wrapper"))
@@ -202,10 +196,13 @@ define_linearization_wrapper <- function(linearization_function,
 standard_preparation <- function(..., 
                                  by = NULL, where = NULL, 
                                  data, label, evaluation_envir, execution_envir, 
-                                 allow_factor, arg_type, arg_not_affected_by_domain,
+                                 arg_type, arg_not_affected_by_domain,
                                  call
   ){
 
+  # Step 0: Allow factors only if there is only 1 data argument
+  allow_factor <- length(arg_type$data) == 1
+  
   # Step 1 : Evaluation
   eval_data <- eval(data, evaluation_envir)
   expr <- eval(substitute(alist(...)))
