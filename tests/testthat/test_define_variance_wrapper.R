@@ -19,7 +19,7 @@ test_that("variance_wrapper can be defined in globalenv()", {
       variance_function = function(y) abs(colSums(y)), 
       reference_id = ict_survey$firm_id,
       reference_weight = ict_survey$w_calib,
-      default = list(id = "firm_id")
+      default_id = "firm_id"
     )    
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = NA)
@@ -35,7 +35,7 @@ test_that("variance_wrapper can be defined in another function", {
         reference_id = ict_survey$firm_id,
         reference_weight = ict_survey$w_calib,
         technical_data = list(a = a),
-        default = list(id = "firm_id", weight = "w_calib", stat = "mean")
+        default_id = "firm_id"
       )
     }
     variance_wrapper2 <- preparation_function()
@@ -55,7 +55,7 @@ test_that("variance_wrapper may use a reference_id and a reference_weights speci
       variance_function = function(y, level = "firm") abs(colSums(y)), 
       reference_id = quote(id_list[[level]]),
       reference_weight = quote(weight_list[[level]]),
-      default = list(id = "firm_id", weight = "w_calib", stat = "mean"),
+      default_id = "firm_id",
       objects_to_include = c("id_list", "weight_list")
     )
     rm(id_list, weight_list)
@@ -69,7 +69,7 @@ test_that("variance_wrapper may use a default id specified as an unevaluated exp
       variance_function = function(y, level = "firm") abs(colSums(y)), 
       reference_id = ict_survey$firm_id,
       reference_weight = ict_survey$w_calib,
-      default = list(id = substitute(firm_id))
+      default_id = quote(paste0(firm_id, ""))
     )
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = NA)

@@ -33,11 +33,9 @@
 #' @param reference_weight A vector containing the reference weight of the survey. 
 #'   It can also be an unevaluated expression (enclosed in \code{quote()}) to 
 #'   be evaluated within the execution environment of the wrapper.
-#' @param default A named list specifying the default values for: \itemize{
-#'   \item \code{id}: the name of the default identifying variable in the survey 
-#'   file. It can also be an unevaluated expression (enclosed in \code{substitute()}) to be 
-#'   evaluated within the survey file.
-#' }
+#' @param default_id A character vector of length 1, the name of the default 
+#'   identifying variable in the survey file. It can also be an unevaluated 
+#'   expression (enclosed in \code{quote()}) to be evaluated within the survey file.
 #' @param technical_data A named list of all technical data needed to perform 
 #'   the variance estimation (e.g. sampling strata, first- or second-order 
 #'   probabilities of inclusion, estimated response probabilities, calibration 
@@ -55,7 +53,6 @@
 #'   \item all remaining arguments of \code{variance_function} are considered 
 #'   as parameters
 #'   }
-#'   
 #' @param objects_to_include (Advanced use) A character vector indicating the name of 
 #'   additional R objects to include within the variance wrapper.
 
@@ -165,8 +162,8 @@
 #'   variance_function = variance_function_ict,
 #'   reference_id = ict_survey$firm_id, 
 #'   reference_weight = ict_survey$w_calib, 
-#'   technical_data = technical_data_ict,
-#'   default = list(id = "firm_id")
+#'   default_id = "firm_id",
+#'   technical_data = technical_data_ict
 #' )
 #' 
 #' # The object technical_data_ict is embedded within 
@@ -216,14 +213,13 @@
 #' @export define_variance_wrapper
 #' @import Matrix
 
-define_variance_wrapper <- function(
-  variance_function, 
-  reference_id,
-  reference_weight,
-  technical_data = NULL,
-  default = list(id = NULL, weight = NULL), 
-  arg_type = NULL,
-  objects_to_include = NULL
+define_variance_wrapper <- function(variance_function, 
+                                    reference_id,
+                                    reference_weight,
+                                    default_id = NULL,
+                                    technical_data = NULL,
+                                    arg_type = NULL,
+                                    objects_to_include = NULL
 ){
 
   # TODO: add some sort of startup message on first run of the function
@@ -387,7 +383,7 @@ define_variance_wrapper <- function(
   # Step 3: Finalize the variance wrapper
   
   # Step 3.1: Modify variance wrapper arguments depending on the context
-  if(!is.null(default$id)) formals(variance_wrapper)$id <- default$id
+  if(!is.null(default_id)) formals(variance_wrapper)$id <- default_id
 
   # Step 3.2: Add variance_function parameters to variance_wrapper arguments
   # (just after the ...)

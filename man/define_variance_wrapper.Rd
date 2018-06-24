@@ -5,8 +5,8 @@
 \title{Define a variance estimation wrapper}
 \usage{
 define_variance_wrapper(variance_function, reference_id, reference_weight,
-  technical_data = NULL, default = list(id = NULL, weight = NULL),
-  arg_type = NULL, objects_to_include = NULL)
+  default_id = NULL, technical_data = NULL, arg_type = NULL,
+  objects_to_include = NULL)
 }
 \arguments{
 \item{variance_function}{An R function. It is the methodological workhorse of 
@@ -39,17 +39,15 @@ by \code{variance_function}.}
 It can also be an unevaluated expression (enclosed in \code{quote()}) to 
 be evaluated within the execution environment of the wrapper.}
 
+\item{default_id}{A character vector of length 1, the name of the default 
+identifying variable in the survey file. It can also be an unevaluated 
+expression (enclosed in \code{quote()}) to be evaluated within the survey file.}
+
 \item{technical_data}{A named list of all technical data needed to perform 
 the variance estimation (e.g. sampling strata, first- or second-order 
 probabilities of inclusion, estimated response probabilities, calibration 
 variables). Its names should match the names of the arguments 
 of \code{variance_function}.}
-
-\item{default}{A named list specifying the default values for: \itemize{
-  \item \code{id}: the name of the default identifying variable in the survey 
-  file. It can also be an unevaluated expression (enclosed in \code{substitute()}) to be 
-  evaluated within the survey file.
-}}
 
 \item{arg_type}{(Advanced use) A named list with three character vectors 
 describing the type of each argument of \code{variance_function} (see
@@ -176,8 +174,8 @@ variance_wrapper_ict <- define_variance_wrapper(
   variance_function = variance_function_ict,
   reference_id = ict_survey$firm_id, 
   reference_weight = ict_survey$w_calib, 
-  technical_data = technical_data_ict,
-  default = list(id = "firm_id")
+  default_id = "firm_id",
+  technical_data = technical_data_ict
 )
 
 # The object technical_data_ict is embedded within 

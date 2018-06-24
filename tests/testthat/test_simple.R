@@ -41,7 +41,7 @@ test_that("a variance wrapper can be manually defined on top of var_simple", {
       reference_id = ict_survey$firm_id,
       reference_weight = ict_survey$w_calib,
       technical_data = technical_data_ict,
-      default = list(id = "firm_id", weight = "w_calib", stat = "mean")
+      default_id = "firm_id"
     )
     variance_wrapper_ict(ict_survey, speed_quanti)
   },

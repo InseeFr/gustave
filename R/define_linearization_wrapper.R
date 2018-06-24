@@ -99,7 +99,7 @@
 #'   variance_function = function(y) abs(colSums(y)), 
 #'   reference_id = ict_survey$firm_id, 
 #'   reference_weight = ict_survey$w_calib, 
-#'   default = list(id = "firm_id")
+#'   default_id = "firm_id"
 #' )
 #' variance_wrapper(ict_survey, total(speed_quanti))
 #' 

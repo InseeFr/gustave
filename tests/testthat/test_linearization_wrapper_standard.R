@@ -5,7 +5,7 @@ variance_wrapper <- define_variance_wrapper(
   variance_function = function(y) abs(colSums(y)), 
   reference_id = ict_survey$firm_id,
   reference_weight = ict_survey$w_calib,
-  default = list(id = "firm_id", weight = "w_calib", stat = "mean")
+  default_id = "firm_id"
 )
 
 test_that("standard linearization wrappers work", {

@@ -334,8 +334,8 @@ define_simple_wrapper <- function(data, id,
     variance_function = var_simple,
     reference_id = id[resp_dummy],
     reference_weight = reference_weight,
-    technical_data = list(samp = samp, nrc = nrc, calib = calib),
-    default = list(id = arg$id, weight = reference_weight_name)
+    default_id = arg$id,
+    technical_data = list(samp = samp, nrc = nrc, calib = calib)
   )
   
   simple_wrapper
