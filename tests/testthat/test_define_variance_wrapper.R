@@ -111,10 +111,10 @@ test_that("point estimates do match by-hand estimators", {
 })
 
 test_that("estimated values do match reference values", {
-  expect_equal(variance_wrapper(ict_survey, speed_quanti_NA)$est, 32.80242, tolerance = 1e-4)
-  expect_equal(variance_wrapper(ict_survey, speed_quanti_NA)$variance, 0.230266, tolerance = 1e-7)
-  expect_equal(variance_wrapper(ict_survey, speed_quali_NA)$est, c(0.02834094, 0.32141225, 0.39763176, 0.13490418, 0.11771088), tolerance = 1e-8)
-  expect_equal(variance_wrapper(ict_survey, speed_quali_NA)$variance, c(0.0004749795, 0.0008654360, 0.0012040079, 0.0013058744, 0.0012385490), tolerance = 1e-8)
-  expect_equal(variance_wrapper(ict_survey, big_data_NA, by = speed_quali_NA)$est, c(0.00000000, 0.01416254, 0.00000000, 0.28487253, 0.30151894), tolerance = 1e-8)
-  expect_equal(variance_wrapper(ict_survey, big_data_NA, by = speed_quali_NA)$variance, c(0.0000000000, 0.0003726230, 0.0000000000, 0.0003226717, 0.0015129483), tolerance = 1e-8)
+  expect_equal(variance_wrapper(ict_survey, speed_quanti_NA)$est, 178409.7, tolerance = 1e-0)
+  expect_equal(variance_wrapper(ict_survey, speed_quanti_NA)$variance, 15817, tolerance = 1e-0)
+  expect_equal(variance_wrapper(ict_survey, speed_quali_NA)$est, c(154, 1748, 2163, 734, 640), tolerance = 1e0)
+  expect_equal(variance_wrapper(ict_survey, speed_quali_NA)$variance, c(10, 138, 170, 67, 59), tolerance = 1e0)
+  expect_equal(variance_wrapper(ict_survey, big_data_NA, by = speed_quali_NA)$est, c(0, 18.5, 0, 164.8, 146.1), tolerance = 1e0)
+  expect_equal(variance_wrapper(ict_survey, big_data_NA, by = speed_quali_NA)$variance, c(0, 1, 0, 15, 14), tolerance = 1e-0)
 })

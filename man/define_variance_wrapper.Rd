@@ -5,8 +5,8 @@
 \title{Define a variance estimation wrapper}
 \usage{
 define_variance_wrapper(variance_function, reference_id,
-  technical_data = NULL, default = list(id = NULL, weight = NULL, stat =
-  "total", alpha = 0.05), arg_type = NULL, objects_to_include = NULL)
+  technical_data = NULL, default = list(id = NULL, weight = NULL),
+  arg_type = NULL, objects_to_include = NULL)
 }
 \arguments{
 \item{variance_function}{An R function. It is the methodological workhorse of 

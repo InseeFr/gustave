@@ -3,9 +3,26 @@ rm(list = ls(all.names = TRUE))
 variance_wrapper <- define_variance_wrapper(
   variance_function = function(y, level = "firm") abs(colSums(y)), 
   reference_id = ict_survey$firm_id,
-  default = list(id = substitute(firm_id), weight = substitute(w_calib), stat = "mean")
+  default = list(id = "firm_id", weight = "w_calib", stat = gustave::mean)
 )
-variance_wrapper(ict_survey, speed_quanti)
+variance_wrapper(ict_survey, (speed_quanti < 10) * 100, ratio(speed_quanti, employees, by = NULL), by = division)
+str(spy)
+is.function(eval(spy[[1]][[1]]))
+
+lapply(spy, function(call){
+  # call <- spy[[1]]
+  call <- as.list(call)
+  if(is_linearization_wrapper(eval(call[[1]]))){
+    what <- eval(call[[1]])
+    args <- call[-1]
+  }else{
+    what <- gustave::mean
+    args <- call
+  }
+  if(!("by" %in% names(call))) args$by <- substitute(by, execution_envir)
+  if(!("where" %in% names(call))) args$where <- substitute(where, execution_envir)
+  list(what, args)
+})
 
 
 variance_wrapper_ict <- define_simple_wrapper(
