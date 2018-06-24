@@ -1,9 +1,20 @@
+# 0.4.0
+
+- Breaking: Heavy remanufacturing of `define_variance_wrapper`
+
+    * New: `technical_data` argument offers a more consistent way to include technical data within the enclosing environment of the wrapper. `objects_to_include` is kept for non-data objects (such as additional linearization wrappers) or advanced customization.
+    * New: `reference_weight` replaces `default$weight`. This means that the reference weight used for point estimation and linearization is set while defining the variance wrapper and not at run-time.
+    * Change: `stat`, which was a remain of an early implementation of linearization functions, is not a parameter of the variance wrappers anymore. Its purpose (to apply a given variance wrapper to several variables without having to type the name of the linearization wrapper) should be covered in a more consistent way by a forthcoming escape hatch allowing standard evaluation.
+    * Deprecated: `default` is replaced by `default_id`, as `default$weight` and `default$stat` are no longer needed. As for `default$alpha`, its value is set to 0.05 and cannot be changed anymore while defining the variance wrapper (as this can easily be done afterwards using `formals<-`).
+    * Deprecated: `objects_to_include_from`
+
+- New: TODO define_simple_wrapper 
+- Example data: calibration variables in ict_sample instead of ict_survey
+
+
 # 0.3.1
 
 - Hotfix: Add calibrated weights to `define_variance_wrapper` example.
-- New feature: new technical_data argument in define_variance_wrapper offers a more consistent way to include technical data within the variance wrapper (more precisely, within its enclosing environment) and use it for variance estimation. objects_to_include is kept for non-data objects (such as additional linearization wrappers) or advanced customization.
-- Deprecated: `objects_to_include_from` argument in `define_variance_wrapper`
-- Example data modified: calibration variables in ict_sample instead of ict_survey
 
 # 0.3.0
 

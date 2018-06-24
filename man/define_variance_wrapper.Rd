@@ -12,20 +12,7 @@ define_variance_wrapper(variance_function, reference_id, reference_weight,
 \item{variance_function}{An R function. It is the methodological workhorse of 
 the estimation of variance: from a set of arguments including the variables 
 of interest (see below), it should return a vector of estimated variances 
-(or a list whose first element is a vector of estimated variances).
-Its arguments fall into three types: \itemize{
-\item the data argument (mandatory, only one allowed): the numerical matrix of 
-variables of interest to apply the variance estimation formula on
-\item technical data arguments (optional, one or more allowed): technical 
-and methodological information used by the variance estimation function
-(e.g. sampling strata, first- or second-order probabilities of inclusion, 
-estimated response probabilities, calibration variables)
-\item parameters (optional, one or more allowed): non-data arguments to be used 
-to control some aspect of the variance estimation (e.g. alternative methodology)
-}
-\code{define_variance_wrapper} tries to determine the type of each argument
-of \code{variance_function}. This behaviour can be overriden using the
-\code{arg_type} argument (see below).}
+(or a list whose first element is a vector of estimated variances). See Details.}
 
 \item{reference_id}{A vector containing the ids of all the responding units
 of the survey. It can also be an unevaluated expression (enclosed in 
@@ -49,18 +36,8 @@ probabilities of inclusion, estimated response probabilities, calibration
 variables). Its names should match the names of the arguments 
 of \code{variance_function}.}
 
-\item{arg_type}{(Advanced use) A named list with three character vectors 
-describing the type of each argument of \code{variance_function} (see
-above). In most cases it should not be necessary to explicitly set its 
-value as it is automatically determined based on the following rules: 
-\itemize{
-\item the first argument of \code{variance_function} is considered 
-as the data argument
-\item all arguments of \code{variance_function} matching elements of 
-\code{technical_data} are considered as technical data arguments
-\item all remaining arguments of \code{variance_function} are considered 
-as parameters
-}}
+\item{arg_type}{(Advanced use) A named list describing the type of each 
+argument of \code{variance_function} (see Details).}
 
 \item{objects_to_include}{(Advanced use) A character vector indicating the name of 
 additional R objects to include within the variance wrapper.}
@@ -80,10 +57,8 @@ variance function easier. Its parameters are:
    for confidence interval derivation. Its default value depends on
    the value of \code{default_alpha} in \code{define_variance_wrapper}
    \item \code{id}: a character vector of size 1 containing the name of
-   the identifying variable in the survey file. It can also be an 
-   unevaluated expression (using \code{substitute()}) to be evaluated within
-   the survey file. Its default value depends on the value of 
-   \code{default_id} in \code{define_variance_wrapper}
+   the identifying variable in the survey file. Its default value depends 
+   on the value of \code{default_id} in \code{define_variance_wrapper}
    \item \code{envir}: an environment containing a binding to \code{data}
  }
 }
@@ -114,6 +89,28 @@ Defining variance estimation wrappers is the \strong{key feature} of
   set its default parameters. The produced variance estimation wrapper will 
   be stand-alone in the sense that it can contain all technical data necessary
   to carry out the estimation (see \code{technical_data}).
+  
+  The arguments of the \code{variance_function} fall into three types: \itemize{
+  \item the data argument (mandatory, only one allowed): the numerical matrix of 
+  variables of interest to apply the variance estimation formula on
+  \item technical data arguments (optional, one or more allowed): technical 
+  and methodological information used by the variance estimation function
+  (e.g. sampling strata, first- or second-order probabilities of inclusion, 
+  estimated response probabilities, calibration variables)
+  \item parameters (optional, one or more allowed): non-data arguments to be used 
+  to control some aspect of the variance estimation (e.g. alternative methodology)
+  }
+  
+  \code{define_variance_wrapper} tries to determine the type of each argument
+  of \code{variance_function}: \itemize{
+  \item the first argument of \code{variance_function} is considered 
+  as the data argument
+  \item all arguments of \code{variance_function} matching elements of 
+  \code{technical_data} are considered as technical data arguments
+  \item all remaining arguments of \code{variance_function} are considered 
+  as parameters
+  }
+  This behaviour can be overriden using the \code{arg_type} argument.
 }
 \examples{
 ### Example from the Information and communication technologies (ICT) survey

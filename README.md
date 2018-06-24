@@ -89,8 +89,9 @@ The next step is the definition of a variance *wrapper*, which is easier to use 
 variance_wrapper_ict <- define_variance_wrapper(
   variance_function = variance_function_ict,
   reference_id = ict_survey$firm_id, 
+  reference_weight = ict_survey$w_calib, 
   technical_data = technical_data_ict,
-  default = list(id = "firm_id", weight = "w_calib")
+  default_id = "firm_id"
 )
 ```
 
