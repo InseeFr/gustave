@@ -59,6 +59,18 @@ test_that("variance_wrapper may use a reference_id specified as an unevaluated e
   }, regexp = NA)
 })
 
+test_that("variance_wrapper may use a default id specified as an unevaluated expression", {
+  expect_error({
+    variance_wrapper <- define_variance_wrapper(
+      variance_function = function(y, level = "firm") abs(colSums(y)), 
+      reference_id = ict_survey$firm_id,
+      default = list(id = substitute(firm_id), weight = "w_calib", stat = "mean")
+    )
+    variance_wrapper(ict_survey, speed_quanti)
+  }, regexp = NA)
+})
+
+
 test_that("variance_wrapper works in common situations", {
   expect_error(variance_wrapper(ict_survey, speed_quanti), regexp = NA)
   expect_error(variance_wrapper(ict_survey, speed_quanti_NA), regexp = NA)

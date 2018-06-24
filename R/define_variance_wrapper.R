@@ -292,7 +292,7 @@ define_variance_wrapper <- function(
     
     # Step 1.1: Control identifiers
     reference_id <- eval(reference_id)
-    id <- if(is.character(id)) eval_data[, id] else eval(id, eval_data)      
+    id <- if(is.character(substitute(id))) eval_data[, id] else eval(substitute(id), eval_data)
     in_reference_id_not_in_id <- setdiff(reference_id, id)
     if(length(in_reference_id_not_in_id) > 0)
       warning("Some observations from the survey appear to be missing. The variance estimation function may produce unexpected results.", call. = FALSE)
@@ -384,8 +384,8 @@ define_variance_wrapper <- function(
   }
 
   # Step 2.1: Modify variance_wrapper arguments depending on the context
-  if(!is.null(default$id)) formals(variance_wrapper)$id <- substitute(default$id)
-  if(!is.null(default$weight)) formals(variance_wrapper)$weight <- substitute(default$weight)
+  if(!is.null(default$id)) formals(variance_wrapper)$id <- default$id
+  if(!is.null(default$weight)) formals(variance_wrapper)$weight <- default$weight
   if(!is.null(default$stat)) formals(variance_wrapper)$stat <- default$stat
   if(!is.null(default$alpha)) formals(variance_wrapper)$alpha <- default$alpha
   

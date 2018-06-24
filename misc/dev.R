@@ -1,5 +1,13 @@
 rm(list = ls(all.names = TRUE))
 
+variance_wrapper <- define_variance_wrapper(
+  variance_function = function(y, level = "firm") abs(colSums(y)), 
+  reference_id = ict_survey$firm_id,
+  default = list(id = substitute(firm_id), weight = substitute(w_calib), stat = "mean")
+)
+variance_wrapper(ict_survey, speed_quanti)
+
+
 variance_wrapper_ict <- define_simple_wrapper(
   data = ict_sample, id = "firm_id",
   samp_weight = "w_sample", strata = "division",
