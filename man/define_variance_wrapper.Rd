@@ -4,7 +4,7 @@
 \alias{define_variance_wrapper}
 \title{Define a variance estimation wrapper}
 \usage{
-define_variance_wrapper(variance_function, reference_id,
+define_variance_wrapper(variance_function, reference_id, reference_weight,
   technical_data = NULL, default = list(id = NULL, weight = NULL),
   arg_type = NULL, objects_to_include = NULL)
 }
@@ -28,10 +28,16 @@ of \code{variance_function}. This behaviour can be overriden using the
 \code{arg_type} argument (see below).}
 
 \item{reference_id}{A vector containing the ids of all the responding units
-of the survey. It is compared with \code{default$id} (see below) to check
-whether some observations are missing in the survey file. The matrix of variables
+of the survey. It can also be an unevaluated expression (enclosed in 
+\code{quote()}) to be evaluated within the execution environment of the wrapper.
+It is compared with \code{default$id} (see below) to check whether 
+some observations  are missing in the survey file. The matrix of variables 
 of interest is reordered according to \code{reference_id} before being processed
 by \code{variance_function}.}
+
+\item{reference_weight}{A vector containing the reference weight of the survey. 
+It can also be an unevaluated expression (enclosed in \code{quote()}) to 
+be evaluated within the execution environment of the wrapper.}
 
 \item{technical_data}{A named list of all technical data needed to perform 
 the variance estimation (e.g. sampling strata, first- or second-order 
@@ -43,13 +49,6 @@ of \code{variance_function}.}
   \item \code{id}: the name of the default identifying variable in the survey 
   file. It can also be an unevaluated expression (enclosed in \code{substitute()}) to be 
   evaluated within the survey file.
-  \item \code{weight}: the name of the default weight variable in the survey file. 
-  It can also be an unevaluated expression (enclosed in \code{substitute()}) to be 
-  evaluated within the survey file.
-  \item \code{stat}: the name of the default statistic to compute when none is specified. 
-  It is set to \code{"total"} by default.
-  \item \code{alpha}: the default threshold for confidence interval derivation. 
-  It is set to \code{0.05} by default.
 }}
 
 \item{arg_type}{(Advanced use) A named list with three character vectors 
@@ -79,9 +78,6 @@ variance function easier. Its parameters are:
    estimation is conducted
    \item \code{by}: a qualitative variable whose levels are used to define domains
    on which the variance estimation is conducted
-   \item \code{stat}: a character vector of size 1 indicating the linearization
-   wrapper to use when none is specified. Its default value depends on
-   the value of \code{default_stat} in \code{define_variance_wrapper}
    \item \code{alpha}: a numeric vector of size 1 indicating the threshold
    for confidence interval derivation. Its default value depends on
    the value of \code{default_alpha} in \code{define_variance_wrapper}
@@ -179,8 +175,9 @@ with(technical_data_ict, variance_function_ict(y, samp = samp, x = x, w = w))
 variance_wrapper_ict <- define_variance_wrapper(
   variance_function = variance_function_ict,
   reference_id = ict_survey$firm_id, 
+  reference_weight = ict_survey$w_calib, 
   technical_data = technical_data_ict,
-  default = list(id = "firm_id", weight = "w_calib")
+  default = list(id = "firm_id")
 )
 
 # The object technical_data_ict is embedded within 

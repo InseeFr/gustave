@@ -24,21 +24,19 @@
 #'   of \code{variance_function}. This behaviour can be overriden using the
 #'   \code{arg_type} argument (see below).
 #' @param reference_id A vector containing the ids of all the responding units
-#'   of the survey. It is compared with \code{default$id} (see below) to check
-#'   whether some observations are missing in the survey file. The matrix of variables
+#'   of the survey. It can also be an unevaluated expression (enclosed in 
+#'   \code{quote()}) to be evaluated within the execution environment of the wrapper.
+#'   It is compared with \code{default$id} (see below) to check whether 
+#'   some observations  are missing in the survey file. The matrix of variables 
 #'   of interest is reordered according to \code{reference_id} before being processed
 #'   by \code{variance_function}.
+#' @param reference_weight A vector containing the reference weight of the survey. 
+#'   It can also be an unevaluated expression (enclosed in \code{quote()}) to 
+#'   be evaluated within the execution environment of the wrapper.
 #' @param default A named list specifying the default values for: \itemize{
 #'   \item \code{id}: the name of the default identifying variable in the survey 
 #'   file. It can also be an unevaluated expression (enclosed in \code{substitute()}) to be 
 #'   evaluated within the survey file.
-#'   \item \code{weight}: the name of the default weight variable in the survey file. 
-#'   It can also be an unevaluated expression (enclosed in \code{substitute()}) to be 
-#'   evaluated within the survey file.
-#'   \item \code{stat}: the name of the default statistic to compute when none is specified. 
-#'   It is set to \code{"total"} by default.
-#'   \item \code{alpha}: the default threshold for confidence interval derivation. 
-#'   It is set to \code{0.05} by default.
 #' }
 #' @param technical_data A named list of all technical data needed to perform 
 #'   the variance estimation (e.g. sampling strata, first- or second-order 
@@ -94,9 +92,6 @@
 #'    estimation is conducted
 #'    \item \code{by}: a qualitative variable whose levels are used to define domains
 #'    on which the variance estimation is conducted
-#'    \item \code{stat}: a character vector of size 1 indicating the linearization
-#'    wrapper to use when none is specified. Its default value depends on
-#'    the value of \code{default_stat} in \code{define_variance_wrapper}
 #'    \item \code{alpha}: a numeric vector of size 1 indicating the threshold
 #'    for confidence interval derivation. Its default value depends on
 #'    the value of \code{default_alpha} in \code{define_variance_wrapper}
@@ -169,8 +164,9 @@
 #' variance_wrapper_ict <- define_variance_wrapper(
 #'   variance_function = variance_function_ict,
 #'   reference_id = ict_survey$firm_id, 
+#'   reference_weight = ict_survey$w_calib, 
 #'   technical_data = technical_data_ict,
-#'   default = list(id = "firm_id", weight = "w_calib")
+#'   default = list(id = "firm_id")
 #' )
 #' 
 #' # The object technical_data_ict is embedded within 
@@ -223,6 +219,7 @@
 define_variance_wrapper <- function(
   variance_function, 
   reference_id,
+  reference_weight,
   technical_data = NULL,
   default = list(id = NULL, weight = NULL), 
   arg_type = NULL,
@@ -273,8 +270,8 @@ define_variance_wrapper <- function(
   
   # Step 2: Create the variance wrapper
   variance_wrapper <- function(
-    data, ..., by = NULL, where = NULL, id = NULL, alpha = 0.05,
-    weight = NULL, display = TRUE, envir = parent.frame()
+    data, ..., by = NULL, where = NULL, id = NULL, 
+    alpha = 0.05, display = TRUE, envir = parent.frame()
   ){
 
     if(!("package:Matrix" %in% search())) attachNamespace("Matrix")
@@ -296,7 +293,8 @@ define_variance_wrapper <- function(
     in_id_not_in_reference_id <- setdiff(id, reference_id)
     if(length(in_id_not_in_reference_id) > 0)
       stop("Some observations do not belong to the survey.", call. = FALSE)
-
+    reference_weight <- eval(reference_weight)
+    
     # Step 3: Linearization
     linearization_wrapper_list <- eval(substitute(alist(...)))
     linearization_wrapper_label <- names_else_NA(linearization_wrapper_list)
@@ -316,7 +314,7 @@ define_variance_wrapper <- function(
       
       # Add technical arguments
       call <- c(call, list(
-        data = substitute_data, weight = as.symbol(weight), 
+        data = substitute_data, weight = quote(reference_weight), 
         label = linearization_wrapper_label[i], 
         evaluation_envir = evaluation_envir, execution_envir = execution_envir
       ))
@@ -390,22 +388,21 @@ define_variance_wrapper <- function(
   
   # Step 3.1: Modify variance wrapper arguments depending on the context
   if(!is.null(default$id)) formals(variance_wrapper)$id <- default$id
-  if(!is.null(default$weight)) formals(variance_wrapper)$weight <- default$weight
-  # TODO: test whether the default linearization wrapper has only one data argument.
 
   # Step 3.2: Add variance_function parameters to variance_wrapper arguments
   # (just after the ...)
   add_variance_function_param_after <- match("...", names(formals(variance_wrapper)))
-  formals(variance_wrapper) <- c(formals(variance_wrapper)[1:add_variance_function_param_after], 
-                                 formals(variance_function)[arg_type$param],
-                                 formals(variance_wrapper)[(add_variance_function_param_after + 1):length(formals(variance_wrapper))]
+  formals(variance_wrapper) <- c(
+    formals(variance_wrapper)[1:add_variance_function_param_after], 
+    formals(variance_function)[arg_type$param],
+    formals(variance_wrapper)[(add_variance_function_param_after + 1):length(formals(variance_wrapper))]
   )
   
   # Step 3.3: Include objects in variance_wrapper enclosing environment
   e1 <- new.env(parent = globalenv())
   assign_all(objects = ls(asNamespace("gustave")), to = e1, from = asNamespace("gustave"))
   e2 <- new.env(parent = e1)
-  assign_all(objects = c("variance_function", "reference_id", "technical_data", "arg_type"), to = e2, from = environment())
+  assign_all(objects = c("variance_function", "reference_id", "reference_weight", "technical_data", "arg_type"), to = e2, from = environment())
   assign_all(objects = objects_to_include, to = e2, from = parent.frame())
   variance_wrapper <- change_enclosing(variance_wrapper, envir = e2)
 

@@ -3,7 +3,8 @@ rm(list = ls(all.names = TRUE))
 variance_wrapper <- define_variance_wrapper(
   variance_function = function(y, level = "firm") abs(colSums(y)), 
   reference_id = ict_survey$firm_id,
-  default = list(id = "firm_id", weight = "w_calib", stat = gustave::mean)
+  reference_weight = ict_survey$w_calib,
+  default = list(id = "firm_id")
 )
 variance_wrapper(ict_survey, (speed_quanti < 10) * 100, ratio(speed_quanti, employees, by = NULL), by = division)
 str(spy)

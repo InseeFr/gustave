@@ -18,7 +18,8 @@ test_that("variance_wrapper can be defined in globalenv()", {
     variance_wrapper <<- define_variance_wrapper(
       variance_function = function(y) abs(colSums(y)), 
       reference_id = ict_survey$firm_id,
-      default = list(id = "firm_id", weight = "w_calib", stat = "mean")
+      reference_weight = ict_survey$w_calib,
+      default = list(id = "firm_id")
     )    
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = NA)
@@ -32,6 +33,7 @@ test_that("variance_wrapper can be defined in another function", {
       define_variance_wrapper(
         variance_function = function(y, a) abs(colSums(y)) + a, 
         reference_id = ict_survey$firm_id,
+        reference_weight = ict_survey$w_calib,
         technical_data = list(a = a),
         default = list(id = "firm_id", weight = "w_calib", stat = "mean")
       )
@@ -45,16 +47,18 @@ test_that("variance_wrapper can be defined in another function", {
   )
 })
 
-test_that("variance_wrapper may use a reference_id specified as an unevaluated expression", {
+test_that("variance_wrapper may use a reference_id and a reference_weights specified as an unevaluated expression", {
   expect_error({
     id_list <- list(firm = ict_survey$firm_id)
+    weight_list <- list(firm = ict_survey$w_calib)
     variance_wrapper <- define_variance_wrapper(
       variance_function = function(y, level = "firm") abs(colSums(y)), 
       reference_id = quote(id_list[[level]]),
+      reference_weight = quote(weight_list[[level]]),
       default = list(id = "firm_id", weight = "w_calib", stat = "mean"),
-      objects_to_include = "id_list"
+      objects_to_include = c("id_list", "weight_list")
     )
-    rm(id_list)
+    rm(id_list, weight_list)
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = NA)
 })
@@ -64,7 +68,8 @@ test_that("variance_wrapper may use a default id specified as an unevaluated exp
     variance_wrapper <- define_variance_wrapper(
       variance_function = function(y, level = "firm") abs(colSums(y)), 
       reference_id = ict_survey$firm_id,
-      default = list(id = substitute(firm_id), weight = "w_calib", stat = "mean")
+      reference_weight = ict_survey$w_calib,
+      default = list(id = substitute(firm_id))
     )
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = NA)

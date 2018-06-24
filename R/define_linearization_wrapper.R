@@ -98,7 +98,8 @@
 #' variance_wrapper <- define_variance_wrapper(
 #'   variance_function = function(y) abs(colSums(y)), 
 #'   reference_id = ict_survey$firm_id, 
-#'   default = list(id = "firm_id", weight = "w_calib")
+#'   reference_weight = ict_survey$w_calib, 
+#'   default = list(id = "firm_id")
 #' )
 #' variance_wrapper(ict_survey, total(speed_quanti))
 #' 
@@ -208,7 +209,7 @@ standard_preparation <- function(...,
   expr <- eval(substitute(alist(...)))
   d <- list(list(
     data = lapply(expr[names(expr) %in% arg_type$data], eval, envir = eval_data, enclos = evaluation_envir)
-    , weight = lapply(expr[names(expr) %in% arg_type$weight], eval, envir = eval_data, enclos = evaluation_envir)
+    , weight = lapply(expr[names(expr) %in% arg_type$weight], eval, envir = execution_envir)
     , param = if(any(names(expr) %in% arg_type$param)) expr[names(expr) %in% arg_type$param] else NULL
   ))
   if(all(sapply(d[[1]]$data, is.null))) return(NULL)
