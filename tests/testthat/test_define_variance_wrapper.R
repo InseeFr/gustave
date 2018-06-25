@@ -83,6 +83,19 @@ test_that("variance_wrapper may use a default id specified as an unevaluated exp
     )
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = NA)
+  expect_error({
+    default_id_list <- list(firm = quote(paste0(firm_id, "")))
+    variance_wrapper <- define_variance_wrapper(
+      variance_function = function(y, level) abs(colSums(y)), 
+      reference_id = ict_survey$firm_id,
+      reference_weight = ict_survey$w_calib,
+      default_id = quote(default_id_list[[level]]),
+      technical_param = list(level = "firm"),
+      objects_to_include = "default_id_list"
+    )
+    rm(default_id_list)
+    variance_wrapper(ict_survey, speed_quanti)
+  }, regexp = NA)
 })
 
 

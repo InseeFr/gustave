@@ -273,7 +273,11 @@ define_variance_wrapper <- function(variance_function,
     
     # Step 2: Controls
     reference_id <- eval(reference_id)
-    id <- if(is.character(substitute(id))) eval_data[, id] else eval(substitute(id), eval_data)
+    id <- tryCatch(
+      eval(substitute(id), envir = execution_envir), 
+      error = function(e) substitute(id, execution_envir)
+    )
+    id <- if(is.character(id)) eval_data[, id] else eval(id, eval_data)
     in_reference_id_not_in_id <- setdiff(reference_id, id)
     if(length(in_reference_id_not_in_id) > 0)
       warning("Some observations from the survey appear to be missing. The variance estimation function may produce unexpected results.", call. = FALSE)
