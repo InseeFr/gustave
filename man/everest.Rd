@@ -27,7 +27,7 @@ function, it should also contain the variables of interest (the variables
 to perform the variance estimation on).}
 
 \item{...}{One or more calls to a linearization wrapper (e.g. \code{total()}, 
-\code{mean()}, \code{ratio()}) See examples and 
+\code{mean()}, \code{ratio()}). See examples and 
 \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}})}
 
 \item{by}{A qualitative variable whose levels are used to define domains
@@ -103,8 +103,7 @@ only non-missing values for all variables in \code{calib_var}.}
 as warnings? Use at your own risks.}
 
 \item{define}{Logical vector of lentgh 1. Should a variance wrapper
-be defined using the \code{everest} function (instead of performing
-a variance estimation).}
+be defined instead of performing a variance estimation?}
 }
 \description{
 \code{everest} is a ready-to-use function performing

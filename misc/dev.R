@@ -21,7 +21,9 @@ everest_ict <- everest(ict_sample, define = TRUE,
                        nrc_weight = "w_nrc", resp_dummy = "resp",
                        calib_weight = "w_calib", calib_var =  c("division", "turnover_58", "turnover_59")
 )
+
 everest_ict(ict_survey, mean(turnover))
+everest_ict(ict_survey)
 
 
 microbenchmark::microbenchmark(

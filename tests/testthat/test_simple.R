@@ -397,6 +397,15 @@ test_that("argument value controls work as expected", {
 
 })
 
+test_that("methodological validation works as expected", {
+  expect_warning(
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", samp_weight = "w_sample"
+    )
+    , regexp = "The following strata contain units whose sampling weights are not exactly equals: 1. The mean weight per stratum is used instead."
+  )
+})
+
 test_that("everest works", {
   expect_error(
     everest(ict_sample, mean(turnover),

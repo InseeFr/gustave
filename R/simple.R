@@ -19,7 +19,7 @@
 #'   function, it should also contain the variables of interest (the variables
 #'   to perform the variance estimation on).
 #' @param ... One or more calls to a linearization wrapper (e.g. \code{total()}, 
-#'   \code{mean()}, \code{ratio()}) See examples and 
+#'   \code{mean()}, \code{ratio()}). See examples and 
 #'   \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}})
 #' @param where A logical vector indicating a domain on which the variance 
 #'   estimation is to be performed.
@@ -85,8 +85,7 @@
 #' @param force Logical vector of lentgh 1. Should all errors be considered 
 #'   as warnings? Use at your own risks.
 #' @param define Logical vector of lentgh 1. Should a variance wrapper
-#'   be defined using the \code{everest} function (instead of performing
-#'   a variance estimation).
+#'   be defined instead of performing a variance estimation?
 #' 
 #' 
 #' @name everest
@@ -254,7 +253,7 @@ define_simple_wrapper <- function(data, id,
   reference_weight_name <- arg$samp_weight
 
   # strata
-  if(is.null(strata)) strata <- factor(rep("1", length(id)))
+  if(is.null(strata)) strata <- setNames(factor(rep("1", length(id))), id)
   if(!is.null(strata)){
     if(is.character(strata)){
       message("Note: The strata variable (", arg$strata, ") is of type character. It is automatically coerced to factor.\n")
@@ -350,6 +349,28 @@ define_simple_wrapper <- function(data, id,
   
   # Step 4: Define methodological quantities ----
   
+  # TODO: Add methodological tests
+  
+  # Enforce equal probabilities in each stratum
+  strata_with_unequal_samp_weight <- tapply(samp_weight, strata, stats::sd) > 1e-6
+  if(sum(strata_with_unequal_samp_weight) > 0){
+    # TODO: Enhance warning message when strata = NULL
+    warn_(
+      "The following strata contain units whose sampling weights are not exactly equals: ",
+      paste(names(strata_with_unequal_samp_weight)[strata_with_unequal_samp_weight], collapse = ", "),
+      ". The mean weight per stratum is used instead."
+    )
+    samp_weight <- statas::setNames(tapply(samp_weight, strata, base::mean)[as.character(strata)], id)
+  }
+  
+  # stopifnot: All respondents do belong to the scope
+  # warning: strata with less than 2 units (exclude the strata
+  # from all variance estimation)
+  
+  # TODO: test on real data
+  
+  
+  
   # Sampling
   samp <- list()
   samp$id <- id
@@ -357,7 +378,7 @@ define_simple_wrapper <- function(data, id,
   samp$strata <- strata[samp$id]
   samp$precalc <- var_srs(y = NULL, pik = 1 / samp$weight, strata = samp$strata)
   samp <- samp[c("id", "precalc")]
-
+  
   # Non-reponse
   if(!is.null(nrc_weight)){
     nrc <- list()
@@ -388,7 +409,11 @@ define_simple_wrapper <- function(data, id,
     nrc_weight[resp_dummy %in% TRUE]
   }else samp_weight
 
-  # TODO: Add methodological tests
+  # TODO: Add non-reweighted units (units that did not take part
+  # in any reweighting but that are kept for the point estimates)
+  # Should they take part in the variance estimation (are they
+  # exhaustive or not ?)
+  
   
   # Step 5: Define the variance wrapper ----
   simple_wrapper <- define_variance_wrapper(
