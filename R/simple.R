@@ -1,19 +1,36 @@
 
 
-
-#' Define a simple variance wrapper
-#'
-#' @description define_simple_wrapper is a convenience wrapper
-#' for \code{define_variance_wrapper} for the simplest yet frequent cases: 
+#' Perform a variance estimation in most common cases
+#' 
+#' @description \code{everest} is a ready-to-use function performing
+#' analytical variance estimation in most common cases, that is: 
 #' \itemize{\item (stratified) simple random sampling \item non-response
 #' correction (if any) through reweighting \item calibration (if any)}
-#' It performs technical and statistical checks and produces a 
-#' ready-to-use variance wrapper adapted for such cases.
+#' 
+#' \code{define_simple_wrapper} (or \code{everest} with \code{define = TRUE})
+#' defines a so-called variance wrapper, that is a standalone function that
+#' can be applied to the survey dataset in order to perform the variance estimation
+#' without having to specify the methodological characteristics of the survey.
 #'
 #' @param data The \code{data.frame} containing all the technical information
 #'   required to prepare the variance estimation process (see other arguments 
 #'   below). Note that this file should contain all the units sampled, 
-#'   including the out-of-scope and non-responding units.
+#'   including the out-of-scope and non-responding units. For the \code{everest}
+#'   function, it should also contain the variables of interest (the variables
+#'   to perform the variance estimation on).
+#' @param ... One or more calls to a linearization wrapper (e.g. \code{total()}, 
+#'   \code{mean()}, \code{ratio()}) See examples and 
+#'   \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}})
+#' @param where A logical vector indicating a domain on which the variance 
+#'   estimation is to be performed.
+#' @param by A qualitative variable whose levels are used to define domains
+#'   on which the variance estimation is performed.
+#' @param alpha A numeric vector of length 1 indicating the threshold
+#'   for confidence interval derivation (\code{0.05} by default).
+#' @param display A logical verctor of length 1 indicating whether
+#'   the result of the estimation should be displayed or not.
+#' @param envir An environment containing a binding to \code{data}.
+#'   
 #' @param id The identification variable of the units in \code{data}. 
 #'   It should be unique for each row in \code{data} and not contain any 
 #'   missing values.
@@ -65,11 +82,50 @@
 #'   provided. All units taking part in the calibration process should have
 #'   only non-missing values for all variables in \code{calib_var}.
 #' 
-#' @param force (Advanced use) A logical vector of lentgh one: should all
-#'   stop_ messages be considered as warnings? Use at your own risks.
+#' @param force Logical vector of lentgh 1. Should all errors be considered 
+#'   as warnings? Use at your own risks.
+#' @param define Logical vector of lentgh 1. Should a variance wrapper
+#'   be defined using the \code{everest} function (instead of performing
+#'   a variance estimation).
 #' 
 #' 
+#' @name everest
+#' @aliases everest define_simple_wrapper
+
+NULL
+
+#' @rdname everest
+#' @export
+everest <- function(data, ..., by = NULL, where = NULL, id = NULL, 
+                    alpha = 0.05, display = TRUE, envir = parent.frame(),
+                    samp_weight, strata = NULL,
+                    scope_dummy = NULL,
+                    nrc_weight = NULL, resp_dummy = NULL,
+                    calib_weight = NULL, calib_dummy = NULL, calib_var = NULL,
+                    force = FALSE, define = FALSE
+){
+  
+  call <- as.list(match.call())[-1]
+  everest_wrapper <- do.call(
+    define_simple_wrapper, 
+    call[names(call) %in% names(formals(define_simple_wrapper))]
+  )
+  # TODO: Add the possibility to omit id if define = FALSE
+  if(define) everest_wrapper else{
+    everest_data <- data[data[, id] %in% environment(everest_wrapper)$reference_id, ]  
+    call$data <- substitute(everest_data)
+    call$envir <- environment()
+    do.call(
+      everest_wrapper,
+      call[names(call) == "" | names(call) %in% names(formals(everest_wrapper))]
+    )
+  }
+  
+}
+
+#' @rdname everest
 #' @export 
+
 define_simple_wrapper <- function(data, id,
                                   samp_weight, strata = NULL,
                                   scope_dummy = NULL,
@@ -109,7 +165,7 @@ define_simple_wrapper <- function(data, id,
 
   # Step 1.2: Welcome message
   message(
-    "Variance wrapper definition using the dataset : ", deparse(substitute(data)),
+    "Survey variance estimation with the gustave package",
     "\n\nThe following features are taken into account:",
     if(!is.null(strata)) "\n  - stratified simple random sampling" else 
       "\n  - simple random sampling WITHOUT stratification",
@@ -332,6 +388,8 @@ define_simple_wrapper <- function(data, id,
     nrc_weight[resp_dummy %in% TRUE]
   }else samp_weight
 
+  # TODO: Add methodological tests
+  
   # Step 5: Define the variance wrapper ----
   simple_wrapper <- define_variance_wrapper(
     variance_function = var_simple,
@@ -344,6 +402,7 @@ define_simple_wrapper <- function(data, id,
   simple_wrapper
 
 }
+
 
 
 

@@ -394,7 +394,32 @@ test_that("argument value controls work as expected", {
     )
   }, regexp = "contain missing \\(NA\\) values for units used in the calibration process:")
   rm(ict_sample)
-  
-  
-  
+
 })
+
+test_that("everest works", {
+  expect_error(
+    everest(ict_sample, mean(turnover),
+            id = "firm_id", samp_weight = "w_sample", strata = "division",
+            nrc_weight = "w_nrc", resp_dummy = "resp",
+            calib_weight = "w_calib", calib_var =  c("division", "turnover_58", "turnover_59")
+    ), 
+    regexp= NA
+  )
+  expect_error({
+    everest_wrapper <- everest(ict_sample, define = TRUE,
+                               id = "firm_id", samp_weight = "w_sample", strata = "division",
+                               nrc_weight = "w_nrc", resp_dummy = "resp",
+                               calib_weight = "w_calib", calib_var =  c("division", "turnover_58", "turnover_59")
+    )
+    everest_wrapper(ict_survey, mean(turnover))
+  }, regexp= NA)
+  expect_identical(
+    everest(ict_sample, mean(turnover),
+            id = "firm_id", samp_weight = "w_sample", strata = "division",
+            nrc_weight = "w_nrc", resp_dummy = "resp",
+            calib_weight = "w_calib", calib_var =  c("division", "turnover_58", "turnover_59")
+    ), everest_wrapper(ict_survey, mean(turnover))
+  )
+})
+  
