@@ -132,7 +132,7 @@ define_linearization_wrapper <- function(linearization_function,
                                          display_function = standard_display
 ){
   
-  # Step 0 : Control arguments consistency
+  # Step 1: Control arguments consistency
   inconsistent_arg <- list(
     in_arg_type_not_in_linearization_function = setdiff(unlist(arg_type), names(formals(linearization_function))), 
     in_linearization_function_not_in_arg_type = setdiff(names(formals(linearization_function)), unlist(arg_type)), 
@@ -147,10 +147,10 @@ define_linearization_wrapper <- function(linearization_function,
   if(is.null(arg_type$weight))
     stop("A weight argument must be provided in order to create a linearization wrapper.")
   
-  # Step 1 : Create the linearization wrapper
+  # Step 2: Create the linearization wrapper
   linearization_wrapper <- function(by = NULL, where = NULL, ...){
     
-    # Step 1.1 : Capture and expand the call
+    # Step 1: Capture and expand the call
     call <- match.call(expand.dots = TRUE)
     call_display_arg <- c(1, which(names(call) %in% setdiff(names(formals(sys.function())), "...") & !sapply(call, is.null)))
     call_display <- paste(deparse(call[call_display_arg], width.cutoff = 500L), collapse = "")
@@ -160,11 +160,11 @@ define_linearization_wrapper <- function(linearization_function,
       call = call_display
     ))
     
-    # Step 1.2 : Proceeed to standard preparation
+    # Step 2: Proceeed to standard preparation
     d <- do.call(standard_preparation, call_list)
     if(is.null(d)) return(NULL)
 
-    # Step 1.3 : Evaluate the linearization functions
+    # Step 3: Evaluate the linearization functions
     d <- lapply(d, function(i){
       tmp <- do.call(linearization_function, with(i, c(data, weight, param)))
       i$metadata <- c(i$metadata, tmp$metadata)
@@ -178,13 +178,13 @@ define_linearization_wrapper <- function(linearization_function,
     return(d)
   }
 
-  # Step 2 : Modify linearization_wrapper formals
+  # Step 3: Modify linearization_wrapper formals
   formals(linearization_wrapper) <- c(
     formals(linearization_function)[setdiff(names(formals(linearization_function)), arg_type$weight)], 
     formals(linearization_wrapper)
   )
 
-  # Step 3 : Include objects in linearization_wrapper enclosing environment
+  # Step 4: Include objects in linearization_wrapper enclosing environment
   e <- new.env(parent = globalenv())
   assign_all(objects = "standard_preparation", to = e, from = asNamespace("gustave"))
   assign_all(objects = c("linearization_function", "arg_type", "arg_not_affected_by_domain", "display_function"), to = e, from = environment())
