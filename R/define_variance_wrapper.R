@@ -23,13 +23,14 @@
 #' @param default_id A character vector of length 1, the name of the default 
 #'   identifying variable in the survey file. It can also be an unevaluated 
 #'   expression (enclosed in \code{quote()}) to be evaluated within the survey file.
-#' @param technical_data A named list of all technical data needed to perform 
+#' @param technical_data A named list of technical data needed to perform 
 #'   the variance estimation (e.g. sampling strata, first- or second-order 
 #'   probabilities of inclusion, estimated response probabilities, calibration 
 #'   variables). Its names should match the names of the arguments 
 #'   of \code{variance_function}.
-#' @param arg_type (Advanced use) A named list describing the type of each 
-#'   argument of \code{variance_function} (see Details). 
+#' @param technical_param A named list of technical parameters used to control 
+#'   some aspect of the variance estimation process (e.g. alternative methodology).
+#'   Its names should match the names of the arguments  of \code{variance_function}.
 #' @param objects_to_include (Advanced use) A character vector indicating the name of 
 #'   additional R objects to include within the variance wrapper.
 
@@ -63,20 +64,13 @@
 #'   and methodological information used by the variance estimation function
 #'   (e.g. sampling strata, first- or second-order probabilities of inclusion, 
 #'   estimated response probabilities, calibration variables)
-#'   \item parameters (optional, one or more allowed): non-data arguments to be used 
-#'   to control some aspect of the variance estimation (e.g. alternative methodology)
+#'   \item technical parameters (optional, one or more allowed): non-data arguments 
+#'   to be used to control some aspect of the variance estimation (e.g. alternative
+#'   methodology)
 #'   }
-#'   
-#'   \code{define_variance_wrapper} tries to determine the type of each argument
-#'   of \code{variance_function}: \itemize{
-#'   \item the first argument of \code{variance_function} is considered 
-#'   as the data argument
-#'   \item all arguments of \code{variance_function} matching elements of 
-#'   \code{technical_data} are considered as technical data arguments
-#'   \item all remaining arguments of \code{variance_function} are considered 
-#'   as parameters
-#'   }
-#'   This behaviour can be overriden using the \code{arg_type} argument.
+#'   \code{technical_data} and \code{technical_param} are used to determine
+#'   which arguments of \code{variance_function} relate to technical information, 
+#'   the only remaining argument is considered as the data argument.
 #'   
 #' @return An R function that makes the estimation of variance based on the provided 
 #' variance function easier. Its parameters are:
@@ -215,7 +209,7 @@ define_variance_wrapper <- function(variance_function,
                                     reference_weight,
                                     default_id = NULL,
                                     technical_data = NULL,
-                                    arg_type = NULL,
+                                    technical_param = NULL,
                                     objects_to_include = NULL
 ){
 
@@ -239,33 +233,27 @@ define_variance_wrapper <- function(variance_function,
     call. = FALSE
   )
 
-  # Provide some default values
+  # Determine argument type
   names_formals_variance_function <- names(formals(variance_function))
   names_technical_data <- names_else_NA(technical_data)
-  if(is.null(arg_type)) arg_type <- list(
-    data = names_formals_variance_function[1],
-    tech = names_technical_data,
-    param = setdiff(names_formals_variance_function, c(names_formals_variance_function[1], names_technical_data))
+  if(anyNA(names_technical_data)) stop("All elements of technical_data must be named.")
+  if(!all(names_technical_data %in% names_formals_variance_function))
+    stop("All elements of technical_data must match an argument of variance_function.")
+  names_technical_param <- names_else_NA(technical_param)
+  if(anyNA(names_technical_param)) stop("All elements of technical_param must be named.")
+  if(!all(names_technical_param %in% names_formals_variance_function))
+    stop("All elements of technical_param must match an argument of variance_function.")
+  names_remaining_args <- setdiff(names_formals_variance_function, c(names_technical_data, names_technical_param))
+  if(length(names_remaining_args) == 0) stop(
+    "variance_function appears to have only technical arguments (identified with technical_data and technical_param).",
+    " It must also have a data argument (see the Details section in help)."
   )
+  if(length(names_remaining_args) > 1) stop(
+    "variance_function appears to have several data arguments (", paste(names_remaining_args, collapse = ", "), 
+    ") where it should only have one. Use technical_data and technical_param to identify the technical arguments (see the Details section in help)."
+  )
+  arg_type <- list(data = names_remaining_args, tech = names_technical_data, param = names_technical_param)
   
-  # Control arguments consistency
-  if(length(arg_type$data) == 0)
-    stop("A data argument is expected in variance_function and should be described as such in arg_type.")
-  if(length(arg_type$data) > 1)
-    stop("Only one data argument is expected in variance_function and should be described as such in arg_type.")
-  inconsistent_arg <- list(
-    in_arg_type_not_in_variance_function = setdiff(unlist(arg_type), names_formals_variance_function),
-    in_variance_function_not_in_arg_type = setdiff(names_formals_variance_function, unlist(arg_type)),
-    tech_arg_not_in_technical_data = setdiff(arg_type$tech, names_technical_data),
-    technical_data_not_in_tech_arg = setdiff(names_technical_data, arg_type$tech)
-  )
-  if(length(unlist(inconsistent_arg)) > 0) stop(
-    "Some arguments are inconsistent:", 
-    if(length(inconsistent_arg[[1]]) > 0) paste("\n  -", paste(inconsistent_arg[[1]], collapse = ", "), "in arg_type but not in variance_function arguments") else "", 
-    if(length(inconsistent_arg[[2]]) > 0) paste("\n  -", paste(inconsistent_arg[[2]], collapse = ", "), "in variance_function arguments but not in arg_type") else "",
-    if(length(inconsistent_arg[[3]]) > 0) paste("\n  -", paste(inconsistent_arg[[3]], collapse = ", "), "identified as technical data argument in arg_type but not in technical_data") else "",
-    if(length(inconsistent_arg[[4]]) > 0) paste("\n  -", paste(inconsistent_arg[[4]], collapse = ", "), "in technical_data but not identified as technical data argument in arg_type") else ""
-  )
   
   # Step 2: Create the variance wrapper
   variance_wrapper <- function(
@@ -345,9 +333,9 @@ define_variance_wrapper <- function(variance_function,
 
     # Step 4.2: Call the variance estimation function
     variance_function_args <- c(
-      stats::setNames(list(data_as_Matrix), arg_type$data)
-      , stats::setNames(lapply(arg_type$param, get, envir = execution_envir), arg_type$param)
-      , technical_data
+      stats::setNames(list(data_as_Matrix), arg_type$data), 
+      stats::setNames(lapply(arg_type$param, get, envir = execution_envir), arg_type$param), 
+      technical_data
     )[names(formals(variance_function))]
     result <- suppressMessages(do.call(variance_function, variance_function_args))
     if(is.data.frame(result)) result <- as.matrix(result)
@@ -388,13 +376,13 @@ define_variance_wrapper <- function(variance_function,
   # Step 3.1: Modify variance wrapper arguments depending on the context
   if(!is.null(default_id)) formals(variance_wrapper)$id <- default_id
 
-  # Step 3.2: Add variance_function parameters to variance_wrapper arguments
+  # Step 3.2: Add variance_function technical parameters to variance_wrapper arguments
   # (just after the ...)
-  add_variance_function_param_after <- match("...", names(formals(variance_wrapper)))
+  add_technical_param_after <- match("...", names(formals(variance_wrapper)))
   formals(variance_wrapper) <- c(
-    formals(variance_wrapper)[1:add_variance_function_param_after], 
-    formals(variance_function)[arg_type$param],
-    formals(variance_wrapper)[(add_variance_function_param_after + 1):length(formals(variance_wrapper))]
+    formals(variance_wrapper)[1:add_technical_param_after], 
+    technical_param,
+    formals(variance_wrapper)[(add_technical_param_after + 1):length(formals(variance_wrapper))]
   )
   
   # Step 3.3: Include objects in variance_wrapper enclosing environment

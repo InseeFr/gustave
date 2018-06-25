@@ -5,7 +5,7 @@
 \title{Define a variance estimation wrapper}
 \usage{
 define_variance_wrapper(variance_function, reference_id, reference_weight,
-  default_id = NULL, technical_data = NULL, arg_type = NULL,
+  default_id = NULL, technical_data = NULL, technical_param = NULL,
   objects_to_include = NULL)
 }
 \arguments{
@@ -30,14 +30,15 @@ be evaluated within the execution environment of the wrapper.}
 identifying variable in the survey file. It can also be an unevaluated 
 expression (enclosed in \code{quote()}) to be evaluated within the survey file.}
 
-\item{technical_data}{A named list of all technical data needed to perform 
+\item{technical_data}{A named list of technical data needed to perform 
 the variance estimation (e.g. sampling strata, first- or second-order 
 probabilities of inclusion, estimated response probabilities, calibration 
 variables). Its names should match the names of the arguments 
 of \code{variance_function}.}
 
-\item{arg_type}{(Advanced use) A named list describing the type of each 
-argument of \code{variance_function} (see Details).}
+\item{technical_param}{A named list of technical parameters used to control 
+some aspect of the variance estimation process (e.g. alternative methodology).
+Its names should match the names of the arguments  of \code{variance_function}.}
 
 \item{objects_to_include}{(Advanced use) A character vector indicating the name of 
 additional R objects to include within the variance wrapper.}
@@ -97,20 +98,13 @@ Defining variance estimation wrappers is the \strong{key feature} of
   and methodological information used by the variance estimation function
   (e.g. sampling strata, first- or second-order probabilities of inclusion, 
   estimated response probabilities, calibration variables)
-  \item parameters (optional, one or more allowed): non-data arguments to be used 
-  to control some aspect of the variance estimation (e.g. alternative methodology)
+  \item technical parameters (optional, one or more allowed): non-data arguments 
+  to be used to control some aspect of the variance estimation (e.g. alternative
+  methodology)
   }
-  
-  \code{define_variance_wrapper} tries to determine the type of each argument
-  of \code{variance_function}: \itemize{
-  \item the first argument of \code{variance_function} is considered 
-  as the data argument
-  \item all arguments of \code{variance_function} matching elements of 
-  \code{technical_data} are considered as technical data arguments
-  \item all remaining arguments of \code{variance_function} are considered 
-  as parameters
-  }
-  This behaviour can be overriden using the \code{arg_type} argument.
+  \code{technical_data} and \code{technical_param} are used to determine
+  which arguments of \code{variance_function} relate to technical information, 
+  the only remaining argument is considered as the data argument.
 }
 \examples{
 ### Example from the Information and communication technologies (ICT) survey

@@ -7,6 +7,8 @@ variance_wrapper_ict <- define_simple_wrapper(
   calib_weight = "w_calib", calib_var =  c("division", "turnover_58", "turnover_59")
 )
 
+define_variance_wrapper()
+
 variance_wrapper_ict(ict_survey, speed_quanti)
 
 variance_function <- function(y, niveau = "men", samp, x, w){

@@ -33,6 +33,8 @@ test_that("variance_wrapper can be defined in globalenv()", {
 })
 
 
+# TODO: add controls about technical_data and tchnical_param
+
 test_that("variance_wrapper can be defined in another function", {
   expect_error({
     preparation_function <- function(){
@@ -56,16 +58,17 @@ test_that("variance_wrapper can be defined in another function", {
 
 test_that("variance_wrapper may use a reference_id and a reference_weights specified as an unevaluated expression", {
   expect_error({
-    id_list <- list(firm = ict_survey$firm_id)
-    weight_list <- list(firm = ict_survey$w_calib)
+    reference_id_list <- list(firm = ict_survey$firm_id)
+    reference_weight_list <- list(firm = ict_survey$w_calib)
     variance_wrapper <- define_variance_wrapper(
-      variance_function = function(y, level = "firm") abs(colSums(y)), 
-      reference_id = quote(id_list[[level]]),
-      reference_weight = quote(weight_list[[level]]),
+      variance_function = function(y, level) abs(colSums(y)), 
+      reference_id = quote(reference_id_list[[level]]),
+      reference_weight = quote(reference_weight_list[[level]]),
       default_id = "firm_id",
-      objects_to_include = c("id_list", "weight_list")
+      technical_param = list(level = "firm"),
+      objects_to_include = c("reference_id_list", "reference_weight_list")
     )
-    rm(id_list, weight_list)
+    rm(reference_id_list, reference_weight_list)
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = NA)
 })
@@ -73,7 +76,7 @@ test_that("variance_wrapper may use a reference_id and a reference_weights speci
 test_that("variance_wrapper may use a default id specified as an unevaluated expression", {
   expect_error({
     variance_wrapper <- define_variance_wrapper(
-      variance_function = function(y, level = "firm") abs(colSums(y)), 
+      variance_function = function(y) abs(colSums(y)), 
       reference_id = ict_survey$firm_id,
       reference_weight = ict_survey$w_calib,
       default_id = quote(paste0(firm_id, ""))
