@@ -191,11 +191,13 @@ add0 <- function(y, rownames, remove = TRUE){
 # Unexported (and undocumented) functions
 
 block_matrix <- function(y, by){
+  # TODO: remanufacture block_matrix (do not change y when length(levels(by)) == 1) and change output
   # y <- as(Matrix(TRUE, ncol = 10, nrow = length(rowby)), "TsparseMatrix"); by <- rowby; p <- 2
   # y <- x; by <- strata
   byrow <- by
   by <- as.factor(by)
   H <- length(levels(by))
+  if(H == 1) return(list(y = y, byrow = rep(levels(by), NROW(y)), bycol = rep(levels(by), NCOL(y))))
   p <- NCOL(y)
   if(!methods::is(y,"TsparseMatrix")) y <- methods::as(if(p == 1) as.matrix(y) else y, "TsparseMatrix")
   y@j <- as.integer(((as.numeric(by) - 1) * p)[y@i + 1] + y@j)
