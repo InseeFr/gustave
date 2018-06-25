@@ -241,8 +241,6 @@ define_simple_wrapper <- function(data, id,
       stop_("The weights after non-response correction (", arg$nrc_weight, ") should be numeric.")
     if(anyNA(nrc_weight[resp_dummy %in% TRUE]))
       stop_("The weights after non-response correction (", arg$nrc_weight, ") should not contain any missing (NA) values for responding units.")
-    reference_weight <- nrc_weight
-    reference_weight_name <- arg$nrc_weight
   }
   
   # calib_dummy
@@ -264,17 +262,14 @@ define_simple_wrapper <- function(data, id,
       stop_("The weights after calibration (", arg$calib_weight, ") should be numeric.")
     if(anyNA(calib_weight[calib_dummy %in% TRUE]))
       stop_("The weights after calibration (", arg$calib_weight, ") should not contain any missing (NA) values for units used in the calibration process.")
-    if(any((reference_weight != calib_weight)[resp_dummy %in% TRUE & calib_dummy %in% FALSE]))
-      stop_(
-        "For the responding units not used in the calibration process, the weights after calibration (", arg$calib_weight, ") should exactly match ", 
-        if(!is.null(nrc_weight)){
-          paste0("the weights after non-response correction (", arg$nrc_weight, ").")
-        }else{
-          paste0("the sampling weights (", arg$samp_weight, ").")
-        } 
-      )
-    reference_weight <- calib_weight
-    reference_weight_name <- arg$calib_weight
+    if(is.null(nrc_weight) && any((samp_weight != calib_weight)[calib_dummy %in% FALSE])) stop_(
+      "For the responding units not used in the calibration process, the weights after calibration (", 
+      arg$calib_weight, ") should exactly match the sampling weights (", arg$samp_weight, ")."
+    ) else if(!is.null(nrc_weight) && any((nrc_weight != calib_weight)[resp_dummy %in% TRUE & calib_dummy %in% FALSE])) stop_(
+      "For the responding units not used in the calibration process, the weights after calibration (", 
+      arg$calib_weight, ") should exactly match the weights after non-response correction (", arg$samp_weight, ")."
+      
+    )
   }
   
   # calib_var
@@ -329,10 +324,18 @@ define_simple_wrapper <- function(data, id,
     calib <- calib[c("id", "precalc")]
   }else calib <- NULL
   
+  # Reference id and reference weight
+  reference_id <- id[resp_dummy]
+  reference_weight <- if(!is.null(calib_weight)){
+    calib_weight[calib_dummy %in% TRUE]
+  }else if(!is.null(nrc_weight)){
+    nrc_weight[resp_dummy %in% TRUE]
+  }else samp_weight
+
   # Step 5: Define the variance wrapper ----
   simple_wrapper <- define_variance_wrapper(
     variance_function = var_simple,
-    reference_id = id[resp_dummy],
+    reference_id = reference_id,
     reference_weight = reference_weight,
     default_id = arg$id,
     technical_data = list(samp = samp, nrc = nrc, calib = calib)
