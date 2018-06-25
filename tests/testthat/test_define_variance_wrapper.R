@@ -5,11 +5,18 @@ context("define_variance_wrapper")
 test_that("common error messages do work", {
   expect_error(
     define_variance_wrapper(), 
-    regexp = "A variance estimation function"
+    regexp = "The following arguments are missing: variance_function, reference_id, reference_weight."
   )
   expect_error(
     define_variance_wrapper(variance_function = function(y) abs(colSums(y))),
-    regexp = "A reference id"
+    regexp = "The following arguments are missing: reference_id, reference_weight."
+  )
+  expect_error(
+    define_variance_wrapper(
+      variance_function = function(y) abs(colSums(y)),
+      reference_id = "firm_id"
+    ),
+    regexp = "The following arguments are missing: reference_weight."
   )
 })
 
