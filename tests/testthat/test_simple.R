@@ -423,6 +423,7 @@ test_that("methodological validation works as expected", {
   }, regexp = "The following strata contain units whose sampling weights")
 })
 
+
 test_that("everest works", {
   expect_error(
     everest(ict_sample, mean(turnover),

@@ -281,8 +281,11 @@ define_variance_wrapper <- function(variance_function,
     if(length(in_reference_id_not_in_id) > 0)
       warning("Some observations from the survey appear to be missing. The variance estimation function may produce unexpected results.", immediate. = TRUE, call. = FALSE)
     in_id_not_in_reference_id <- setdiff(id, reference_id)
-    if(length(in_id_not_in_reference_id) > 0)
-      stop("Some observations do not belong to the survey.", call. = FALSE)
+    if(length(in_id_not_in_reference_id) > 0){
+      warning(length(in_id_not_in_reference_id), " observations do not match any responding units of the survey. They are discarded.", immediate. = TRUE, call. = FALSE)
+      data <- data[id %in% reference_id, ]
+      id <- id[id %in% reference_id]
+    }
     reference_weight <- eval(reference_weight)
     
     # Step 3: Linearization

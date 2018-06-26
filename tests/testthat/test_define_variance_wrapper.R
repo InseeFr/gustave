@@ -99,6 +99,19 @@ test_that("variance_wrapper may use a default id specified as an unevaluated exp
 })
 
 
+test_that("a variance wrapper may be applied on the sample file raising a warning", {
+  expect_warning({
+    variance_wrapper <- define_simple_wrapper(
+      data = ict_sample, id = "firm_id",
+      samp_weight = "w_sample", strata = "division",
+      nrc_weight = "w_nrc", resp_dummy = "resp",
+      calib_weight = "w_calib", calib_var =  c("N_58", "N_59")
+    )
+    variance_wrapper(ict_sample, turnover)
+  }, regexp = "observations do not match any responding units of the survey.")
+})
+
+
 test_that("variance_wrapper works in common situations", {
   expect_error(variance_wrapper(ict_survey, speed_quanti), regexp = NA)
   expect_error(variance_wrapper(ict_survey, speed_quanti_NA), regexp = NA)

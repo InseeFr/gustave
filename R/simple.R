@@ -379,10 +379,10 @@ define_simple_wrapper <- function(data, id,
       tapply(samp_weight, strata, base::mean)[as.character(strata[!samp_exclude])]
   }
 
-  # stopifnot: All respondents do belong to the scope
-  # warning: strata with less than 2 units (exclude the strata
-  # from all variance estimation)
   
+  
+  # stopifnot: All respondents do belong to the scope
+
   # TODO: test on real data
   
   
