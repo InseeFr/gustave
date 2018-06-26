@@ -268,19 +268,18 @@ define_variance_wrapper <- function(variance_function,
     evaluation_envir <- envir
     execution_envir <- environment()
     call <- match.call(expand.dots = TRUE)
-    substitute_data <- substitute(data)
-    eval_data <- eval(substitute_data, evaluation_envir)
-    
+    data <- eval(data, envir = evaluation_envir)
+
     # Step 2: Controls
     reference_id <- eval(reference_id)
     id <- tryCatch(
       eval(substitute(id), envir = execution_envir), 
       error = function(e) substitute(id, execution_envir)
     )
-    id <- if(is.character(id)) eval_data[, id] else eval(id, eval_data)
+    id <- if(is.character(id)) data[, id] else eval(id, data)
     in_reference_id_not_in_id <- setdiff(reference_id, id)
     if(length(in_reference_id_not_in_id) > 0)
-      warning("Some observations from the survey appear to be missing. The variance estimation function may produce unexpected results.", call. = FALSE)
+      warning("Some observations from the survey appear to be missing. The variance estimation function may produce unexpected results.", immediate. = TRUE, call. = FALSE)
     in_id_not_in_reference_id <- setdiff(id, reference_id)
     if(length(in_id_not_in_reference_id) > 0)
       stop("Some observations do not belong to the survey.", call. = FALSE)
@@ -305,7 +304,7 @@ define_variance_wrapper <- function(variance_function,
       
       # Add technical arguments
       call <- c(call, list(
-        data = substitute_data, weight = quote(reference_weight), 
+        data = quote(data), weight = quote(reference_weight), 
         label = linearization_wrapper_label[i], 
         evaluation_envir = evaluation_envir, execution_envir = execution_envir
       ))

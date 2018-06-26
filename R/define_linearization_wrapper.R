@@ -205,7 +205,7 @@ standard_preparation <- function(...,
   allow_factor <- length(arg_type$data) == 1
   
   # Step 1 : Evaluation
-  eval_data <- eval(data, evaluation_envir)
+  eval_data <- eval(substitute(data), execution_envir)
   expr <- eval(substitute(alist(...)))
   d <- list(list(
     data = lapply(expr[names(expr) %in% arg_type$data], eval, envir = eval_data, enclos = evaluation_envir)
