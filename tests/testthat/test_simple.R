@@ -4,6 +4,7 @@ context("simple")
 technical_data_ict <- list(
   samp = list(
     id = ict_sample$firm_id,
+    exclude = rep(FALSE, NROW(ict_sample)),
     precalc = var_srs(y = NULL, pik = 1 / ict_sample$w_sample, strata = ict_sample$division)
   ),
   nrc = list(
@@ -398,12 +399,23 @@ test_that("argument value controls work as expected", {
 })
 
 test_that("methodological validation works as expected", {
-  expect_warning(
-    define_simple_wrapper(
-      data = ict_sample, id = "firm_id", samp_weight = "w_sample"
+  expect_warning({
+    ict_sample$division[1:26] <- letters
+    variance_wrapper <- define_simple_wrapper(
+      data = ict_sample, id = "firm_id",
+      samp_weight = "w_sample", strata = "division",
+      nrc_weight = "w_nrc", resp_dummy = "resp",
+      calib_weight = "w_calib", calib_var =  c("N_58", "N_59")
     )
-    , regexp = "The following strata contain units whose sampling weights are not exactly equals: 1. The mean weight per stratum is used instead."
-  )
+    rm(ict_sample)
+    variance_wrapper(ict_survey, speed_quanti)
+  }, regexp = "The following strata contain less than two sampled units.")
+  # expect_warning(
+  #   define_simple_wrapper(
+  #     data = ict_sample, id = "firm_id", samp_weight = "w_sample"
+  #   )
+  #   , regexp = "The following strata contain units whose sampling weights are not exactly equals: 1. The mean weight per stratum is used instead."
+  # )
 })
 
 test_that("everest works", {

@@ -253,7 +253,7 @@ define_simple_wrapper <- function(data, id,
   reference_weight_name <- arg$samp_weight
 
   # strata
-  if(is.null(strata)) strata <- setNames(factor(rep("1", length(id))), id)
+  if(is.null(strata)) strata <- stats::setNames(factor(rep("1", length(id))), id)
   if(!is.null(strata)){
     if(is.character(strata)){
       message("Note: The strata variable (", arg$strata, ") is of type character. It is automatically coerced to factor.\n")
@@ -349,19 +349,34 @@ define_simple_wrapper <- function(data, id,
   
   # Step 4: Define methodological quantities ----
   
+  samp_exclude <- stats::setNames(rep(FALSE, length(id)), id)
+  
   # TODO: Add methodological tests
   
-  # Enforce equal probabilities in each stratum
-  strata_with_unequal_samp_weight <- tapply(samp_weight, strata, stats::sd) > 1e-6
-  if(sum(strata_with_unequal_samp_weight) > 0){
-    # TODO: Enhance warning message when strata = NULL
+  # Exclude strata with only one sampled unit
+  strata_with_one_sampled_unit <- names(which(tapply(id, strata, length) == 1))
+  if(length(strata_with_one_sampled_unit) > 0){
     warn_(
-      "The following strata contain units whose sampling weights are not exactly equals: ",
-      paste(names(strata_with_unequal_samp_weight)[strata_with_unequal_samp_weight], collapse = ", "),
-      ". The mean weight per stratum is used instead."
+      "The following strata contain less than two sampled units: ",
+      display_only_n_first(strata_with_one_sampled_unit), ". ",
+      "They are excluded from the variance estimation process (but kept for point estimates)."
     )
-    samp_weight <- statas::setNames(tapply(samp_weight, strata, base::mean)[as.character(strata)], id)
+    samp_exclude <- samp_exclude | as.character(strata) %in% strata_with_one_sampled_unit
   }
+  
+  
+  
+  # Enforce equal probabilities in each stratum
+  # strata_with_unequal_samp_weight <- tapply(samp_weight, strata, stats::sd) > 1e-6
+  # if(sum(strata_with_unequal_samp_weight) > 0){
+  #   # TODO: Enhance warning message when strata = NULL
+  #   warn_(
+  #     "The following strata contain units whose sampling weights are not exactly equals: ",
+  #     paste(names(strata_with_unequal_samp_weight)[strata_with_unequal_samp_weight], collapse = ", "),
+  #     ". The mean weight per stratum is used instead."
+  #   )
+  #   samp_weight <- stats::setNames(tapply(samp_weight, strata, base::mean)[as.character(strata)], id)
+  # }
   
   # stopifnot: All respondents do belong to the scope
   # warning: strata with less than 2 units (exclude the strata
@@ -374,11 +389,12 @@ define_simple_wrapper <- function(data, id,
   # Sampling
   samp <- list()
   samp$id <- id
+  samp$exclude <- samp_exclude[samp$id]
   samp$weight <- samp_weight[samp$id]
   samp$strata <- strata[samp$id]
-  samp$precalc <- var_srs(y = NULL, pik = 1 / samp$weight, strata = samp$strata)
-  samp <- samp[c("id", "precalc")]
-  
+  samp$precalc <- with(samp, var_srs(y = NULL, pik = 1 / weight[!exclude], strata = strata[!exclude]))
+  samp <- samp[c("id", "exclude", "precalc")]
+
   # Non-reponse
   if(!is.null(nrc_weight)){
     nrc <- list()
@@ -453,7 +469,7 @@ var_simple <- function(y, samp, nrc, calib){
 
   # Sampling
   y <- add0(y, rownames = samp$id)
-  var[["sampling"]] <- var_srs(y = y, precalc = samp$precalc)
+  var[["sampling"]] <- var_srs(y = y[!samp$exclude, , drop = FALSE], precalc = samp$precalc)
 
   # Final summation
   Reduce(`+`, var)
@@ -469,3 +485,16 @@ variable_not_in_data <- function(var, data){
   if(length(tmp) == 0) return(NULL)
   tmp
 } 
+
+display_only_n_first <- function(x, 
+                                 n = 10, 
+                                 collapse = ", ", 
+                                 text = paste0(" and ", length(x) - n, " more")
+){
+  if(length(x) <= n){
+    paste(x, collapse = collapse)
+  }else{
+    paste0(paste(x[1:n], collapse = collapse), text)
+  }
+}
+  
