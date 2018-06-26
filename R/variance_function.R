@@ -327,6 +327,8 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity
 
     # Stratification
     if(!is.null(strata)){
+      if(any(tapply(strata, strata, length) == 1, na.rm = TRUE))
+        stop("Some strata contain less than 2 samples units.")
       t <- block_matrix(x, strata)
       x <- t$y
       bycol <- t$bycol
@@ -373,7 +375,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity
 #' @rdname varDT
 #' @export
 var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
-  if(is.null(precalc) && any(tapply(pik, strata, stats::sd) > 1e-6))
+  if(is.null(precalc) && !is.null(strata) && any(tapply(pik, strata, stats::sd) > 1e-6, na.rm = TRUE))
     stop("First-order inclusion probabilities are not equal (within strata if any).")
   varDT(
     y = y, pik = pik, x = NULL, strata = strata, w = w, 
