@@ -354,7 +354,8 @@ define_simple_wrapper <- function(data, id,
   # TODO: Add methodological tests
   
   # Exclude strata with only one sampled unit
-  strata_with_one_sampled_unit <- names(which(tapply(id, strata, length) == 1))
+  strata_with_one_sampled_unit <- 
+    names(which(tapply(id[!samp_exclude], strata[!samp_exclude], length) == 1))
   if(length(strata_with_one_sampled_unit) > 0){
     warn_(
       "The following strata contain less than two sampled units: ",
@@ -364,20 +365,20 @@ define_simple_wrapper <- function(data, id,
     samp_exclude <- samp_exclude | as.character(strata) %in% strata_with_one_sampled_unit
   }
   
-  
-  
   # Enforce equal probabilities in each stratum
-  # strata_with_unequal_samp_weight <- tapply(samp_weight, strata, stats::sd) > 1e-6
-  # if(sum(strata_with_unequal_samp_weight) > 0){
-  #   # TODO: Enhance warning message when strata = NULL
-  #   warn_(
-  #     "The following strata contain units whose sampling weights are not exactly equals: ",
-  #     paste(names(strata_with_unequal_samp_weight)[strata_with_unequal_samp_weight], collapse = ", "),
-  #     ". The mean weight per stratum is used instead."
-  #   )
-  #   samp_weight <- stats::setNames(tapply(samp_weight, strata, base::mean)[as.character(strata)], id)
-  # }
-  
+  strata_with_unequal_samp_weight <- 
+    names(which(tapply(samp_weight[!samp_exclude], strata[!samp_exclude], stats::sd) > 1e-6))
+  if(length(strata_with_unequal_samp_weight) > 0){
+    # TODO: Enhance warning message when strata = NULL
+    warn_(
+      "The following strata contain units whose sampling weights are not exactly equal: ",
+      display_only_n_first(strata_with_unequal_samp_weight), ". ",
+      "The mean weight per stratum is used instead."
+    )
+    samp_weight[!samp_exclude] <- 
+      tapply(samp_weight, strata, base::mean)[as.character(strata[!samp_exclude])]
+  }
+
   # stopifnot: All respondents do belong to the scope
   # warning: strata with less than 2 units (exclude the strata
   # from all variance estimation)

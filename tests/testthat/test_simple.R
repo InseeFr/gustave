@@ -410,12 +410,17 @@ test_that("methodological validation works as expected", {
     rm(ict_sample)
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = "The following strata contain less than two sampled units.")
-  # expect_warning(
-  #   define_simple_wrapper(
-  #     data = ict_sample, id = "firm_id", samp_weight = "w_sample"
-  #   )
-  #   , regexp = "The following strata contain units whose sampling weights are not exactly equals: 1. The mean weight per stratum is used instead."
-  # )
+  expect_warning({
+    ict_sample$w_sample[1] <- ict_sample$w_sample[1] / 2
+    variance_wrapper <- define_simple_wrapper(
+      data = ict_sample, id = "firm_id",
+      samp_weight = "w_sample", strata = "division",
+      nrc_weight = "w_nrc", resp_dummy = "resp",
+      calib_weight = "w_calib", calib_var =  c("N_58", "N_59")
+    )
+    rm(ict_sample)
+    variance_wrapper(ict_survey, speed_quanti)
+  }, regexp = "The following strata contain units whose sampling weights")
 })
 
 test_that("everest works", {
