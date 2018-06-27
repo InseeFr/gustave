@@ -254,7 +254,7 @@ test_that("argument value controls work as expected", {
       scope_dummy = "division"
     )
   }, regexp = "should be of type logical or numeric.")
-  ict_sample$scope <- c(FALSE, rep(TRUE, NROW(ict_sample) - 1))
+  ict_sample$scope <- rep(TRUE, NROW(ict_sample))
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
@@ -408,6 +408,16 @@ test_that("argument value controls work as expected", {
 })
 
 test_that("methodological validation works as expected", {
+  expect_error({
+    ict_sample$scope <- rep(TRUE, NROW(ict_sample))
+    ict_sample$scope[match(TRUE, ict_sample$resp)] <- FALSE
+    variance_wrapper <- define_simple_wrapper(
+      data = ict_sample, id = "firm_id", scope = "scope",
+      samp_weight = "w_sample", strata = "division",
+      nrc_weight = "w_nrc", resp_dummy = "resp"
+    )
+    rm(ict_sample)
+  }, regexp = "The following units are classified both")
   expect_warning({
     ict_sample$division[1:26] <- letters
     variance_wrapper <- define_simple_wrapper(
@@ -432,7 +442,7 @@ test_that("methodological validation works as expected", {
   }, regexp = "The following strata contain units whose sampling weights")
 })
 
-# TODO: add tests with out-of-scope units
+# TODO: add more tests with out-of-scope units
 
 
 test_that("everest works", {

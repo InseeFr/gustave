@@ -109,7 +109,6 @@ everest <- function(data, ..., by = NULL, where = NULL, id = NULL,
     define_simple_wrapper, 
     call[names(call) %in% names(formals(define_simple_wrapper))]
   )
-  # TODO: Add the possibility to omit id if define = FALSE
   if(define) everest_wrapper else{
     everest_data <- data[data[, id] %in% environment(everest_wrapper)$reference_id, ]  
     call$data <- substitute(everest_data)
@@ -132,6 +131,9 @@ define_simple_wrapper <- function(data, id,
                                   calib_weight = NULL, calib_dummy = NULL, calib_var = NULL,
                                   force = FALSE
 ){
+  
+  # TODO: Use more consistent functions to display msg, warn and errors
+  # in the whole package
   
   # Step 0: Define how stop_ are handled depending on the force parameter ----
   if(!is.logical(force) || length(force) != 1)
@@ -266,7 +268,7 @@ define_simple_wrapper <- function(data, id,
   }
   
   # scope_dummy
-  if(!is.null(scope_dummy)){
+  if(is.null(scope_dummy)) scope_dummy <- rep(TRUE, length(id)) else{
     if(is.numeric(scope_dummy)){
       message("Note: The scope dummy variable (", arg$scope_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
       scope_dummy <- as.logical(scope_dummy)
@@ -278,8 +280,7 @@ define_simple_wrapper <- function(data, id,
   }
   
   # resp_dummy
-  if(is.null(resp_dummy)) resp_dummy <- rep(TRUE, length(id))
-  if(!is.null(resp_dummy)){
+  if(is.null(resp_dummy)) resp_dummy <- scope_dummy else{
     if(is.numeric(resp_dummy)){
       message("Note: The response dummy variable (", arg$resp_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
       resp_dummy <- as.logical(resp_dummy)
@@ -334,24 +335,32 @@ define_simple_wrapper <- function(data, id,
     calib_var_pb_type <- setdiff(arg$calib_var, c(calib_var_quanti, calib_var_quali))
     if(length(calib_var_pb_type) > 0) stop_(
       "The following calibration variables are neither quantitative (numeric, logical) nor qualitative (factor, character): ",
-      paste(calib_var_pb_type, collapse = " ")
+      display_only_n_first(calib_var_pb_type), "."
     )
     if(length(calib_var_quali) > 0) message(
       "Note: The following calibration variables are qualitative (factor, character): ",
-      paste(calib_var_quali, collapse = " "), ". They will be automatically discretized."
+      display_only_n_first(calib_var_quali), ". They will be automatically discretized."
     )
     calib_var_pb_NA <- names(which(sapply(calib_var, function(var) anyNA(var[calib_dummy %in% TRUE]))))
     if(length(calib_var_pb_NA) > 0) stop_(
       "The following calibration variables contain missing (NA) values for units used in the calibration process: ",
-      paste(calib_var_pb_NA, collapse = " ")
+      display_only_n_first(calib_var_pb_NA, collapse = " "), "."
     )
   }
   
   # Step 4: Define methodological quantities ----
   
   samp_exclude <- stats::setNames(rep(FALSE, length(id)), id)
+
+  # Logical controls
+  out_of_scope_but_responding <- id[!scope_dummy & resp_dummy]
+  if(length(out_of_scope_but_responding) > 0) stop_(
+    "The following units are classified both as out-of-scope units (", arg$scope_dummy, " variable) ", 
+    "and as responding units (", arg$resp_dummy, " variable): ",
+    display_only_n_first(out_of_scope_but_responding), "."
+  )
+
   
-  # TODO: Add methodological tests
   
   # Exclude strata with only one sampled unit
   strata_with_one_sampled_unit <- 
@@ -379,11 +388,7 @@ define_simple_wrapper <- function(data, id,
       tapply(samp_weight, strata, base::mean)[as.character(strata[!samp_exclude])]
   }
 
-  
-  
-  # stopifnot: All respondents do belong to the scope
 
-  # TODO: test on real data
   
   
   
@@ -452,7 +457,6 @@ define_simple_wrapper <- function(data, id,
 
 
 # Unexported (and undocumented) functions
-# TODO: use precalculated data in var_simple
 var_simple <- function(y, samp, nrc, calib){
   
   var <- list()
