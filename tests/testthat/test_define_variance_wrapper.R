@@ -32,6 +32,16 @@ test_that("variance_wrapper can be defined in globalenv()", {
   }, regexp = NA)
 })
 
+test_that("common error messages do work", {
+  skip("More thoughts about the id variable not being set")
+  variance_wrapper <- define_variance_wrapper(
+    variance_function = function(y) abs(colSums(y)), 
+    reference_id = ict_survey$firm_id,
+    reference_weight = ict_survey$w_calib,
+    default_id = "firm_id"
+  )    
+  expect_error(variance_wrapper(), regexp = "The following arguments are missing: data.")
+})
 
 # TODO: add controls about technical_data and tchnical_param
 
