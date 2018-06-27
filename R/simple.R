@@ -410,8 +410,11 @@ define_simple_wrapper <- function(data, id,
     calib$id <- id[resp_dummy & calib_dummy]
     calib$weight <- calib_weight[calib$id]
     calib$var <- calib_var[calib$id, , drop = FALSE]
+    calib$var[calib_var_quanti] <- 
+      lapply(calib$var[calib_var_quanti], Matrix)
     calib$var[calib_var_quali] <- 
       lapply(calib$var[calib_var_quali], discretize_qualitative_var)
+    # TODO: Handle the node stack overflow limitation
     calib$var <- do.call(cbind, calib$var)
     calib$precalc <- rescal(y = NULL, x = calib$var, w = calib$weight)
     calib <- calib[c("id", "precalc")]
