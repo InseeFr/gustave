@@ -409,7 +409,7 @@ define_simple_wrapper <- function(data, id,
     calib <- list()
     calib$id <- id[calib_dummy]
     calib$weight <- calib_weight[calib$id]
-    calib$var <- calib_var[calib$id, ]
+    calib$var <- calib_var[calib$id, , drop = FALSE]
     calib$var[calib_var_quali] <- 
       lapply(calib$var[calib_var_quali], discretize_qualitative_var)
     calib$var <- do.call(cbind, calib$var)
@@ -500,5 +500,5 @@ display_only_n_first <- function(x,
   
 discretize_qualitative_var <- function(var, sparse = TRUE){
   workhorse <- if(sparse) Matrix::sparse.model.matrix else stats::model.matrix
-  workhorse(~ var - 1)
+  workhorse(~ droplevels(as.factor(var)) - 1)
 }
