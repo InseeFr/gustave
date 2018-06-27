@@ -407,7 +407,7 @@ define_simple_wrapper <- function(data, id,
   # Calibration
   if(!is.null(calib_weight)){
     calib <- list()
-    calib$id <- id[calib_dummy]
+    calib$id <- id[resp_dummy & calib_dummy]
     calib$weight <- calib_weight[calib$id]
     calib$var <- calib_var[calib$id, , drop = FALSE]
     calib$var[calib_var_quali] <- 
@@ -420,7 +420,7 @@ define_simple_wrapper <- function(data, id,
   # Reference id and reference weight
   reference_id <- id[resp_dummy]
   reference_weight <- if(!is.null(calib_weight)){
-    calib_weight[calib_dummy %in% TRUE]
+    calib_weight[resp_dummy %in% TRUE]
   }else if(!is.null(nrc_weight)){
     nrc_weight[resp_dummy %in% TRUE]
   }else samp_weight

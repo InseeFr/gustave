@@ -396,12 +396,13 @@ test_that("argument value controls work as expected", {
   }, regexp = "contain missing \\(NA\\) values for units used in the calibration process:")
   rm(ict_sample)
   expect_error({
-    define_simple_wrapper(
+    variance_wrapper <- define_simple_wrapper(
       data = ict_sample, id = "firm_id",
       samp_weight = "w_sample", strata = "division",
       nrc_weight = "w_nrc", resp_dummy = "resp",
       calib_weight = "w_calib", calib_var =  "division"
     )
+    variance_wrapper(ict_survey, turnover)
   }, regexp = NA)
 
 })
@@ -430,6 +431,8 @@ test_that("methodological validation works as expected", {
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = "The following strata contain units whose sampling weights")
 })
+
+# TODO: add tests with out-of-scope units
 
 
 test_that("everest works", {
