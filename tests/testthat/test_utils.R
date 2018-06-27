@@ -104,3 +104,16 @@ test_that("assign_all() works", {
   )
   expect_equal(ls(environment(e$clos)), "b")
 })
+
+# discretize_qualitative_var
+
+test_that("discretize_qualitative_var works as expected", {
+  expect_identical(
+    unname(as.matrix(discretize_qualitative_var(ict_sample$division))),
+    {
+      tmp <-  discretize_qualitative_var(ict_sample$division, sparse = FALSE)
+      attributes(tmp) <- attributes(tmp)["dim"]
+      tmp
+    }
+  )
+})

@@ -1,3 +1,15 @@
+# TODO: Remanufacture heavily define_linearization_wrapper
+# introduce a new non_standard_evaluation = TRUE parameter
+# and change the evaluation process depending on it. 
+# Using this parameter, create the escape hatch for common 
+# linearization wrappers, e.g. mean_() for mean(), in which the 
+# names of the variables in the data.frame is expected. 
+# In such escape hatch, a vector of variable names may be used
+# to bulk process variance estimations. 
+# By the way, get rid of the standard_preparation() function and
+# fix the "n" problem of discretized qualitative variables
+# (currently the displayed "n" is the number of non NA observations
+# for all levels of the variable, not the one being estimated).
 
 #' Define a linearization wrapper
 

@@ -410,9 +410,8 @@ define_simple_wrapper <- function(data, id,
     calib$id <- id[calib_dummy]
     calib$weight <- calib_weight[calib$id]
     calib$var <- calib_var[calib$id, ]
-    calib$var[calib_var_quali] <- lapply(calib_var_quali, function(var){
-      Matrix::sparse.model.matrix(~ . -1, data = stats::model.frame(~ ., data = calib$var[var]))
-    })
+    calib$var[calib_var_quali] <- 
+      lapply(calib$var[calib_var_quali], discretize_qualitative_var)
     calib$var <- do.call(cbind, calib$var)
     calib$precalc <- rescal(y = NULL, x = calib$var, w = calib$weight)
     calib <- calib[c("id", "precalc")]
@@ -499,3 +498,7 @@ display_only_n_first <- function(x,
   }
 }
   
+discretize_qualitative_var <- function(var, sparse = TRUE){
+  workhorse <- if(sparse) Matrix::sparse.model.matrix else stats::model.matrix
+  workhorse(~ var - 1)
+}
