@@ -18,9 +18,9 @@ of interest (see below), it should return a vector of estimated variances
 of the survey. It can also be an unevaluated expression (enclosed in 
 \code{quote()}) to be evaluated within the execution environment of the wrapper.
 It is compared with \code{default$id} (see below) to check whether 
-some observations  are missing in the survey file. The matrix of variables 
-of interest is reordered according to \code{reference_id} before being processed
-by \code{variance_function}.}
+some observations are missing in the survey file. The matrix of variables 
+of interest has \code{reference_id} as rownames and is ordered according
+to its values before being processed by \code{variance_function}.}
 
 \item{reference_weight}{A vector containing the reference weight of the survey. 
 It can also be an unevaluated expression (enclosed in \code{quote()}) to 

@@ -14,12 +14,12 @@
 #'   of the survey. It can also be an unevaluated expression (enclosed in 
 #'   \code{quote()}) to be evaluated within the execution environment of the wrapper.
 #'   It is compared with \code{default$id} (see below) to check whether 
-#'   some observations  are missing in the survey file. The matrix of variables 
-#'   of interest is reordered according to \code{reference_id} before being processed
-#'   by \code{variance_function}.
+#'   some observations are missing in the survey file. The matrix of variables 
+#'   of interest has \code{reference_id} as rownames and is ordered according
+#'   to its values before being processed by \code{variance_function}.
 #' @param reference_weight A vector containing the reference weight of the survey. 
 #'   It can also be an unevaluated expression (enclosed in \code{quote()}) to 
-#'   be evaluated within the execution environment of the wrapper.
+#'   be evaluated within the execution environment of the wrapper. 
 #' @param default_id A character vector of length 1, the name of the default 
 #'   identifying variable in the survey file. It can also be an unevaluated 
 #'   expression (enclosed in \code{quote()}) to be evaluated within the survey file.
@@ -231,7 +231,7 @@ define_variance_wrapper <- function(variance_function,
     paste(names(which(is_missing)), collapse = ", "), ".", 
     call. = FALSE
   )
-
+  
   # Determine argument type
   names_formals_variance_function <- names(formals(variance_function))
   names_technical_data <- names_else_NA(technical_data)
@@ -273,7 +273,7 @@ define_variance_wrapper <- function(variance_function,
     # Step 2: Controls
     reference_id <- eval(reference_id)
     id <- tryCatch(
-      eval(substitute(id), envir = execution_envir), 
+      eval(substitute(id), envir = execution_envir),
       error = function(e) substitute(id, execution_envir)
     )
     id <- if(is.character(id)) data[, id] else eval(id, data)
@@ -286,9 +286,18 @@ define_variance_wrapper <- function(variance_function,
       data <- data[id %in% reference_id, ]
       id <- id[id %in% reference_id]
     }
+    if(!identical(match_id <- match(reference_id, id), seq_along(reference_id))){
+      warning(
+        "The inputted id variable (id argument) appears not to match the reference ",
+        "id variable provided when the variance wrapper was defined: it is reordered ",
+        "and everything should be fine. Issues may nonetheless arise if part of the call ", 
+        "is to be evaluated outside of the inputted data.frame (data argument).", 
+        immediate. = TRUE, call. = FALSE
+      )
+      data <- data[match_id, ]  
+    }
     reference_weight <- eval(reference_weight)
-    # TODO: Test the sorting
-    
+
     # Step 3: Handling domains, qualitative variables and linearization
     linearization_wrapper_list <- eval(substitute(alist(...)))
     linearization_wrapper_label <- names_else_NA(linearization_wrapper_list)

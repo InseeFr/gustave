@@ -22,12 +22,12 @@ test_that("common error messages do work", {
 
 test_that("variance_wrapper can be defined in globalenv()", {
   expect_error({
-    variance_wrapper <<- define_variance_wrapper(
+    variance_wrapper <- define_variance_wrapper(
       variance_function = function(y) abs(colSums(y)), 
       reference_id = ict_survey$firm_id,
       reference_weight = ict_survey$w_calib,
       default_id = "firm_id"
-    )    
+    )
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = NA)
 })
@@ -60,6 +60,12 @@ test_that("variance_wrapper can be defined in another function", {
     variance_wrapper2 <- preparation_function()
     variance_wrapper2(ict_survey, speed_quanti)
   }, regexp = NA)
+  variance_wrapper <- define_variance_wrapper(
+    variance_function = function(y) abs(colSums(y)), 
+    reference_id = ict_survey$firm_id,
+    reference_weight = ict_survey$w_calib,
+    default_id = "firm_id"
+  )
   expect_equal(
     variance_wrapper(ict_survey, speed_quanti)$variance + 1,
     variance_wrapper2(ict_survey, speed_quanti)$variance
@@ -111,18 +117,59 @@ test_that("variance_wrapper may use a default id specified as an unevaluated exp
 
 test_that("a variance wrapper may be applied on the sample file raising a warning", {
   expect_warning({
-    variance_wrapper <- define_simple_wrapper(
-      data = ict_sample, id = "firm_id",
-      samp_weight = "w_sample", strata = "division",
-      nrc_weight = "w_nrc", resp_dummy = "resp",
-      calib_weight = "w_calib", calib_var =  c("N_58", "N_59")
+    variance_wrapper <- define_variance_wrapper(
+      variance_function = function(y) abs(colSums(y)), 
+      reference_id = ict_survey$firm_id,
+      reference_weight = ict_survey$w_calib,
+      default_id = "firm_id"
     )
     variance_wrapper(ict_sample, turnover)
   }, regexp = "observations do not match any responding units of the survey.")
 })
 
 
+test_that("variance estimation is not affected by the sorting of the survey file", {
+  variance_wrapper <- define_variance_wrapper(
+    variance_function = function(y) abs(colSums(y)), 
+    reference_id = ict_survey$firm_id,
+    reference_weight = ict_survey$w_calib,
+    default_id = "firm_id"
+  )
+  expect_warning(
+    variance_wrapper(ict_survey[NROW(ict_survey):1, ], turnover),
+    regexp = "The inputted id variable \\(id argument\\) appears not to match"
+  )
+  expect_identical(
+    variance_wrapper(ict_survey, turnover),
+    suppressWarnings(variance_wrapper(ict_survey[NROW(ict_survey):1, ], turnover))
+  )
+})
+
+test_that("NULL is handled correctly", {
+  variance_wrapper <- define_variance_wrapper(
+    variance_function = function(y) abs(colSums(y)), 
+    reference_id = ict_survey$firm_id,
+    reference_weight = ict_survey$w_calib,
+    default_id = "firm_id"
+  )
+  expect_error({
+    sapply(2016:2017, function(annee){
+      variance_wrapper(ict_survey, if(annee == 2016) turnover else NULL)
+    })
+  }, 
+  regexp = "No variable to estimate variance on."
+  )
+})
+
+
+
 test_that("variance_wrapper works in common situations", {
+  variance_wrapper <- define_variance_wrapper(
+    variance_function = function(y) abs(colSums(y)), 
+    reference_id = ict_survey$firm_id,
+    reference_weight = ict_survey$w_calib,
+    default_id = "firm_id"
+  )
   expect_error(variance_wrapper(ict_survey, speed_quanti), regexp = NA)
   expect_error(variance_wrapper(ict_survey, speed_quanti_NA), regexp = NA)
   expect_error(variance_wrapper(ict_survey, speed_quali), regexp = NA)
@@ -136,11 +183,23 @@ test_that("variance_wrapper works in common situations", {
 
 
 test_that("expected error messages do appear", {
+  variance_wrapper <- define_variance_wrapper(
+    variance_function = function(y) abs(colSums(y)), 
+    reference_id = ict_survey$firm_id,
+    reference_weight = ict_survey$w_calib,
+    default_id = "firm_id"
+  )
   expect_error(variance_wrapper(ict_survey), "No variable to estimate variance on.")
 })
 
 
 test_that("point estimates do match by-hand estimators", {
+  variance_wrapper <- define_variance_wrapper(
+    variance_function = function(y) abs(colSums(y)), 
+    reference_id = ict_survey$firm_id,
+    reference_weight = ict_survey$w_calib,
+    default_id = "firm_id"
+  )
   expect_equal(
     variance_wrapper(ict_survey, total(speed_quanti_NA))$est,
     sum(ict_survey$speed_quanti_NA * ict_survey$w_calib, na.rm = TRUE)
@@ -162,6 +221,12 @@ test_that("point estimates do match by-hand estimators", {
 })
 
 test_that("estimated values do match reference values", {
+  variance_wrapper <- define_variance_wrapper(
+    variance_function = function(y) abs(colSums(y)), 
+    reference_id = ict_survey$firm_id,
+    reference_weight = ict_survey$w_calib,
+    default_id = "firm_id"
+  )
   expect_equal(variance_wrapper(ict_survey, speed_quanti_NA)$est, 178409.7, tolerance = 1e-0)
   expect_equal(variance_wrapper(ict_survey, speed_quanti_NA)$variance, 15817, tolerance = 1e-0)
   expect_equal(variance_wrapper(ict_survey, speed_quali_NA)$est, c(154, 1748, 2163, 734, 640), tolerance = 1e0)
