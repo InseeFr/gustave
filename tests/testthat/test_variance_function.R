@@ -20,3 +20,20 @@ test_that("varSYG works", {
   expect_error(varSYG(y = y, precalc = precalcSYG), regexp = NA)
   expect_equal(varSYG(y, pikl = pikl), varSYG(y = y, precalc = precalcSYG))
 })
+
+
+# More detailed tests about varDT()
+test_that("colinearity detection works", {
+  pik <- 1 / ict_sample$w_sample
+  strata <- ict_sample$division
+  y <- ict_sample$turnover
+  expect_warning(
+    varDT(y = NULL, pik = pik, x = matrix(rep(pik, 2), ncol = 2), strata = strata),
+    regexp = "Some variables in x where discarded due to collinearity."
+  )
+  skip("Not currently functionning")
+  expect_equal(
+    varDT(y = NULL, pik = pik, x = matrix(rep(pik, 2), ncol = 2), strata = strata),
+    varDT(y = NULL, pik = pik, x = pik, strata = strata)
+  )
+})

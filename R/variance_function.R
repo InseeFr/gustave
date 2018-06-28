@@ -314,8 +314,9 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 
 varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity.check = NULL, precalc = NULL){
   
-  # x <- NULL; w <- NULL; collinearity.check = NULL; precalc = NULL
-
+  # pik = 1 / ict_sample$w_sample; strata = ict_sample$division; x <- matrix(c(pik, pik), ncol = 2); w <- NULL; collinearity.check = NULL; precalc = NULL
+  # y = NULL; x <- matrix(rep(pik, 2), ncol = 2); w <- NULL; precalc = NULL
+  
   if(is.null(precalc)){
 
     if(any(pik <= 0 | pik > 1)) stop("All pik must be in ]0;1]")
@@ -328,6 +329,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity
 
     # Stratification
     if(!is.null(strata)){
+      strata <- droplevels(as.factor(strata))
       if(any(tapply(strata, strata, length) == 1, na.rm = TRUE))
         stop("Some strata contain less than 2 samples units.")
       t <- block_matrix(x, strata)
@@ -339,21 +341,20 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity
       bycol <- rep(1, p)
       n <- length(pik)
     }
-
-    # Checking for collinearity
-    if(isTRUE(collinearity.check) || (is.null(collinearity.check) && Matrix::det(t(x) %*% x) == 0)){
-      t <- as.vector(is.na(stats::lm(rep(1, NROW(x)) ~ . - 1, data = as.data.frame(as.matrix(x)))$coef))
-      t2 <- sumby(!t, bycol)
-      x <- x[, !t]
-      if(any(t)) warning("Some variables in x where discarted due to collinearity.")
-      p <- as.vector(t2[match(strata, names(t2))])
-    }
-
-    # A, ck and inv terms
+    
+    # Determine A, ck and inv terms while removing colinear variables
     A <- t(x) %*% Diagonal(x = pik)
-    ck <- (1 - pik) * n / pmax(n - p, 1)
-    u <- A %*% Matrix::Diagonal(x = ck) %*% t(A)
-    inv <- methods::as(if(Matrix::det(u) != 0) solve(u) else MASS::ginv(as.matrix(u)),"TsparseMatrix")
+    while(TRUE){
+      ck <- (1 - pik) * n / pmax(n - p, 1)
+      u <- A %*% Matrix::Diagonal(x = ck) %*% t(A)
+      if(Matrix::det(u) == 0){
+        is_colinear <- as.vector(is.na(stats::lm.fit(x = as.matrix(u), y = rep(1, NROW(u)))$coef))
+        if(any(is_colinear)) warning("Some variables in x where discarded due to collinearity.")
+        A <- A[!is_colinear, , drop = FALSE]
+        p <- NROW(A) # TODO: Error, should take stratification into account
+      }else break
+    }
+    inv <- solve(u)
 
   }else list2env(precalc, envir = environment())
 
