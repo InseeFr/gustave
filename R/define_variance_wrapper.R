@@ -251,9 +251,8 @@ define_variance_wrapper <- function(variance_function,
     "variance_function appears to have several data arguments (", paste(names_remaining_args, collapse = ", "), 
     ") where it should only have one. Use technical_data and technical_param to identify the technical arguments (see the Details section in help)."
   )
-  arg_type <- list(data = names_remaining_args, tech = names_technical_data, param = names_technical_param)
-  # TODO: Change the label names ("tech" > "tech_data", "param" > "tech_param")
-  
+  arg_type <- list(data = names_remaining_args, tech_data = names_technical_data, tech_param = names_technical_param)
+
   # Step 2: Create the variance wrapper
   variance_wrapper <- function(
     data, ..., by = NULL, where = NULL, id = NULL, 
@@ -356,7 +355,7 @@ define_variance_wrapper <- function(variance_function,
     # Step 4.2: Call the variance estimation function
     variance_function_args <- c(
       stats::setNames(list(data_as_Matrix), arg_type$data), 
-      stats::setNames(lapply(arg_type$param, get, envir = execution_envir), arg_type$param), 
+      stats::setNames(lapply(arg_type$tech_param, get, envir = execution_envir), arg_type$tech_param), 
       technical_data
     )
     result <- suppressMessages(do.call(variance_function, variance_function_args))
