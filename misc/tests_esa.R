@@ -2,6 +2,10 @@
 racine <- "X:/HAB-EEC-Methodes/Estimation Enquetes Menages/_Commun/Outils/"
 reimporter_donnees <- FALSE
 
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+# getwd() 
+devtools::load_all("U://gustave")
+
 esa <- data.frame(lapply(haven::read_sas(
   data_file = paste(racine, "#archives/everest_180625/DONNEES/everest_esa_eap_2012.sas7bdat", sep = "/")
 ), as.vector), stringsAsFactors = FALSE)
@@ -12,13 +16,10 @@ tmp <- as.matrix(tmp$y)
 calvar <- colnames(tmp)
 esa <- cbind(esa, tmp)
 
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-# getwd() 
-devtools::load_all("U://gustave")
 
 system("git config --global user.name \"Martin Chevalier\"")
 system("git config --global user.email martin.chevalier@insee.fr")
-system("git remote rename origin gitlab")
+# system("git remote rename origin gitlab")
 
 
 everest_esa <- everest(
@@ -33,6 +34,14 @@ everest_esa <- everest(
   calib_var = c("secteur_calage", calvar),
   define = TRUE
 )
+
+exclude <- (tapply(esa$strate, esa$strate, length) < 2)[esa$strate] | esa$poids_avt_calage == 0
+strata <- esa$strate[!exclude]
+pik <- (1 / esa$poids_avt_calage)[!exclude]
+pik <- tapply(pik, strata, base::mean)[strata]
+tmp <- var_srs(y = NULL, pik = pik, strata = strata)
+
+everest_esa(esa, mean(r310))
 
 esa_rep <- esa[esa$rep == 1, ]
 system.time(

@@ -313,12 +313,13 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 #' @export
 
 varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity.check = NULL, precalc = NULL){
-
-  # set.seed(1); n <- 2600; q <- 10; p <- 15; H <- 22; y <- matrix(rnorm(q*n),ncol=q); pik <- runif(n); x <- matrix(rnorm(p*n),ncol=p); x <- cbind(x, x[, 1]); strata <- rep(1:H,n %/% H + 1)[1:n][sample.int(n)]; precalc <- NULL;
-  # y = NULL; pik = bisect$piup; x = up_x; strata = bisect$reg; collinearity.check = TRUE
+  
+  # x <- NULL; w <- NULL; collinearity.check = NULL; precalc = NULL
 
   if(is.null(precalc)){
 
+    if(any(pik <= 0 | pik > 1)) stop("All pik must be in ]0;1]")
+    
     if(is.null(x)){
       x <- pik
       if(is.null(collinearity.check)) collinearity.check <- FALSE
@@ -349,7 +350,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity
     }
 
     # A, ck and inv terms
-    A <- t(x / matrix(rep(pik, NCOL(x)), ncol = NCOL(x)))
+    A <- t(x) %*% Diagonal(x = pik)
     ck <- (1 - pik) * n / pmax(n - p, 1)
     u <- A %*% Matrix::Diagonal(x = ck) %*% t(A)
     inv <- methods::as(if(Matrix::det(u) != 0) solve(u) else MASS::ginv(as.matrix(u)),"TsparseMatrix")
