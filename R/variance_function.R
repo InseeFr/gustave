@@ -349,7 +349,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity
     }
 
     # A, ck and inv terms
-    A <- t(x / pik)
+    A <- t(x / matrix(rep(pik, NCOL(x)), ncol = NCOL(x)))
     ck <- (1 - pik) * n / pmax(n - p, 1)
     u <- A %*% Matrix::Diagonal(x = ck) %*% t(A)
     inv <- methods::as(if(Matrix::det(u) != 0) solve(u) else MASS::ginv(as.matrix(u)),"TsparseMatrix")
