@@ -363,7 +363,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity
 
   if(is.null(y)){
     # Diagonal term of the variance estimator
-    diago <- ck * (1 - diag(t(A) %*% inv %*% A) * ck)/pik^2
+    diago <- ck * (1 - colSums(A * (inv %*% A)) * ck)/pik^2
     names(diago) <- names(pik)
     return(list(pik = pik, exh = exh, A = A, ck = ck, inv = inv, diago = diago))
   }else{
