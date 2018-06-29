@@ -231,6 +231,17 @@ assign_all <- function(objects, to, from = parent.frame(), not_closure = c(list(
   }
 }
 
+
+coerce_to_Matrix <- function(y){
+  if(is.null(dim(y))){
+    names_y <- names(y)
+    Matrix(y, ncol = 1, dimnames = list(names_y, NULL))
+  }else if(!inherits(y, "Matrix")){
+    methods::as(y, "sparseMatrix")
+  }else y
+}
+
+
 # 
 # add_names_to_list <- function(l){
 #   if(!is.language(l)) stop("l must be an unevaluated evaluation (you may want to use substitute() in the function call.)")

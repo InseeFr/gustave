@@ -117,3 +117,16 @@ test_that("discretize_qualitative_var works as expected", {
     }
   )
 })
+
+# coerce_to_Matrix
+test_that("coerce_to_Matrix works as expected", {
+  expect_identical(
+    coerce_to_Matrix(setNames(1:10, letters[1:10])),
+    Matrix(1:10, ncol = 1, dimnames = list(letters[1:10]))
+  )
+  m <- matrix(1:10, ncol = 2, dimnames = list(letters[1:5]))
+  M <- Matrix(1:10, ncol = 2, dimnames = list(letters[1:5]))
+  expect_identical(coerce_to_Matrix(m), as(M, "sparseMatrix"))
+  expect_identical(coerce_to_Matrix(M), M)
+})
+
