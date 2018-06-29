@@ -35,9 +35,14 @@ test_that("colinearity detection works", {
     varDT(y = NULL, pik = pik, x = matrix(rep(pik, 2), ncol = 2), strata = strata),
     regexp = "Some variables in x were discarded due to collinearity."
   )
-  skip("Not currently functionning")
-  expect_equal(
-    varDT(y = NULL, pik = pik, x = matrix(rep(pik, 2), ncol = 2), strata = strata),
+  expect_identical(
+    suppressWarnings(varDT(y = NULL, pik = pik, x = matrix(rep(pik, 2), ncol = 2), strata = strata)),
+    varDT(y = NULL, pik = pik, x = pik, strata = strata)
+  )
+  skip("Not functional yet")
+  x_tmp <- block_matrix(matrix(rep(pik, 2), ncol = 2), strata)$y[, -c(2, 4)]
+  expect_identical(
+    varDT(y = NULL, pik = pik, x = x_tmp),
     varDT(y = NULL, pik = pik, x = pik, strata = strata)
   )
 })

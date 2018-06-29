@@ -315,7 +315,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NULL, id = NULL){
   
   # pik = 1 / ict_sample$w_sample; strata = ict_sample$division; x <- matrix(c(pik, pik), ncol = 2); w <- NULL; collinearity.check = NULL; precalc = NULL
-  # y = NULL; x <- NULL; w <- NULL; precalc = NULL
+  # y = NULL; pik <- pik; strata <- strata; x <- x_tmp; w <- NULL; precalc = NULL; 
   
   if(is.null(precalc)){
 
@@ -328,33 +328,36 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
     )
     pik <- pik[!exh]
     
-    x <-if(!is.null(x)) x[!exh, , drop = FALSE] else pik
+    x <-if(!is.null(x)) coerce_to_Matrix(x)[!exh, , drop = FALSE] else pik
 
     # Stratification
+    # TODO: detect whether the x matrix is provided as already
+    # splitted or not
     if(!is.null(strata)){
       strata <- droplevels(as.factor(strata[!exh]))
       if(any(tapply(strata, strata, length) == 1, na.rm = TRUE))
         stop("Some strata contain less than 2 samples units.")
-      t <- block_matrix(x, strata)
-      x <- t$y
-      bycol <- t$bycol
-      t <- table(strata)
-      n <- as.vector(t[match(strata, names(t))])
+      tmp <- block_matrix(x, strata)
+      x <- tmp$y
+      colby <- as.character(tmp$bycol)
+      rowby <- as.character(tmp$byrow)
     }else{
-      bycol <- rep(1, NCOL(x))
-      n <- length(pik)
+      colby <- rep("1", NCOL(x))
+      rowby <- rep("1", NROW(x))
     }
-    
+
     # Determine A, ck and inv terms while removing colinear variables
+    n <- as.vector(tapply(rowby, rowby, length)[rowby])
     A <- t(x) %*% Diagonal(x = 1 / pik)
     while(TRUE){
-      p <- NROW(A) # TODO: Error, should take stratification into account
+      p <- as.vector(tapply(colby, colby, length)[rowby])
       ck <- (1 - pik) * n / pmax(n - p, 1)
       u <- A %*% Matrix::Diagonal(x = ck) %*% t(A)
       if(Matrix::rankMatrix(u, method = "qr", tol = 1e-20) != NROW(u)){
         is_colinear <- as.vector(is.na(stats::lm.fit(x = as.matrix(u), y = rep(1, NROW(u)))$coef))
         if(any(is_colinear)) warning("Some variables in x were discarded due to collinearity.")
         A <- A[!is_colinear, , drop = FALSE]
+        colby <- colby[!is_colinear]
       }else break
     }
     inv <- solve(u)
