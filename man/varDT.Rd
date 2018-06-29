@@ -7,7 +7,7 @@
 \title{Variance approximation with Deville-Tillé (2005) formula}
 \usage{
 varDT(y = NULL, pik, x = NULL, strata = NULL, w = NULL,
-  collinearity.check = NULL, precalc = NULL)
+  precalc = NULL, id = NULL)
 
 var_srs(y, pik, strata = NULL, w = NULL, precalc = NULL)
 }
@@ -25,11 +25,11 @@ variance estimation is to be conducted within strata.}
 
 \item{w}{An optional numerical vector of row weights (see Details).}
 
-\item{collinearity.check}{A boolean (\code{TRUE} or \code{FALSE}) or
-\code{NULL} indicating whether to perform a check for collinearity or not
-(see Details).}
-
 \item{precalc}{A list of pre-calculated results (see Details).}
+
+\item{id}{A vector of identifiers of the units used in the calculation. Especially 
+useful when \code{precalc} is used in order to assess whether the ordering of the
+\code{y} data matrix matches the one used at the precalculation step.}
 }
 \value{
 \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : 

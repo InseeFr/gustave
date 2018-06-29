@@ -161,10 +161,10 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 #' @param strata An optional categorical vector (factor or character) when
 #'   variance estimation is to be conducted within strata.
 #' @param w An optional numerical vector of row weights (see Details).
-#' @param collinearity.check A boolean (\code{TRUE} or \code{FALSE}) or
-#'   \code{NULL} indicating whether to perform a check for collinearity or not
-#'   (see Details).
 #' @param precalc A list of pre-calculated results (see Details).
+#' @param id A vector of identifiers of the units used in the calculation. Especially 
+#'   useful when \code{precalc} is used in order to assess whether the ordering of the
+#'   \code{y} data matrix matches the one used at the precalculation step.
 #'   
 #' @details \code{varDT} aims at being the workhorse of most variance estimation conducted
 #'   with the \code{gustave} package. It may be used to estimate the variance
@@ -312,7 +312,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 #'
 #' @export
 
-varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity.check = NULL, precalc = NULL){
+varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NULL, id = NULL){
   
   # pik = 1 / ict_sample$w_sample; strata = ict_sample$division; x <- matrix(c(pik, pik), ncol = 2); w <- NULL; collinearity.check = NULL; precalc = NULL
   # y = NULL; x <- NULL; w <- NULL; precalc = NULL
@@ -365,10 +365,14 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity
     # Diagonal term of the variance estimator
     diago <- ck * (1 - colSums(A * (inv %*% A)) * ck)/pik^2
     names(diago) <- names(pik)
-    return(list(pik = pik, exh = exh, A = A, ck = ck, inv = inv, diago = diago))
+    return(list(id = id, pik = pik, exh = exh, A = A, ck = ck, inv = inv, diago = diago))
   }else{
-    if(is.null(w)) w <- rep(1, length(pik))
     y <- coerce_to_Matrix(y)
+    if(!is.null(precalc) && !is.null(id) && !identical(as.character(id), rownames(y))) stop(
+      "The names of the data matrix (y argument) do not match the reference id (id argument).",
+      call. = FALSE
+    )
+    if(is.null(w)) w <- rep(1, length(pik))
     z <- Diagonal(x = 1 / pik) %*% y[!exh, , drop = FALSE]
     zhat <- t(A) %*% inv %*% (A %*% Matrix::Diagonal(x = ck) %*% z)
     return(Matrix::colSums(ck * w * (z - zhat)^2))
@@ -383,10 +387,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity
 var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
   if(is.null(precalc) && !is.null(strata) && any(tapply(pik, strata, stats::sd) > 1e-6, na.rm = TRUE))
     stop("First-order inclusion probabilities are not equal (within strata if any).")
-  varDT(
-    y = y, pik = pik, x = NULL, strata = strata, w = w, 
-    collinearity.check = FALSE, precalc = precalc
-  )
+  varDT(y = y, pik = pik, x = NULL, strata = strata, w = w, precalc = precalc)
 }
 
 

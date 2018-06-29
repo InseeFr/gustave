@@ -57,3 +57,16 @@ test_that("exhaustive units are handled correctly", {
     regexp = "units are exhaustive \\(pik = 1\\). They are discarded from the variance estimation process."
   )
 })
+test_that("non-matching id raise an error", {
+  id <- ict_sample$firm_id
+  pik <- 1 / ict_sample$w_sample
+  strata <- ict_sample$division
+  precalc <- varDT(y = NULL, pik = pik, strata = strata, id = id)
+  y <- setNames(ict_sample$turnover, id)
+  expect_error(varDT(y, precalc = precalc), regexp = NA)
+  expect_error(
+    varDT(y[rev(seq_along(y))], precalc = precalc),
+    regexp = "The names of the data matrix \\(y argument\\) do not match"
+  )
+
+})
