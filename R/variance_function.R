@@ -346,12 +346,12 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity
     }
     
     # Determine A, ck and inv terms while removing colinear variables
-    A <- t(x) %*% Diagonal(x = pik)
+    A <- t(x) %*% Diagonal(x = 1 / pik)
     while(TRUE){
       p <- NROW(A) # TODO: Error, should take stratification into account
       ck <- (1 - pik) * n / pmax(n - p, 1)
       u <- A %*% Matrix::Diagonal(x = ck) %*% t(A)
-      if(Matrix::det(u) == 0){
+      if(Matrix::rankMatrix(u, method = "qr", tol = 1e-20) != NROW(u)){
         is_colinear <- as.vector(is.na(stats::lm.fit(x = as.matrix(u), y = rep(1, NROW(u)))$coef))
         if(any(is_colinear)) warning("Some variables in x were discarded due to collinearity.")
         A <- A[!is_colinear, , drop = FALSE]

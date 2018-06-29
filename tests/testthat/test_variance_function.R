@@ -21,6 +21,10 @@ test_that("varSYG works", {
   expect_equal(varSYG(y, pikl = pikl), varSYG(y = y, precalc = precalcSYG))
 })
 
+test_that("varSYG and varDT yield the same results in the SRS case", {
+  expect_equal(varDT(y, pik = diag(pikl)), varSYG(y, pikl = pikl))
+})
+
 
 # More detailed tests about varDT()
 test_that("colinearity detection works", {
