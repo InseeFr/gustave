@@ -315,21 +315,24 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity.check = NULL, precalc = NULL){
   
   # pik = 1 / ict_sample$w_sample; strata = ict_sample$division; x <- matrix(c(pik, pik), ncol = 2); w <- NULL; collinearity.check = NULL; precalc = NULL
-  # y = NULL; x <- matrix(rep(pik, 2), ncol = 2); w <- NULL; precalc = NULL
+  # y = NULL; x <- NULL; w <- NULL; precalc = NULL
   
   if(is.null(precalc)){
 
     if(any(pik <= 0 | pik > 1)) stop("All pik must be in ]0;1]")
     
-    if(is.null(x)){
-      x <- pik
-      if(is.null(collinearity.check)) collinearity.check <- FALSE
-    }
-    p <- NCOL(x)
+    exh <- pik == 1
+    if(any(exh)) warning(
+      sum(exh), " units are exhaustive (pik = 1). They are discarded from the variance estimation process.", 
+      immediate. = TRUE, call. = FALSE
+    )
+    pik <- pik[!exh]
+    
+    x <-if(!is.null(x)) x[!exh, , drop = FALSE] else pik
 
     # Stratification
     if(!is.null(strata)){
-      strata <- droplevels(as.factor(strata))
+      strata <- droplevels(as.factor(strata[!exh]))
       if(any(tapply(strata, strata, length) == 1, na.rm = TRUE))
         stop("Some strata contain less than 2 samples units.")
       t <- block_matrix(x, strata)
@@ -338,20 +341,20 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity
       t <- table(strata)
       n <- as.vector(t[match(strata, names(t))])
     }else{
-      bycol <- rep(1, p)
+      bycol <- rep(1, NCOL(x))
       n <- length(pik)
     }
     
     # Determine A, ck and inv terms while removing colinear variables
     A <- t(x) %*% Diagonal(x = pik)
     while(TRUE){
+      p <- NROW(A) # TODO: Error, should take stratification into account
       ck <- (1 - pik) * n / pmax(n - p, 1)
       u <- A %*% Matrix::Diagonal(x = ck) %*% t(A)
       if(Matrix::det(u) == 0){
         is_colinear <- as.vector(is.na(stats::lm.fit(x = as.matrix(u), y = rep(1, NROW(u)))$coef))
-        if(any(is_colinear)) warning("Some variables in x where discarded due to collinearity.")
+        if(any(is_colinear)) warning("Some variables in x were discarded due to collinearity.")
         A <- A[!is_colinear, , drop = FALSE]
-        p <- NROW(A) # TODO: Error, should take stratification into account
       }else break
     }
     inv <- solve(u)
@@ -362,10 +365,11 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity
     # Diagonal term of the variance estimator
     diago <- ck * (1 - diag(t(A) %*% inv %*% A) * ck)/pik^2
     names(diago) <- names(pik)
-    return(list(pik = pik, A = A, ck = ck, inv = inv, diago = diago))
+    return(list(pik = pik, exh = exh, A = A, ck = ck, inv = inv, diago = diago))
   }else{
     if(is.null(w)) w <- rep(1, length(pik))
-    z <- y / pik
+    y <- coerce_to_Matrix(y)
+    z <- Diagonal(x = 1 / pik) %*% y[!exh, , drop = FALSE]
     zhat <- t(A) %*% inv %*% (A %*% Matrix::Diagonal(x = ck) %*% z)
     return(Matrix::colSums(ck * w * (z - zhat)^2))
   }

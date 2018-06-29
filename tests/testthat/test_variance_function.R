@@ -29,11 +29,27 @@ test_that("colinearity detection works", {
   y <- ict_sample$turnover
   expect_warning(
     varDT(y = NULL, pik = pik, x = matrix(rep(pik, 2), ncol = 2), strata = strata),
-    regexp = "Some variables in x where discarded due to collinearity."
+    regexp = "Some variables in x were discarded due to collinearity."
   )
   skip("Not currently functionning")
   expect_equal(
     varDT(y = NULL, pik = pik, x = matrix(rep(pik, 2), ncol = 2), strata = strata),
     varDT(y = NULL, pik = pik, x = pik, strata = strata)
+  )
+})
+test_that("exhaustive units are handled correctly", {
+  pik <- 1 / ict_sample$w_sample
+  strata <- ict_sample$division
+  y <- ict_sample$turnover
+  pik[1:10] <- 1
+  expect_warning(
+    varDT(y = NULL, pik = pik, strata = strata),
+    regexp = "units are exhaustive \\(pik = 1\\). They are discarded from the variance estimation process."
+  )
+  pik <- 1 / ict_sample$w_sample
+  pik[strata == "62"] <- 1
+  expect_warning(
+    varDT(y = NULL, pik = pik, strata = strata),
+    regexp = "units are exhaustive \\(pik = 1\\). They are discarded from the variance estimation process."
   )
 })
