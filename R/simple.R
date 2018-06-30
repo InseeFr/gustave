@@ -505,7 +505,4 @@ display_only_n_first <- function(x,
   }
 }
   
-discretize_qualitative_var <- function(var, sparse = TRUE){
-  workhorse <- if(sparse) Matrix::sparse.model.matrix else stats::model.matrix
-  workhorse(~ droplevels(as.factor(var)) - 1)
-}
+

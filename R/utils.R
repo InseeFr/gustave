@@ -241,6 +241,17 @@ coerce_to_Matrix <- function(y){
   }else y
 }
 
+discretize_qualitative_var <- function(var, logical  = FALSE){
+  var <- droplevels(as.factor(var))
+  result <- Matrix(nrow = length(var), ncol = length(levels(var)))
+  result[!is.na(var), ] <- Matrix::sparse.model.matrix(~ var - 1)
+  result[is.na(var), ] <- NA
+  if(!logical) result <- result * 1
+  rownames(result) <- names(var)
+  colnames(result) <- levels(var)
+  result
+}
+
 
 # 
 # add_names_to_list <- function(l){

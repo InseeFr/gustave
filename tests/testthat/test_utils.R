@@ -107,15 +107,24 @@ test_that("assign_all() works", {
 
 # discretize_qualitative_var
 
-test_that("discretize_qualitative_var works as expected", {
+test_that("discretize_qualitative_var yield same results as stats::model.matrix()", {
   expect_identical(
     unname(as.matrix(discretize_qualitative_var(ict_sample$division))),
     {
-      tmp <-  discretize_qualitative_var(ict_sample$division, sparse = FALSE)
+      tmp <-  stats::model.matrix(~ ict_sample$division - 1)
       attributes(tmp) <- attributes(tmp)["dim"]
       tmp
     }
   )
+})
+test_that("NA values are handled correctly", {
+  # NA in var => NA for all dummy variables
+  ict_sample$division[1] <- NA
+  expect_equal(
+    as.vector(discretize_qualitative_var(setNames(ict_sample$division, ict_sample$firm_id))[1, ]),
+    as.numeric(rep(NA, 6))
+  )
+  rm(ict_sample)
 })
 
 # coerce_to_Matrix
