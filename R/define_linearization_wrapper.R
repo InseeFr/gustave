@@ -163,45 +163,49 @@ define_linearization_wrapper <- function(linearization_function,
   # Step II: Create the linearization wrapper
   linearization_wrapper <- function(by = NULL, where = NULL, ...){
     
+    data_as_list <- list(list())
+    
     # Step 1: Capture the call
     call <- match.call(expand.dots = TRUE)
     call_display_arg <- c(1, which(names(call) %in% setdiff(names(formals(sys.function())), "...") & !sapply(call, is.null)))
     call_display <- paste(deparse(call[call_display_arg], width.cutoff = 500L), collapse = "")
-    arg_list <- as.list(call)[-1]
+    technical_args <- eval(substitute(alist(...)))
+    data_as_list[[1]]$metadata <- list(call = call_display, label = technical_args$label)
     
     # Step 2: Evaluate the arguments
-    technical_args <- eval(substitute(alist(...)))
+    arg_list <- as.list(call)[-1]
     eval_data <- eval(technical_args$data, technical_args$execution_envir)
-    d <- list(list(
+    data_as_list[[1]] <- c(data_as_list[[1]], list(
       data = lapply(arg_list[arg_type$data], eval, envir = eval_data, enclos = technical_args$evaluation_envir), 
       weight = lapply(arg_list[arg_type$weight], eval, envir = technical_args$execution_envir), 
       param = lapply(arg_list[arg_type$param], eval, envir = environment())
     ))
-    if(all(sapply(d[[1]]$data, is.null))) return(NULL)
+    if(all(sapply(data_as_list[[1]]$data, is.null))) return(NULL)
 
     # Step 3: Handle factors and character variables in data
-    fac <- sapply(d[[1]]$data, function(i) is.character(i) || is.factor(i))
+    fac <- sapply(data_as_list[[1]]$data, function(i) is.character(i) || is.factor(i))
     if(sum(fac) > 0){
-      if(allow_factor && length(d[[1]]$data) == 1){
-        tmp <- d[[1]]$data[[1]]
+      if(allow_factor && length(data_as_list[[1]]$data) == 1){
+        tmp <- data_as_list[[1]]$data[[1]]
         if(is.character(tmp)) tmp <- as.factor(tmp)
         tmp <- droplevels(tmp)
         levels <- levels(tmp)
         tmp2 <- stats::model.matrix(~ . -1, data = stats::model.frame(~ ., data = tmp))
         tmp3 <- matrix(NA, nrow = NROW(tmp), ncol = length(levels))
         tmp3[as.integer(rownames(tmp2)), ] <- tmp2
-        d <- lapply(1:length(levels), function(i){
+        data_as_list <- lapply(1:length(levels), function(i){
           list(
-            data = stats::setNames(list(c(tmp3[, i])), names(d[[1]]$data))
-            , weight = d[[1]]$weight, param = d[[1]]$param
-            , metadata = list(mod = levels[i])
+            metadata = c(data_as_list[[1]]$metadata, list(mod = levels[i])),
+            data = stats::setNames(list(c(tmp3[, i])), names(data_as_list[[1]]$data)), 
+            weight = data_as_list[[1]]$weight, 
+            param = data_as_list[[1]]$param
           )
         })
       }else stop("Character or factor variables aren't allowed.", call. = FALSE)
-    }else d[[1]]$metadata$mod <- NA
-    
+    }else data_as_list[[1]]$metadata$mod <- NA
+
     # Step 4: Prepare by and where arguments
-    n <- length(d[[1]]$data[[1]])
+    n <- length(data_as_list[[1]]$data[[1]])
     byNULL <- is.null(substitute(by))
     by <- if(!byNULL){
       as.factor(eval(substitute(by), eval_data))
@@ -220,25 +224,25 @@ define_linearization_wrapper <- function(linearization_function,
     
     # Step 5: Split across domains
     bypos <- split(1:n, by, drop = TRUE)
-    d <- unlist(lapply(seq_along(bypos), function(i){
-      lapply(d, function(j) list(
+    data_as_list <- unlist(lapply(seq_along(bypos), function(i){
+      lapply(data_as_list, function(j) list(
+        metadata = c(j$metadata, list(
+          by = if(byNULL) NA else names(bypos)[i], 
+          bypos = bypos[[i]]
+        )),
         data = lapply(stats::setNames(seq_along(j$data), names(j$data)), function(k){
           if(names(j$data)[k] %in% arg_not_affected_by_domain) j$data[[k]] else j$data[[k]][bypos[[i]]]
-        })
-        , weight = lapply(stats::setNames(seq_along(j$weight), names(j$weight)), function(k){
+        }), 
+        weight = lapply(stats::setNames(seq_along(j$weight), names(j$weight)), function(k){
           if(names(j$weight)[k] %in% arg_not_affected_by_domain) j$weight[[k]] else j$weight[[k]][bypos[[i]]]
-        }), param = j$param
-        , metadata = c(j$metadata, list(
-          by = if(byNULL) NA else names(bypos)[i], 
-          bypos = bypos[[i]],
-          label = technical_args$label,
-          call = call_display
-        ))))
+        }), 
+        param = j$param
+      ))
     }), recursive = FALSE)
-    if(is.null(d)) return(NULL)
+    if(is.null(data_as_list)) return(NULL)
     
     # Step 6: Call the linearization function
-    d <- lapply(d, function(i){
+    data_as_list <- lapply(data_as_list, function(i){
       tmp <- do.call(linearization_function, with(i, c(data, weight, param)))
       i$metadata <- c(i$metadata, tmp$metadata)
       c(i, list(
@@ -248,7 +252,8 @@ define_linearization_wrapper <- function(linearization_function,
       ))
     })
     
-    return(d)
+    data_as_list
+    
   }
 
   # Step III: Finalize the linearization wrapper
