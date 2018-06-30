@@ -158,7 +158,6 @@ define_linearization_wrapper <- function(linearization_function,
   )
   if(is.null(arg_type$weight))
     stop("A weight argument must be provided in order to create a linearization wrapper.")
-  allow_factor <- length(arg_type$data) == 1
 
   # Step II: Create the linearization wrapper
   linearization_wrapper <- function(by = NULL, where = NULL, ...){
@@ -175,34 +174,30 @@ define_linearization_wrapper <- function(linearization_function,
     # Step 2: Evaluate the arguments
     arg_list <- as.list(call)[-1]
     eval_data <- eval(technical_args$data, technical_args$execution_envir)
-    data_as_list[[1]] <- c(data_as_list[[1]], list(
+    data_as_list[[1]] <- list(
+      metadata = data_as_list[[1]]$metadata,
       data = lapply(arg_list[arg_type$data], eval, envir = eval_data, enclos = technical_args$evaluation_envir), 
       weight = lapply(arg_list[arg_type$weight], eval, envir = technical_args$execution_envir), 
       param = lapply(arg_list[arg_type$param], eval, envir = environment())
-    ))
+    )
     if(all(sapply(data_as_list[[1]]$data, is.null))) return(NULL)
+    # TODO: data_as_list[[1]]$metadata$row_number <- seq_along(data_as_list[[1]]$data[[1]])
 
     # Step 3: Handle factors and character variables in data
-    fac <- sapply(data_as_list[[1]]$data, function(i) is.character(i) || is.factor(i))
-    if(sum(fac) > 0){
-      if(allow_factor && length(data_as_list[[1]]$data) == 1){
-        tmp <- data_as_list[[1]]$data[[1]]
-        if(is.character(tmp)) tmp <- as.factor(tmp)
-        tmp <- droplevels(tmp)
-        levels <- levels(tmp)
-        tmp2 <- stats::model.matrix(~ . -1, data = stats::model.frame(~ ., data = tmp))
-        tmp3 <- matrix(NA, nrow = NROW(tmp), ncol = length(levels))
-        tmp3[as.integer(rownames(tmp2)), ] <- tmp2
-        data_as_list <- lapply(1:length(levels), function(i){
-          list(
-            metadata = c(data_as_list[[1]]$metadata, list(mod = levels[i])),
-            data = stats::setNames(list(c(tmp3[, i])), names(data_as_list[[1]]$data)), 
-            weight = data_as_list[[1]]$weight, 
-            param = data_as_list[[1]]$param
-          )
-        })
-      }else stop("Character or factor variables aren't allowed.", call. = FALSE)
-    }else data_as_list[[1]]$metadata$mod <- NA
+    data_as_list <- unlist(lapply(data_as_list, function(d){
+      if(!any(sapply(d$data, function(var) is.character(var) || is.factor(var)))){
+        d$metadata$mod <- NA
+        return(list(d))
+      }
+      if(length(arg_type$data) > 1) stop("Character or factor variables aren't allowed.")
+      tmp <- discretize_qualitative_var(d$data[[1]])
+      lapply(colnames(tmp), function(mod){
+        d_mod <- d
+        d_mod$metadata$mod <- mod
+        d_mod$data[[1]] <- tmp[, mod]
+        d_mod
+      })
+    }), recursive = FALSE)
 
     # Step 4: Prepare by and where arguments
     n <- length(data_as_list[[1]]$data[[1]])
@@ -266,7 +261,8 @@ define_linearization_wrapper <- function(linearization_function,
 
   # Step III.2: Include objects in linearization_wrapper enclosing environment
   e <- new.env(parent = globalenv())
-  assign_all(objects = c("linearization_function", "arg_type", "allow_factor", "arg_not_affected_by_domain", "display_function"), to = e, from = environment())
+  assign_all(objects = c("discretize_qualitative_var"), to = e, from = asNamespace("gustave"))
+  assign_all(objects = c("linearization_function", "arg_type", "arg_not_affected_by_domain", "display_function"), to = e, from = environment())
   linearization_wrapper <- change_enclosing(linearization_wrapper, envir = e)
   
   structure(linearization_wrapper, class = c("function", "gustave_linearization_wrapper"))
