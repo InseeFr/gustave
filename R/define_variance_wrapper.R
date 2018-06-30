@@ -349,7 +349,7 @@ define_variance_wrapper <- function(variance_function,
       data <- lapply(data_as_list, function(k){
         t <- do.call(cbind, k$lin)
         Matrix::sparseMatrix(
-          i = rep(k$metadata$bypos, NCOL(t))
+          i = rep(k$metadata$row_number, NCOL(t))
           , j = rep(1:NCOL(t), each = NROW(t)), giveCsparse = FALSE
           , x = c(t), dims = c(length(id), NCOL(t)), check = FALSE
         )

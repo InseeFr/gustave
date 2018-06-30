@@ -206,6 +206,7 @@ test_that("point estimates do match by-hand estimators", {
     reference_weight = ict_survey$w_calib,
     default_id = "firm_id"
   )
+  variance_wrapper(ict_survey, total(speed_quali_NA))$est
   expect_equal(
     variance_wrapper(ict_survey, total(speed_quanti_NA))$est,
     sum(ict_survey$speed_quanti_NA * ict_survey$w_calib, na.rm = TRUE)
