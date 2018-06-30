@@ -144,7 +144,7 @@ define_linearization_wrapper <- function(linearization_function,
                                          display_function = standard_display
 ){
   
-  # Step 1: Control arguments consistency
+  # Step I: Control arguments consistency
   inconsistent_arg <- list(
     in_arg_type_not_in_linearization_function = setdiff(unlist(arg_type), names(formals(linearization_function))), 
     in_linearization_function_not_in_arg_type = setdiff(names(formals(linearization_function)), unlist(arg_type)), 
@@ -158,25 +158,86 @@ define_linearization_wrapper <- function(linearization_function,
   )
   if(is.null(arg_type$weight))
     stop("A weight argument must be provided in order to create a linearization wrapper.")
-  
-  # Step 2: Create the linearization wrapper
+  allow_factor <- length(arg_type$data) == 1
+
+  # Step II: Create the linearization wrapper
   linearization_wrapper <- function(by = NULL, where = NULL, ...){
     
-    # Step 1: Capture and expand the call
+    # Step 1: Capture the call
     call <- match.call(expand.dots = TRUE)
     call_display_arg <- c(1, which(names(call) %in% setdiff(names(formals(sys.function())), "...") & !sapply(call, is.null)))
     call_display <- paste(deparse(call[call_display_arg], width.cutoff = 500L), collapse = "")
-    call_list <- c(as.list(call)[-1], list(
-      arg_type = arg_type, 
-      arg_not_affected_by_domain = arg_not_affected_by_domain,
-      call = call_display
-    ))
+    arg_list <- as.list(call)[-1]
     
-    # Step 2: Proceeed to standard preparation
-    d <- do.call(standard_preparation, call_list)
-    if(is.null(d)) return(NULL)
+    # Step 2: Evaluate the arguments
+    technical_args <- eval(substitute(alist(...)))
+    eval_data <- eval(technical_args$data, technical_args$execution_envir)
+    d <- list(list(
+      data = lapply(arg_list[arg_type$data], eval, envir = eval_data, enclos = technical_args$evaluation_envir), 
+      weight = lapply(arg_list[arg_type$weight], eval, envir = technical_args$execution_envir), 
+      param = lapply(arg_list[arg_type$param], eval, envir = environment())
+    ))
+    if(all(sapply(d[[1]]$data, is.null))) return(NULL)
 
-    # Step 3: Evaluate the linearization functions
+    # Step 3: Handle factors and character variables in data
+    fac <- sapply(d[[1]]$data, function(i) is.character(i) || is.factor(i))
+    if(sum(fac) > 0){
+      if(allow_factor && length(d[[1]]$data) == 1){
+        tmp <- d[[1]]$data[[1]]
+        if(is.character(tmp)) tmp <- as.factor(tmp)
+        tmp <- droplevels(tmp)
+        levels <- levels(tmp)
+        tmp2 <- stats::model.matrix(~ . -1, data = stats::model.frame(~ ., data = tmp))
+        tmp3 <- matrix(NA, nrow = NROW(tmp), ncol = length(levels))
+        tmp3[as.integer(rownames(tmp2)), ] <- tmp2
+        d <- lapply(1:length(levels), function(i){
+          list(
+            data = stats::setNames(list(c(tmp3[, i])), names(d[[1]]$data))
+            , weight = d[[1]]$weight, param = d[[1]]$param
+            , metadata = list(mod = levels[i])
+          )
+        })
+      }else stop("Character or factor variables aren't allowed.", call. = FALSE)
+    }else d[[1]]$metadata$mod <- NA
+    
+    # Step 4: Prepare by and where arguments
+    n <- length(d[[1]]$data[[1]])
+    byNULL <- is.null(substitute(by))
+    by <- if(!byNULL){
+      as.factor(eval(substitute(by), eval_data))
+    }else{
+      tmp <- rep(1L, n)
+      levels(tmp) <- "1"
+      class(tmp) <- "factor"
+      tmp
+    }
+    if(!is.null(substitute(where))){
+      by[!as.logical(eval(substitute(where), eval_data))] <- NA
+      by <- droplevels(by)
+    }
+    if(sum(!is.na(by)) == 0)
+      stop("by and/or where arguments exclude all observations.", call. = FALSE)
+    
+    # Step 5: Split across domains
+    bypos <- split(1:n, by, drop = TRUE)
+    d <- unlist(lapply(seq_along(bypos), function(i){
+      lapply(d, function(j) list(
+        data = lapply(stats::setNames(seq_along(j$data), names(j$data)), function(k){
+          if(names(j$data)[k] %in% arg_not_affected_by_domain) j$data[[k]] else j$data[[k]][bypos[[i]]]
+        })
+        , weight = lapply(stats::setNames(seq_along(j$weight), names(j$weight)), function(k){
+          if(names(j$weight)[k] %in% arg_not_affected_by_domain) j$weight[[k]] else j$weight[[k]][bypos[[i]]]
+        }), param = j$param
+        , metadata = c(j$metadata, list(
+          by = if(byNULL) NA else names(bypos)[i], 
+          bypos = bypos[[i]],
+          label = technical_args$label,
+          call = call_display
+        ))))
+    }), recursive = FALSE)
+    if(is.null(d)) return(NULL)
+    
+    # Step 6: Call the linearization function
     d <- lapply(d, function(i){
       tmp <- do.call(linearization_function, with(i, c(data, weight, param)))
       i$metadata <- c(i$metadata, tmp$metadata)
@@ -190,101 +251,21 @@ define_linearization_wrapper <- function(linearization_function,
     return(d)
   }
 
-  # Step 3: Modify linearization_wrapper formals
+  # Step III: Finalize the linearization wrapper
+  
+  # Step III.1: Modify linearization_wrapper formals
   formals(linearization_wrapper) <- c(
     formals(linearization_function)[setdiff(names(formals(linearization_function)), arg_type$weight)], 
     formals(linearization_wrapper)
   )
 
-  # Step 4: Include objects in linearization_wrapper enclosing environment
+  # Step III.2: Include objects in linearization_wrapper enclosing environment
   e <- new.env(parent = globalenv())
-  assign_all(objects = "standard_preparation", to = e, from = asNamespace("gustave"))
-  assign_all(objects = c("linearization_function", "arg_type", "arg_not_affected_by_domain", "display_function"), to = e, from = environment())
+  assign_all(objects = c("linearization_function", "arg_type", "allow_factor", "arg_not_affected_by_domain", "display_function"), to = e, from = environment())
   linearization_wrapper <- change_enclosing(linearization_wrapper, envir = e)
   
   structure(linearization_wrapper, class = c("function", "gustave_linearization_wrapper"))
   
-}
-
-standard_preparation <- function(..., 
-                                 by = NULL, where = NULL, 
-                                 data, label, evaluation_envir, execution_envir, 
-                                 arg_type, arg_not_affected_by_domain,
-                                 call
-  ){
-
-  # Step 0: Allow factors only if there is only 1 data argument
-  allow_factor <- length(arg_type$data) == 1
-  
-  # Step 1 : Evaluation
-  eval_data <- eval(substitute(data), execution_envir)
-  expr <- eval(substitute(alist(...)))
-  d <- list(list(
-    data = lapply(expr[names(expr) %in% arg_type$data], eval, envir = eval_data, enclos = evaluation_envir)
-    , weight = lapply(expr[names(expr) %in% arg_type$weight], eval, envir = execution_envir)
-    , param = if(any(names(expr) %in% arg_type$param)) expr[names(expr) %in% arg_type$param] else NULL
-  ))
-  if(all(sapply(d[[1]]$data, is.null))) return(NULL)
-
-  # Step 2 : Handling factors and character variables in data
-  fac <- sapply(d[[1]]$data, function(i) is.character(i) || is.factor(i))
-  if(sum(fac) > 0){
-    if(allow_factor && length(d[[1]]$data) == 1){
-      tmp <- d[[1]]$data[[1]]
-      if(is.character(tmp)) tmp <- as.factor(tmp)
-      tmp <- droplevels(tmp)
-      levels <- levels(tmp)
-      tmp2 <- stats::model.matrix(~ . -1, data = stats::model.frame(~ ., data = tmp))
-      tmp3 <- matrix(NA, nrow = NROW(tmp), ncol = length(levels))
-      tmp3[as.integer(rownames(tmp2)), ] <- tmp2
-      d <- lapply(1:length(levels), function(i){
-        list(
-          data = stats::setNames(list(c(tmp3[, i])), names(d[[1]]$data))
-          , weight = d[[1]]$weight, param = d[[1]]$param
-          , metadata = list(mod = levels[i])
-        )
-      })
-    }else stop("Character or factor variables aren't allowed.", call. = FALSE)
-  }else d[[1]]$metadata$mod <- NA
-
-  # Step 3 : by and where arguments preparation
-  n <- length(d[[1]]$data[[1]])
-  byNULL <- is.null(substitute(by))
-  by <- if(!byNULL){
-    as.factor(eval(substitute(by), eval_data))
-  }else{
-    tmp <- rep(1L, n)
-    levels(tmp) <- "1"
-    class(tmp) <- "factor"
-    tmp
-  }
-  if(!is.null(substitute(where))){
-    by[!as.logical(eval(substitute(where), eval_data))] <- NA
-    by <- droplevels(by)
-  }
-  if(sum(!is.na(by)) == 0)
-    stop("by and/or where arguments exclude all observations.", call. = FALSE)
-
-  # Step 4 : Splitting across domains
-  bypos <- split(1:n, by, drop = TRUE)
-  d <- unlist(lapply(seq_along(bypos), function(i){
-    lapply(d, function(j) list(
-      data = lapply(stats::setNames(seq_along(j$data), names(j$data)), function(k){
-        if(names(j$data)[k] %in% arg_not_affected_by_domain) j$data[[k]] else j$data[[k]][bypos[[i]]]
-      })
-      , weight = lapply(stats::setNames(seq_along(j$weight), names(j$weight)), function(k){
-        if(names(j$weight)[k] %in% arg_not_affected_by_domain) j$weight[[k]] else j$weight[[k]][bypos[[i]]]
-      }), param = j$param
-      , metadata = c(j$metadata, list(
-        by = if(byNULL) NA else names(bypos)[i], 
-        bypos = bypos[[i]],
-        label = label,
-        call = call
-      ))))
-  }), recursive = FALSE)
-  
-  d
-
 }
 
 standard_display <- function(var, metadata, alpha){
