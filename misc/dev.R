@@ -26,8 +26,3 @@ everest_ict(ict_survey, mean(turnover))
 everest_ict(ict_survey)
 
 
-microbenchmark::microbenchmark(
-  direct = ,
-  cache = 
-)
-

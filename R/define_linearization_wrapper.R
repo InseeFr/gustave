@@ -164,38 +164,39 @@ define_linearization_wrapper <- function(linearization_function,
   )
   
   # Step II: Create the linearization wrapper
-  linearization_wrapper <- function(by = NULL, where = NULL, ...){
+  linearization_wrapper <- function(by = NULL, where = NULL){
     
     data_as_list <- list(list())
     # TODO: use a  two dimensional list instead
-    
-    # Step 1: Capture the call
+
+    # Step 1: Modify the call to add by and where
+    execution_envir <- get_through_parent_frame("execution_envir")
+    evaluation_envir <- get("evaluation_envir", execution_envir)
     call <- match.call(expand.dots = TRUE)
+    call_list <- as.list(call)
+    if(!("by" %in% names(call_list))) call_list$by <- substitute(by, execution_envir)
+    if(!("where" %in% names(call_list))) call_list$where <- substitute(where, execution_envir)
+    call <- as.call(call_list)
+    
+    # Step 2: Initialize the metadata, data, weight and param slots
     call_display_arg <- c(1, which(names(call) %in% setdiff(names(formals(sys.function())), "...") & !sapply(call, is.null)))
     call_display <- paste(deparse(call[call_display_arg], width.cutoff = 500L), collapse = "")
-    technical_args <- eval(substitute(alist(...)))
-    data_as_list[[1]]$metadata <- list(
-      call = call_display, label = technical_args$label, by = NA, mod = NA
-    )
-    
-    # Step 2: Evaluate the arguments
-    arg_list <- as.list(call)[-1]
-    eval_data <- eval(technical_args$data, technical_args$execution_envir)
+    data <- eval(substitute(data), execution_envir)
     data_as_list[[1]] <- list(
-      metadata = data_as_list[[1]]$metadata,
-      data = lapply(arg_list[arg_type$data], eval, envir = eval_data, enclos = technical_args$evaluation_envir), 
+      metadata = list(call = call_display, by = NA, mod = NA),
+      data = lapply(call_list[arg_type$data], eval, envir = data, enclos = evaluation_envir), 
       weight = lapply(
         stats::setNames(arg_type$weight, arg_type$weight),
-        function(w) eval(technical_args$weight, envir = technical_args$execution_envir)
+        function(w) eval(substitute(reference_weight), envir = execution_envir)
       ),
-      param = lapply(arg_list[arg_type$param], eval, envir = environment())
+      param = lapply(call_list[arg_type$param], eval, envir = evaluation_envir)
     )
     if(all(sapply(data_as_list[[1]]$data, is.null))) return(NULL)
     data_as_list[[1]]$metadata$row_number <- seq_along(data_as_list[[1]]$data[[1]])
 
     # Step 3: Where 
-    if(!is.null(substitute(where))){
-      where <- as.logical(eval(substitute(where), eval_data))
+    if(!is.null(call_list$where)){
+      where <- as.logical(eval(call_list$where, data))
       if(!any(where)) stop("where argument excludes all observations.")
       data_as_list <- lapply(data_as_list, function(d){
         d$metadata$row_number <- d$metadata$row_number[where]
@@ -206,8 +207,8 @@ define_linearization_wrapper <- function(linearization_function,
     }
 
     # Step 4: By
-    if(!is.null(substitute(by))){
-      by <- droplevels(as.factor(eval(substitute(by), eval_data)))
+    if(!is.null(call_list$by)){
+      by <- droplevels(as.factor(eval(call_list$by, data)))
       by_split <- split(seq_along(by), by)
       data_as_list <- unlist(lapply(data_as_list, function(d){
         tmp <- lapply(levels(by), function(by_group){
@@ -266,7 +267,7 @@ define_linearization_wrapper <- function(linearization_function,
 
   # Step III.2: Include objects in linearization_wrapper enclosing environment
   e <- new.env(parent = globalenv())
-  assign_all(objects = c("discretize_qualitative_var"), to = e, from = asNamespace("gustave"))
+  assign_all(objects = c("discretize_qualitative_var", "get_through_parent_frame"), to = e, from = asNamespace("gustave"))
   assign_all(objects = c("linearization_function", "arg_type", "arg_domain", "display_function"), to = e, from = environment())
   linearization_wrapper <- change_enclosing(linearization_wrapper, envir = e)
   

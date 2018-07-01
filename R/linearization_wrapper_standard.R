@@ -13,8 +13,6 @@
 #' @param by Factor vector (character vectors are coerced to factors) whose levels are used
 #'   to break down the estimation by domains.
 #' @param where Logical vector indicating the domain to perform variance estimation on.
-#' @param ... Technical parameters passed on to helper functions
-#'   within the linearization wrapper.
 #' 
 #' @details When the estimator is not the estimator of a total, the application of 
 #'   analytical variance estimation formulae developed for the estimator of a total 

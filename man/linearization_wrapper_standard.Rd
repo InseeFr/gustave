@@ -14,15 +14,15 @@
 \alias{ratio_of_ratio}
 \title{Standard linearization wrappers}
 \usage{
-total(y, by = NULL, where = NULL, ...)
+total(y, by = NULL, where = NULL)
 
-ratio(num, denom, by = NULL, where = NULL, ...)
+ratio(num, denom, by = NULL, where = NULL)
 
-mean(y, by = NULL, where = NULL, ...)
+mean(y, by = NULL, where = NULL)
 
-diff_of_ratio(num1, denom1, num2, denom2, by = NULL, where = NULL, ...)
+diff_of_ratio(num1, denom1, num2, denom2, by = NULL, where = NULL)
 
-ratio_of_ratio(num1, denom1, num2, denom2, by = NULL, where = NULL, ...)
+ratio_of_ratio(num1, denom1, num2, denom2, by = NULL, where = NULL)
 }
 \arguments{
 \item{y}{A vector corresponding to the (sole) variable to estimate
@@ -33,9 +33,6 @@ automatically discretized.}
 to break down the estimation by domains.}
 
 \item{where}{Logical vector indicating the domain to perform variance estimation on.}
-
-\item{...}{Technical parameters passed on to helper functions
-within the linearization wrapper.}
 
 \item{num, num1, num2}{Numerical vector(s) corresponding to the numerator(s) 
 to be used in the estimation.}

@@ -253,6 +253,17 @@ discretize_qualitative_var <- function(var, logical  = FALSE){
 }
 
 
+get_through_parent_frame <- function(x){
+  n <- 0
+  found <- NULL
+  while(is.null(found) || identical(baseenv(), parent.frame(n))){
+    n <- n + 1
+    found <- get0("execution_envir", parent.frame(n))
+  }
+  found
+}
+
+
 # 
 # add_names_to_list <- function(l){
 #   if(!is.language(l)) stop("l must be an unevaluated evaluation (you may want to use substitute() in the function call.)")

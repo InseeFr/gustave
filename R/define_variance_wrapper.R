@@ -317,28 +317,19 @@ define_variance_wrapper <- function(variance_function,
       # Add a linearization wrapper when none is spefified
       if(is.symbol(call) || !is_linearization_wrapper(eval(call[[1]]))) 
         call <- as.call(c(quote(total), call))
-      # TODO: produce an information message indicating that the call was rewritten
+      # TODO: SUPPRESS THE ABILITY TO HAVE total() BY DEFAULT WITH AN
+      # ERROR MESSAGE
 
-      # Add the by and where argument specified in the variance wrapper
-      # (only if they are not overriden within the call)
-      call <- as.list(call)
-      if(!("by" %in% names(call))) call$by <- substitute(by, execution_envir)
-      if(!("where" %in% names(call))) call$where <- substitute(where, execution_envir)
-      
-      # Add technical arguments
-      call <- c(call, list(
-        data = quote(data), weight = quote(reference_weight), 
-        label = linearization_wrapper_label[i], 
-        evaluation_envir = evaluation_envir, execution_envir = execution_envir
-      ))
-      
-      # TODO: Check whether some part of what's currently done in the 
-      # linearization wrapper (e.g. domain handling) could not be done
-      # directly here.
-      
       # Evaluate the linearization wrapper
-      eval(as.call(call))
+      d <- eval(call)
+      if(is.null(d)) return(d)
       
+      # Add labels
+      lapply(d, function(dd){
+        dd$metadata$label <- linearization_wrapper_label[i]
+        dd
+      })
+
     }), recursive = FALSE)
     if(is.null(data_as_list)) stop("No variable to estimate variance on.", call. = FALSE)
     
