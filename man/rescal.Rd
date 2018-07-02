@@ -4,8 +4,7 @@
 \alias{rescal}
 \title{Linear Regression Residuals Calculation}
 \usage{
-rescal(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL,
-  precalc = NULL)
+rescal(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
 }
 \arguments{
 \item{y}{A numerical matrix of dependent variable(s). May be a 
@@ -20,11 +19,11 @@ Matrix::TsparseMatrix.}
 when residuals calculation is to be conducted within by-groups 
 (see Details).}
 
-\item{collinearity.check}{A boolean (\code{TRUE} or \code{FALSE}) or 
-\code{NULL} indicating whether to perform a check for collinearity or 
-not (see Details).}
-
 \item{precalc}{A list of pre-calculated results (see Details).}
+
+\item{id}{A vector of identifiers of the units used in the calculation. Especially 
+useful when \code{precalc} is used in order to assess whether the ordering of the
+\code{y} data matrix matches the one used at the precalculation step.}
 }
 \value{
 \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
@@ -71,10 +70,6 @@ calculation are made separately for each by-group (when calibration was
 conducted separately on several subsamples), but in an efficient way using 
 Matrix::TsparseMatrix capabilities (especially when the matrix inverse is 
 pre-calculated).
-
-If \code{collinearity.check} is \code{NULL}, a test for collinearity in the 
-independent variables (\code{x}) is conducted if and only if \code{det(t(x)
-\%*\% x) == 0}.
 }
 \examples{
 # Generating random data
@@ -92,9 +87,6 @@ rescal(y, x)
 precalc <- rescal(y = NULL, x)
 rescal(y, precalc = precalc)
 identical(rescal(y, x), rescal(y, precalc = precalc))
-
-# Collinearity check
-rescal(y, cbind(x, x[, 1]), collinearity.check = TRUE)
 
 # Matrix::TsparseMatrix capability
 require(Matrix)

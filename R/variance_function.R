@@ -15,10 +15,10 @@
 #' @param by An optional categorical vector (factor or character)
 #' when residuals calculation is to be conducted within by-groups 
 #' (see Details).
-#' @param collinearity.check A boolean (\code{TRUE} or \code{FALSE}) or 
-#' \code{NULL} indicating whether to perform a check for collinearity or 
-#' not (see Details).
 #' @param precalc A list of pre-calculated results (see Details).
+#' @param id A vector of identifiers of the units used in the calculation. Especially 
+#'   useful when \code{precalc} is used in order to assess whether the ordering of the
+#'   \code{y} data matrix matches the one used at the precalculation step.
 #'
 #' @details In the context of the \code{gustave} package, linear 
 #' regression residual calculation is solely used to take into account 
@@ -49,10 +49,6 @@
 #' Matrix::TsparseMatrix capabilities (especially when the matrix inverse is 
 #' pre-calculated).
 #' 
-#' If \code{collinearity.check} is \code{NULL}, a test for collinearity in the 
-#' independent variables (\code{x}) is conducted if and only if \code{det(t(x)
-#' \%*\% x) == 0}.
-#' 
 #'
 #' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
 #'   numerical matrix with same structure (regular base::matrix or
@@ -81,9 +77,6 @@
 #' rescal(y, precalc = precalc)
 #' identical(rescal(y, x), rescal(y, precalc = precalc))
 #'
-#' # Collinearity check
-#' rescal(y, cbind(x, x[, 1]), collinearity.check = TRUE)
-#'
 #' # Matrix::TsparseMatrix capability
 #' require(Matrix)
 #' X <- as(x, "TsparseMatrix")
@@ -99,34 +92,42 @@
 #'
 #' @export rescal
 
-rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, precalc = NULL){
+rescal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL){
 
+  # by <- NULL; w <- NULL
+  
   if(is.null(precalc)){
 
     if(is.null(w)) w <- rep(1, NROW(x))
 
     # Taking the by into account
-    if(!is.null(by)) x <- make_block(x, by)
+    x <- coerce_to_TsparseMatrix(x)
+    if(!is.null(by)) x <- detect_block(x, by) %||% make_block(x, by)
 
-    # Checking for collinearity
-    if(isTRUE(collinearity.check) || (is.null(collinearity.check) && det(t(x) %*% x) == 0)){
-      t <- as.vector(is.na(stats::lm(rep(1, NROW(x)) ~ . - 1, data = as.data.frame(as.matrix(x)))$coef))
-      if(any(t)) warn("Some variables in x where discarted due to collinearity.")
-      x <- x[, !t]
+    # Determine the inverse of the t(x) %*% x matrix while removing colinear variables
+    while(TRUE){
+      u <- crossprod(x,  Matrix::Diagonal(x = w) %*% x)
+      if(Matrix::rankMatrix(u, method = "qr") != NROW(u)){
+        is_colinear <- as.vector(is.na(stats::lm.fit(x = as.matrix(u), y = rep(1, NROW(u)))$coef))
+        if(any(is_colinear)) warn("Some variables in x were discarded due to collinearity.")
+        x <- x[, !is_colinear, drop = FALSE]
+      }else break
     }
-
-    # Matrix inversion
-    inv <- solve(t(x) %*% Matrix::Diagonal(x = w) %*% x)
+    inv <- solve(u)
 
   }else list2env(precalc, envir = environment())
 
-  if(is.null(y)){
-    return(list(x = x, w = w, inv = inv))
-  }else{
-    e <- y - x %*% ( inv  %*% (t(x) %*% Matrix::Diagonal(x = w) %*% y) )
-    if(class(e) != class(y)) e <- methods::as(e, class(y))
-    dimnames(e) <- dimnames(y)
-    return(e)
+  if(is.null(y)) return(list(x = x, w = w, inv = inv)) else {
+    class_y <- class(y)
+    dimnames_y <- dimnames(y)
+    y <- coerce_to_TsparseMatrix(y)
+    if(!is.null(precalc) && !is.null(id) && !is.null(rownames(y)) && !identical(as.character(id), rownames(y))) stop(
+      "The names of the data matrix (y argument) do not match the reference id (id argument)."
+    )
+    e <- y - x %*% ( inv  %*% crossprod(x,  Matrix::Diagonal(x = w) %*% y) )
+    if(class(e) != class_y) e <- methods::as(e, class_y)
+    dimnames(e) <- dimnames_y
+    e
   }
 
 }
@@ -183,10 +184,6 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 #'   pre-calculation whose results are stored in a list of pre-calculated data. 
 #'   \item if \code{y} not \code{NULL} and \code{precalc} not \code{NULL} :
 #'   calculation using the list of pre-calculated data. }
-#'   
-#'   If \code{collinearity.check} is \code{NULL}, a test for collinearity in the
-#'   independent variables (\code{x}) is conducted only if \code{det(t(x) \%*\%
-#'   x) == 0)}.
 #'   
 #'   \code{w} is a row weight used at the final summation step. It is useful
 #'   when \code{varDT} or \code{var_srs} are used on the second stage of a 
@@ -313,10 +310,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 #' @export
 
 varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NULL, id = NULL){
-  
-  # pik = 1 / ict_sample$w_sample; strata = ict_sample$division; x <- matrix(c(pik, pik), ncol = 2); w <- NULL; collinearity.check = NULL; precalc = NULL
-  # y = NULL; pik = pik; x = x_tmp; strata = strata
-  
+
   if(is.null(precalc)){
 
     if(any(pik <= 0 | pik > 1)) stop("All pik must be in ]0;1]")
@@ -348,7 +342,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
     while(TRUE){
       p <- as.vector(tapply(colby, colby, length)[rowby])
       ck <- (1 - pik) * n / pmax(n - p, 1)
-      u <- A %*% Matrix::Diagonal(x = ck) %*% t(A)
+      u <- tcrossprod(A %*% Matrix::Diagonal(x = ck), A)
       if(Matrix::rankMatrix(u, method = "qr") != NROW(u)){
         is_colinear <- as.vector(is.na(stats::lm.fit(x = as.matrix(u), y = rep(1, NROW(u)))$coef))
         if(any(is_colinear)) warn("Some variables in x were discarded due to collinearity.")
@@ -368,7 +362,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
     return(list(id = id, pik = pik, exh = exh, A = A, ck = ck, inv = inv, diago = diago))
   }else{
     y <- coerce_to_TsparseMatrix(y)
-    if(!is.null(precalc) && !is.null(id) && !identical(as.character(id), rownames(y))) stop(
+    if(!is.null(precalc) && !is.null(id) && !is.null(rownames(y)) && !identical(as.character(id), rownames(y))) stop(
       "The names of the data matrix (y argument) do not match the reference id (id argument)."
     )
     if(is.null(w)) w <- rep(1, length(pik))

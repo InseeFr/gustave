@@ -1,6 +1,26 @@
 
 context("variance_function")
 
+# rescal
+
+
+test_that("rescal works as expected", {
+  y <- ict_sample$employees
+  x <- ict_sample$turnover
+  expect_equal(rescal(y, x), unname(lm(y ~ x - 1)$residuals))
+  x <- make_block(x, ict_sample$division)
+  expect_equal(rescal(y, x), unname(lm(y ~ as.matrix(x) - 1)$residuals))
+  x <- x[, c(1:NCOL(x), 1)]
+  expect_warning(rescal(y, x), regexp = "Some variables in x were discarded due to collinearity.")
+  expect_equal(suppressWarnings(rescal(y, x)), unname(lm(y ~ as.matrix(x) - 1)$residuals))
+})
+
+
+
+
+
+# varDT and varSYG
+
 N <- 1000
 n <- 10
 pikl <- matrix(rep(n*(n - 1) / (N * (N - 1)), n^2), ncol = n)
@@ -26,7 +46,7 @@ test_that("varSYG and varDT yield the same results in the SRS case", {
 })
 
 
-# More detailed tests about varDT()
+# varDT()
 test_that("colinearity detection works", {
   pik <- 1 / ict_sample$w_sample
   strata <- ict_sample$division

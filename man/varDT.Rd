@@ -72,10 +72,6 @@ useful when \code{precalc} is used in order to assess whether the ordering of th
   \item if \code{y} not \code{NULL} and \code{precalc} not \code{NULL} :
   calculation using the list of pre-calculated data. }
   
-  If \code{collinearity.check} is \code{NULL}, a test for collinearity in the
-  independent variables (\code{x}) is conducted only if \code{det(t(x) \%*\%
-  x) == 0)}.
-  
   \code{w} is a row weight used at the final summation step. It is useful
   when \code{varDT} or \code{var_srs} are used on the second stage of a 
   two-stage sampling design applying the Rao (1975) formula.
