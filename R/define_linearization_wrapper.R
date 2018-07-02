@@ -144,6 +144,8 @@ define_linearization_wrapper <- function(linearization_function,
                                          display_function = standard_display
 ){
   
+  # TODO: Rebrand linearization_wrapper > statistic_wrapper
+
   # Step I: Control arguments consistency
   inconsistent_arg <- list(
     in_arg_type_not_in_linearization_function = setdiff(unlist(arg_type), names(formals(linearization_function))), 
@@ -193,7 +195,8 @@ define_linearization_wrapper <- function(linearization_function,
     )
     if(all(sapply(data_as_list[[1]]$data, is.null))) return(NULL)
     data_as_list[[1]]$metadata$row_number <- seq_along(data_as_list[[1]]$data[[1]])
-
+    # TODO: Allow standard evaluation (automatic detection)
+    
     # Step 3: Where 
     if(!is.null(call_list$where)){
       where <- as.logical(eval(call_list$where, data))
