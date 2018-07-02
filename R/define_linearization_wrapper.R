@@ -180,6 +180,17 @@ define_linearization_wrapper <- function(linearization_function,
     if(!("where" %in% names(call_list))) call_list$where <- substitute(where, execution_envir)
     call <- as.call(call_list)
     
+    # Try to think about standard evaluation
+    data <- eval(substitute(data), execution_envir)
+    if(!is.null(call_list$by)) call_list["by"] <- replace_variable_name_with_symbol(call_list["by"])
+    if(!is.null(call_list$where)) call_list["where"] <- replace_variable_name_with_symbol(call_list["where"])
+    data_arg <- replace_variable_name_with_symbol(call_list[arg_type$data], single = FALSE);
+    call_list <- lapply(seq_along(data_arg[[1]]), function(i){
+      call_list[names(data_arg)] <- lapply(data_arg, `[[`, i)
+      call_list
+    })
+    spy <<- call_list; stop()
+
     # Step 2: Initialize the metadata, data, weight and param slots
     call_display_arg <- c(1, which(names(call) %in% setdiff(names(formals(sys.function())), "...") & !sapply(call, is.null)))
     call_display <- paste(deparse(call[call_display_arg], width.cutoff = 500L), collapse = "")
