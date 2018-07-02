@@ -10,10 +10,10 @@ esa <- data.frame(lapply(haven::read_sas(
   data_file = paste(racine, "#archives/everest_180625/DONNEES/everest_esa_eap_2012.sas7bdat", sep = "/")
 ), as.vector), stringsAsFactors = FALSE)
 
-tmp <- block_matrix(esa$r310, by = esa$secteur_calage)
-colnames(tmp$y) <- paste0("r310_", tmp$bycol)
-tmp <- as.matrix(tmp$y)
-calvar <- colnames(tmp)
+tmp <- make_block(esa$r310, by = esa$secteur_calage)
+calvar <- paste0("r310_", attr(tmp, "colby"))
+tmp <- as.matrix(tmp)
+colnames(tmp) <- calvar
 esa <- cbind(esa, tmp)
 
 
@@ -23,7 +23,8 @@ system("git config --global user.email martin.chevalier@insee.fr")
 
 
 everest_esa <- everest(
-  data = esa, id = "siren", 
+  data = esa, 
+  id = "siren", 
   samp_weight = "poids_avt_calage", 
   strata = "strate",
   scope = "champ",
