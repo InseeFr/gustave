@@ -53,15 +53,15 @@ test_that("a variance wrapper can be manually defined on top of var_simple", {
 test_that("inconsitency detection works as expected", {
   expect_error(
     define_simple_wrapper(), 
-    regexp = "A data file"
+    regexp = "The following arguments are missing: data, id, samp_weight."
   )
   expect_error(
     define_simple_wrapper(data = blabla), 
-    regexp = "An identifier of the units must be provided"
+    regexp = "The following arguments are missing: id, samp_weight."
   )
   expect_error(
     define_simple_wrapper(data = blabla, id = "blabla"), 
-    regexp = "Sampling weights must be provided"
+    regexp = "The following arguments are missing: samp_weight."
   )
   expect_error(
     define_simple_wrapper(

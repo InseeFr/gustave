@@ -11,12 +11,11 @@ everest(data, ..., by = NULL, where = NULL, id = NULL, alpha = 0.05,
   display = TRUE, envir = parent.frame(), samp_weight, strata = NULL,
   scope_dummy = NULL, nrc_weight = NULL, resp_dummy = NULL,
   calib_weight = NULL, calib_dummy = NULL, calib_var = NULL,
-  force = FALSE, define = FALSE)
+  define = FALSE)
 
 define_simple_wrapper(data, id, samp_weight, strata = NULL,
   scope_dummy = NULL, nrc_weight = NULL, resp_dummy = NULL,
-  calib_weight = NULL, calib_dummy = NULL, calib_var = NULL,
-  force = FALSE)
+  calib_weight = NULL, calib_dummy = NULL, calib_var = NULL)
 }
 \arguments{
 \item{data}{The \code{data.frame} containing all the technical information
@@ -98,9 +97,6 @@ Character and factor variables are automatically discretized.
 \code{calib_var} should be defined as long as a \code{calib_weight} is 
 provided. All units taking part in the calibration process should have
 only non-missing values for all variables in \code{calib_var}.}
-
-\item{force}{Logical vector of lentgh 1. Should all errors be considered 
-as warnings? Use at your own risks.}
 
 \item{define}{Logical vector of lentgh 1. Should a variance wrapper
 be defined instead of performing a variance estimation?}

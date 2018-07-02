@@ -111,7 +111,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
     # Checking for collinearity
     if(isTRUE(collinearity.check) || (is.null(collinearity.check) && det(t(x) %*% x) == 0)){
       t <- as.vector(is.na(stats::lm(rep(1, NROW(x)) ~ . - 1, data = as.data.frame(as.matrix(x)))$coef))
-      if(any(t)) warning("Some variables in x where discarted due to collinearity.")
+      if(any(t)) warn("Some variables in x where discarted due to collinearity.")
       x <- x[, !t]
     }
 
@@ -322,9 +322,8 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
     if(any(pik <= 0 | pik > 1)) stop("All pik must be in ]0;1]")
     
     exh <- pik == 1
-    if(any(exh)) warning(
-      sum(exh), " units are exhaustive (pik = 1). They are discarded from the variance estimation process.", 
-      immediate. = TRUE, call. = FALSE
+    if(any(exh)) warn(
+      sum(exh), " units are exhaustive (pik = 1). They are discarded from the variance estimation process."
     )
     pik <- pik[!exh]
     
@@ -355,7 +354,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
       u <- A %*% Matrix::Diagonal(x = ck) %*% t(A)
       if(Matrix::rankMatrix(u, method = "qr", tol = 1e-20) != NROW(u)){
         is_colinear <- as.vector(is.na(stats::lm.fit(x = as.matrix(u), y = rep(1, NROW(u)))$coef))
-        if(any(is_colinear)) warning("Some variables in x were discarded due to collinearity.")
+        if(any(is_colinear)) warn("Some variables in x were discarded due to collinearity.")
         A <- A[!is_colinear, , drop = FALSE]
         colby <- colby[!is_colinear]
       }else break

@@ -177,7 +177,7 @@ add0 <- function(y, rownames, remove = TRUE){
   # if remove is TRUE
   if(remove){
     if(length(setdiff(rownames(y), rownames)))
-      warning("The name of some rows in y do not match any element in the rownames argument. These rows are removed from the result (use remove = FALSE to change this behaviour).")
+      warn("The name of some rows in y do not match any element in the rownames argument. These rows are removed from the result (use remove = FALSE to change this behaviour).")
     o <- rownames    
   }else o <- order(rownames(r))
   
@@ -231,6 +231,17 @@ assign_all <- function(objects, to, from = parent.frame(), not_closure = c(list(
   }
 }
 
+warn <- function(...) warning(..., call. = FALSE, immediate. = TRUE)
+
+is_linearization_wrapper <- function(x) inherits(x, "gustave_linearization_wrapper")
+
+names_else_NA <- function(x){
+  if(is.null(names(x))) rep(NA, length(x)) else{
+    tmp <- names(x)
+    tmp[tmp %in% ""] <- NA
+    tmp
+  }
+}
 
 coerce_to_Matrix <- function(y){
   if(is.null(dim(y))){
@@ -252,7 +263,6 @@ discretize_qualitative_var <- function(var, logical  = FALSE){
   result
 }
 
-
 get_through_parent_frame <- function(x){
   n <- 0
   found <- NULL
@@ -263,6 +273,27 @@ get_through_parent_frame <- function(x){
   found
 }
 
+is_variable_name <- function(param, max_length = 1)
+  is.character(param) && length(param) > 0 && length(param) <= max_length
+
+variable_not_in_data <- function(var, data){
+  if(is.null(var)) return(NULL)
+  tmp <- var[!(var %in% names(data))]
+  if(length(tmp) == 0) return(NULL)
+  tmp
+} 
+
+display_only_n_first <- function(x, 
+                                 n = 10, 
+                                 collapse = ", ", 
+                                 final_text = paste0(" and ", length(x) - n, " more")
+){
+  if(length(x) <= n){
+    paste(x, collapse = collapse)
+  }else{
+    paste0(paste(x[1:n], collapse = collapse), final_text)
+  }
+}
 
 # 
 # add_names_to_list <- function(l){

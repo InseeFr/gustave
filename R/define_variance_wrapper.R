@@ -228,8 +228,7 @@ define_variance_wrapper <- function(variance_function,
   )
   if(any(is_missing)) stop(
     "The following arguments are missing: ", 
-    paste(names(which(is_missing)), collapse = ", "), ".", 
-    call. = FALSE
+    paste(names(which(is_missing)), collapse = ", "), "."
   )
   
   # Determine argument type
@@ -289,20 +288,19 @@ define_variance_wrapper <- function(variance_function,
     # Step 1.3: Controls
     in_reference_id_not_in_id <- setdiff(reference_id, id)
     if(length(in_reference_id_not_in_id) > 0)
-      warning("Some observations from the survey appear to be missing. The variance estimation function may produce unexpected results.", immediate. = TRUE, call. = FALSE)
+      warn("Some observations from the survey appear to be missing. The variance estimation function may produce unexpected results.")
     in_id_not_in_reference_id <- setdiff(id, reference_id)
     if(length(in_id_not_in_reference_id) > 0){
-      warning(length(in_id_not_in_reference_id), " observations do not match any responding units of the survey. They are discarded.", immediate. = TRUE, call. = FALSE)
+      warn(length(in_id_not_in_reference_id), " observations do not match any responding units of the survey. They are discarded.")
       data <- data[id %in% reference_id, ]
       id <- id[id %in% reference_id]
     }
     if(!identical(match_id <- match(reference_id, id), seq_along(reference_id))){
-      warning(
+      warn(
         "The inputted id variable (id argument) appears not to match the reference ",
         "id variable provided when the variance wrapper was defined: it is reordered ",
         "and everything should be fine. Issues may nonetheless arise if part of the call ", 
-        "is to be evaluated outside of the inputted data.frame (data argument).", 
-        immediate. = TRUE, call. = FALSE
+        "is to be evaluated outside of the inputted data.frame (data argument)."
       )
       data <- data[match_id, ]  
     }
@@ -417,16 +415,4 @@ define_variance_wrapper <- function(variance_function,
 
   structure(variance_wrapper, class = c("function", "gustave_variance_wrapper"))
 
-}
-
-# Unexported (and undocumented) functions
-
-is_linearization_wrapper <- function(x) inherits(x, "gustave_linearization_wrapper")
-
-names_else_NA <- function(x){
-  if(is.null(names(x))) rep(NA, length(x)) else{
-    tmp <- names(x)
-    tmp[tmp %in% ""] <- NA
-    tmp
-  }
 }
