@@ -106,7 +106,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
     if(is.null(w)) w <- rep(1, NROW(x))
 
     # Taking the by into account
-    if(!is.null(by)) x <- block_matrix(x, by)$y
+    if(!is.null(by)) x <- block_matrix(x, by)
 
     # Checking for collinearity
     if(isTRUE(collinearity.check) || (is.null(collinearity.check) && det(t(x) %*% x) == 0)){
@@ -327,7 +327,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
     )
     pik <- pik[!exh]
     
-    x <-if(!is.null(x)) coerce_to_Matrix(x)[!exh, , drop = FALSE] else pik
+    x <-if(!is.null(x)) coerce_to_TsparseMatrix(x)[!exh, , drop = FALSE] else pik
 
     # Stratification
     # TODO: detect whether the x matrix is provided as already
@@ -336,10 +336,9 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
       strata <- droplevels(as.factor(strata[!exh]))
       if(any(tapply(strata, strata, length) == 1, na.rm = TRUE))
         stop("Some strata contain less than 2 samples units.")
-      tmp <- block_matrix(x, strata)
-      x <- tmp$y
-      colby <- as.character(tmp$bycol)
-      rowby <- as.character(tmp$byrow)
+      x <- block_matrix(x, strata)
+      colby <- attr(x, "colby")
+      rowby <- attr(x, "rowby")
     }else{
       colby <- rep("1", NCOL(x))
       rowby <- rep("1", NROW(x))
@@ -369,7 +368,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
     names(diago) <- names(pik)
     return(list(id = id, pik = pik, exh = exh, A = A, ck = ck, inv = inv, diago = diago))
   }else{
-    y <- coerce_to_Matrix(y)
+    y <- coerce_to_TsparseMatrix(y)
     if(!is.null(precalc) && !is.null(id) && !identical(as.character(id), rownames(y))) stop(
       "The names of the data matrix (y argument) do not match the reference id (id argument).",
       call. = FALSE

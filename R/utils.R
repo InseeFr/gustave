@@ -83,7 +83,7 @@ sumby <- function(y, by, w = NULL, na_rm = TRUE, keep_sparse = FALSE){
   
   # Matrix cross-product
   by <- as.factor(by)
-  x <- block_matrix(w, by)$y
+  x <- block_matrix(w, by)
   colnames(x) <- levels(by)
   r <- crossprod(x, y)
 
@@ -186,29 +186,58 @@ add0 <- function(y, rownames, remove = TRUE){
 }
 
 
+# TODO: Export and document block_matrix()
+block_matrix <- function(y, by){
+  
+  # Step 1: Prepare the by argument
+  by <- droplevels(as.factor(by))
+  H <- length(levels(by))
+  if(H == 1) return(y)
+  
+  # Step 2: Coerce y to a TsparseMatrix and remove NA values
+  res <- coerce_to_TsparseMatrix(y)
+  if(any(is.na(by))){
+    na <- is.na(res@j)
+    res@x <- res@x[!na]
+    res@i <- res@i[!na]
+    res@j <- res@j[!na]
+  }
+  
+  # Step 3: Adjust the y and Dim slots in order to obtain the block matrix
+  p <- NCOL(res)
+  res@j <- as.integer(((as.numeric(by) - 1) * p)[res@i + 1] + res@j)
+  res@Dim <- c(res@Dim[1], as.integer(res@Dim[2] * H))
+  
+  # Step 4: Export the result with relevant attributes
+  attr(res, "rowby") <- as.character(by)
+  attr(res, "colby") <- as.character(rep(levels(by), each = p))
+  res
+  
+}
 
 
 # Unexported (and undocumented) functions
 
-block_matrix <- function(y, by){
-  # TODO: remanufacture block_matrix (do not change y when length(levels(by)) == 1) and change output
-  # y <- as(Matrix(TRUE, ncol = 10, nrow = length(rowby)), "TsparseMatrix"); by <- rowby; p <- 2
-  # y <- x; by <- strata
-  byrow <- by
-  by <- as.factor(by)
-  H <- length(levels(by))
-  if(H == 1) return(list(y = y, byrow = rep(levels(by), NROW(y)), bycol = rep(levels(by), NCOL(y))))
-  p <- NCOL(y)
-  if(!methods::is(y,"TsparseMatrix")) y <- methods::as(if(p == 1) as.matrix(y) else y, "TsparseMatrix")
-  y@j <- as.integer(((as.numeric(by) - 1) * p)[y@i + 1] + y@j)
-  y@Dim <- c(y@Dim[1], as.integer(y@Dim[2] * H))
-  if(any(is.na(by))){na <- is.na(y@j); y@x <- y@x[!na]; y@i <- y@i[!na]; y@j <- y@j[!na]}
-  bycol <- rep(levels(by), each = p)
-  bycol <- if(is.factor(byrow)) as.factor(bycol) else methods::as(bycol, class(byrow))
-  list(y = y, byrow = byrow, bycol = bycol)
+coerce_to_TsparseMatrix <- function(y){
+  if(is.null(dim(y))){
+    Matrix::sparseMatrix(
+      x = unname(y), i = seq_along(y), j = rep(1, length(y)), 
+      giveCsparse = FALSE, dimnames = list(names(y), NULL)
+    )
+  }else if(!methods::is(y,"TsparseMatrix")){
+    dimnames_y <- dimnames(y)
+    tmp <- methods::as(y, "TsparseMatrix")
+    dimnames(tmp) <- dimnames_y
+    tmp
+  }else y
 }
-# TODO: export a matrix with rowby/colby attributes instead of a list, 
-# add an option for row/colnames creation (with a given separator)
+
+
+detect_block_matrix <- function(y, by){
+  
+  
+  
+}
 
 change_enclosing <- function(FUN, envir = environment(FUN)){
   eval(parse(text = deparse(FUN)), envir = envir)
@@ -243,14 +272,6 @@ names_else_NA <- function(x){
   }
 }
 
-coerce_to_Matrix <- function(y){
-  if(is.null(dim(y))){
-    names_y <- names(y)
-    Matrix(y, ncol = 1, dimnames = list(names_y, NULL))
-  }else if(!inherits(y, "Matrix")){
-    methods::as(y, "sparseMatrix")
-  }else y
-}
 
 discretize_qualitative_var <- function(var, logical  = FALSE){
   var <- droplevels(as.factor(var))

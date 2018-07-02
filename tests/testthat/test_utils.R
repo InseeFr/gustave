@@ -3,6 +3,46 @@
 context("utils")
 
 
+# coerce_to_TsparseMatrix
+test_that("coerce_to_TsparseMatrix works as expected", {
+  y <- setNames(1:10, letters[1:10])
+  M <- Matrix::sparseMatrix(
+    x = y, i = seq_along(y), j = rep(1, length(y)), 
+    giveCsparse = FALSE, dimnames = list(names(y), NULL)
+  )
+  expect_identical(coerce_to_TsparseMatrix(y), M)
+  m <- matrix(1:10, ncol = 2, dimnames = list(letters[1:5]))
+  M <- as(m, "TsparseMatrix")
+  dimnames(M) <- dimnames(m)
+  expect_identical(coerce_to_TsparseMatrix(m), M)
+  expect_identical(coerce_to_TsparseMatrix(M), M)
+})
+
+
+
+# block_matrix()
+test_that("block_matrix works as expected", {
+  pik <- setNames(1 / ict_sample$w_sample, ict_sample$firm_id)
+  strata <- ict_sample$division
+  expect_error(block_matrix(pik, strata), regexp = NA)
+  expect_equal(rownames(block_matrix(pik, strata)), names(pik))
+  expect_identical(
+    block_matrix(pik, strata), 
+    block_matrix(matrix(pik, ncol = 1, dimnames = list(names(pik), NULL)), strata)
+  )
+})
+
+
+# detect_block_matrix
+test_that("detect_block_matrix works as expected", {
+  skip("for later")
+  pik <- 1 / ict_sample$w_sample
+  strata <- ict_sample$division
+  y <- block_matrix(pik, strata)$y
+  detect_block_matrix(y, strata)
+})
+
+
 # sumby()
 
 set.seed(1)
@@ -127,15 +167,4 @@ test_that("NA values are handled correctly", {
   rm(ict_sample)
 })
 
-# coerce_to_Matrix
-test_that("coerce_to_Matrix works as expected", {
-  expect_identical(
-    coerce_to_Matrix(setNames(1:10, letters[1:10])),
-    Matrix(1:10, ncol = 1, dimnames = list(letters[1:10]))
-  )
-  m <- matrix(1:10, ncol = 2, dimnames = list(letters[1:5]))
-  M <- Matrix(1:10, ncol = 2, dimnames = list(letters[1:5]))
-  expect_identical(coerce_to_Matrix(m), as(M, "sparseMatrix"))
-  expect_identical(coerce_to_Matrix(M), M)
-})
 
