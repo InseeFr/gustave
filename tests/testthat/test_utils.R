@@ -20,26 +20,33 @@ test_that("coerce_to_TsparseMatrix works as expected", {
 
 
 
-# block_matrix()
-test_that("block_matrix works as expected", {
+# make_block()
+test_that("make_block works as expected", {
   pik <- setNames(1 / ict_sample$w_sample, ict_sample$firm_id)
   strata <- ict_sample$division
-  expect_error(block_matrix(pik, strata), regexp = NA)
-  expect_equal(rownames(block_matrix(pik, strata)), names(pik))
+  expect_error(make_block(pik, strata), regexp = NA)
+  expect_equal(rownames(make_block(pik, strata)), names(pik))
   expect_identical(
-    block_matrix(pik, strata), 
-    block_matrix(matrix(pik, ncol = 1, dimnames = list(names(pik), NULL)), strata)
+    make_block(pik, strata), 
+    make_block(matrix(pik, ncol = 1, dimnames = list(names(pik), NULL)), strata)
   )
 })
 
 
-# detect_block_matrix
-test_that("detect_block_matrix works as expected", {
-  skip("for later")
+# is_block_matrix
+test_that("detect_block works as expected", {
   pik <- 1 / ict_sample$w_sample
-  strata <- ict_sample$division
-  y <- block_matrix(pik, strata)$y
-  detect_block_matrix(y, strata)
+  by <- ict_sample$division
+  expect_null(detect_block(pik, by))
+  expect_null(detect_block(matrix(pik, ncol = 1), by))
+  y <- make_block(pik, by)
+  expect_identical(detect_block(y, by), y)
+  o <- sample.int(NROW(y))
+  y <- y[o, c(NCOL(y):1, 1)]
+  by <- by[o]
+  attr(y, "rowby") <- by
+  attr(y, "colby") <- c("63", "62", "61", "60", "59", "58", "58")
+  expect_identical(detect_block(y, by), y)
 })
 
 

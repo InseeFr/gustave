@@ -271,8 +271,7 @@ define_variance_wrapper <- function(variance_function,
     )
     if(any(is_missing)) stop(
       "The following arguments are missing: ", 
-      paste(names(which(is_missing)), collapse = ", "), ".", 
-      call. = FALSE
+      paste(names(which(is_missing)), collapse = ", "), "."
     )
     
     # Step 1.2 Evaluation 
@@ -329,7 +328,7 @@ define_variance_wrapper <- function(variance_function,
       })
 
     }), recursive = FALSE)
-    if(is.null(data_as_list)) stop("No variable to estimate variance on.", call. = FALSE)
+    if(is.null(data_as_list)) stop("No variable to estimate variance on.")
     
     # Step 3: Variance estimation
     

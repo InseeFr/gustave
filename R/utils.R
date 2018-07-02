@@ -83,7 +83,7 @@ sumby <- function(y, by, w = NULL, na_rm = TRUE, keep_sparse = FALSE){
   
   # Matrix cross-product
   by <- as.factor(by)
-  x <- block_matrix(w, by)
+  x <- make_block(w, by)
   colnames(x) <- levels(by)
   r <- crossprod(x, y)
 
@@ -186,8 +186,8 @@ add0 <- function(y, rownames, remove = TRUE){
 }
 
 
-# TODO: Export and document block_matrix()
-block_matrix <- function(y, by){
+# TODO: Export and document make_block()
+make_block <- function(y, by){
   
   # Step 1: Prepare the by argument
   by <- droplevels(as.factor(by))
@@ -218,26 +218,36 @@ block_matrix <- function(y, by){
 
 # Unexported (and undocumented) functions
 
+# From devtools (https://github.com/r-lib/devtools/blob/master/R/utils.r)
+"%||%" <- function(a, b) if (!is.null(a)) a else b
+
 coerce_to_TsparseMatrix <- function(y){
   if(is.null(dim(y))){
-    Matrix::sparseMatrix(
-      x = unname(y), i = seq_along(y), j = rep(1, length(y)), 
-      giveCsparse = FALSE, dimnames = list(names(y), NULL)
+    names_y <- names(y)
+    res <- Matrix::sparseMatrix(
+      x = unname(y), i = seq_along(y), j = rep(1, length(y)), giveCsparse = FALSE
     )
+    if(!is.null(names_y)) rownames(res) <- names_y
   }else if(!methods::is(y,"TsparseMatrix")){
     dimnames_y <- dimnames(y)
-    tmp <- methods::as(y, "TsparseMatrix")
-    dimnames(tmp) <- dimnames_y
-    tmp
-  }else y
+    res <- methods::as(y, "TsparseMatrix")
+    if(!is.null(dimnames_y)) dimnames(res) <- dimnames_y
+  }else res <- y
+  res
 }
 
-
-detect_block_matrix <- function(y, by){
-  
-  
-  
+detect_block <- function(y, by){
+  by <- droplevels(as.factor(by))
+  y_bool <- coerce_to_TsparseMatrix(y) != 0
+  by_bool <- make_block(rep(TRUE, NROW(y)), by)
+  prod <- crossprod(by_bool, y_bool)
+  prod_bool <- prod > 0
+  if(!all(colSums(prod_bool) <= 1)) return(NULL)
+  attr(y, "rowby") <- as.character(by)
+  attr(y, "colby") <- rep(levels(by), NCOL(prod_bool))[as.vector(prod_bool)]
+  y
 }
+
 
 change_enclosing <- function(FUN, envir = environment(FUN)){
   eval(parse(text = deparse(FUN)), envir = envir)

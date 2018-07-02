@@ -39,10 +39,9 @@ test_that("colinearity detection works", {
     suppressWarnings(varDT(y = NULL, pik = pik, x = matrix(rep(pik, 2), ncol = 2), strata = strata)),
     varDT(y = NULL, pik = pik, x = pik, strata = strata)
   )
-  skip("Not functional yet")
-  x_tmp <- block_matrix(matrix(rep(pik, 2), ncol = 2), strata)$y[, -c(2, 4)]
+  x_tmp <- make_block(matrix(rep(pik, 2), ncol = 2), strata)[, -c(2, 4)]
   expect_identical(
-    varDT(y = NULL, pik = pik, x = x_tmp),
+    suppressWarnings(varDT(y = NULL, pik = pik, x = x_tmp, strata = strata)),
     varDT(y = NULL, pik = pik, x = pik, strata = strata)
   )
 })

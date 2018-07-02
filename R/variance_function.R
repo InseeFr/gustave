@@ -106,7 +106,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
     if(is.null(w)) w <- rep(1, NROW(x))
 
     # Taking the by into account
-    if(!is.null(by)) x <- block_matrix(x, by)
+    if(!is.null(by)) x <- make_block(x, by)
 
     # Checking for collinearity
     if(isTRUE(collinearity.check) || (is.null(collinearity.check) && det(t(x) %*% x) == 0)){
@@ -315,7 +315,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NULL, id = NULL){
   
   # pik = 1 / ict_sample$w_sample; strata = ict_sample$division; x <- matrix(c(pik, pik), ncol = 2); w <- NULL; collinearity.check = NULL; precalc = NULL
-  # y = NULL; pik <- pik; strata <- strata; x <- x_tmp; w <- NULL; precalc = NULL; 
+  # y = NULL; pik = pik; x = x_tmp; strata = strata
   
   if(is.null(precalc)){
 
@@ -327,16 +327,14 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
     )
     pik <- pik[!exh]
     
-    x <-if(!is.null(x)) coerce_to_TsparseMatrix(x)[!exh, , drop = FALSE] else pik
+    x <- if(!is.null(x)) coerce_to_TsparseMatrix(x)[!exh, , drop = FALSE] else pik
 
     # Stratification
-    # TODO: detect whether the x matrix is provided as already
-    # splitted or not
     if(!is.null(strata)){
       strata <- droplevels(as.factor(strata[!exh]))
       if(any(tapply(strata, strata, length) == 1, na.rm = TRUE))
         stop("Some strata contain less than 2 samples units.")
-      x <- block_matrix(x, strata)
+      x <- detect_block(x, strata) %||% make_block(x, strata)
       colby <- attr(x, "colby")
       rowby <- attr(x, "rowby")
     }else{
@@ -351,7 +349,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
       p <- as.vector(tapply(colby, colby, length)[rowby])
       ck <- (1 - pik) * n / pmax(n - p, 1)
       u <- A %*% Matrix::Diagonal(x = ck) %*% t(A)
-      if(Matrix::rankMatrix(u, method = "qr", tol = 1e-20) != NROW(u)){
+      if(Matrix::rankMatrix(u, method = "qr") != NROW(u)){
         is_colinear <- as.vector(is.na(stats::lm.fit(x = as.matrix(u), y = rep(1, NROW(u)))$coef))
         if(any(is_colinear)) warn("Some variables in x were discarded due to collinearity.")
         A <- A[!is_colinear, , drop = FALSE]
@@ -366,12 +364,12 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
     # Diagonal term of the variance estimator
     diago <- ck * (1 - colSums(A * (inv %*% A)) * ck)/pik^2
     names(diago) <- names(pik)
+    if(!is.null(w)) stop("w is not to be included in the precalculated data.")
     return(list(id = id, pik = pik, exh = exh, A = A, ck = ck, inv = inv, diago = diago))
   }else{
     y <- coerce_to_TsparseMatrix(y)
     if(!is.null(precalc) && !is.null(id) && !identical(as.character(id), rownames(y))) stop(
-      "The names of the data matrix (y argument) do not match the reference id (id argument).",
-      call. = FALSE
+      "The names of the data matrix (y argument) do not match the reference id (id argument)."
     )
     if(is.null(w)) w <- rep(1, length(pik))
     z <- Diagonal(x = 1 / pik) %*% y[!exh, , drop = FALSE]
