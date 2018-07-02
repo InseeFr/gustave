@@ -251,7 +251,7 @@ define_simple_wrapper <- function(data, id,
   if(is.null(strata)) strata <- stats::setNames(factor(rep("1", length(id))), id)
   if(!is.null(strata)){
     if(is.character(strata)){
-      message("Note: The strata variable (", arg$strata, ") is of type character. It is automatically coerced to factor.\n")
+      note("The strata variable (", arg$strata, ") is of type character. It is automatically coerced to factor.\n")
       strata <- factor(strata)
     }
     if(!is.factor(strata))
@@ -263,7 +263,7 @@ define_simple_wrapper <- function(data, id,
   # scope_dummy
   if(is.null(scope_dummy)) scope_dummy <- rep(TRUE, length(id)) else{
     if(is.numeric(scope_dummy)){
-      message("Note: The scope dummy variable (", arg$scope_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
+      note("The scope dummy variable (", arg$scope_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
       scope_dummy <- as.logical(scope_dummy)
     }
     if(!is.logical(scope_dummy))
@@ -275,7 +275,7 @@ define_simple_wrapper <- function(data, id,
   # resp_dummy
   if(is.null(resp_dummy)) resp_dummy <- scope_dummy else{
     if(is.numeric(resp_dummy)){
-      message("Note: The response dummy variable (", arg$resp_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
+      note("The response dummy variable (", arg$resp_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
       resp_dummy <- as.logical(resp_dummy)
     }
     if(!is.logical(resp_dummy))
@@ -296,7 +296,7 @@ define_simple_wrapper <- function(data, id,
   if(is.null(calib_dummy) && !is.null(calib_weight)) calib_dummy <- resp_dummy
   if(!is.null(calib_dummy)){
     if(is.numeric(calib_dummy)){
-      message("Note: The dummy variable indicating the units used in the calibation process (", arg$calib_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
+      note("The dummy variable indicating the units used in the calibation process (", arg$calib_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
       calib_dummy <- as.logical(calib_dummy)
     }
     if(!is.logical(calib_dummy))
@@ -456,8 +456,8 @@ var_simple <- function(y, samp, nrc, calib){
   
   # Calibration    
   if(!is.null(calib)){
-    y[calib$id, ] <- 
-      rescal(y = y[calib$id, , drop = FALSE], precalc = calib$precalc)
+    y <- add0(y, calib$id, remove = FALSE)
+    y[calib$id, ] <- rescal(y = y[calib$id, ], precalc = calib$precalc)
   } 
 
   # Non-response

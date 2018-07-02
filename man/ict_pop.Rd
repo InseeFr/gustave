@@ -11,6 +11,7 @@ survey in the information and communication sector (NACE rev 2 J section)}
   \item{division}{identifier of the economic sub-sector}
   \item{employees}{number of employees}
   \item{turnover}{firm turnover, in thousand euros}
+  \item{strata}{stratification variable}
 }}
 \usage{
 ict_pop

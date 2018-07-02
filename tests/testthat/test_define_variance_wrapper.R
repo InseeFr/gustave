@@ -145,7 +145,7 @@ test_that("variance estimation is not affected by the sorting of the survey file
     variance_wrapper(ict_survey[NROW(ict_survey):1, ], turnover),
     regexp = "The inputted id variable \\(id argument\\) appears not to match"
   )
-  expect_identical(
+  expect_equal(
     variance_wrapper(ict_survey, turnover),
     suppressWarnings(variance_wrapper(ict_survey[NROW(ict_survey):1, ], turnover))
   )

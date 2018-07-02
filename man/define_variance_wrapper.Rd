@@ -127,12 +127,12 @@ variance_function_ict <- function(y, x, w, samp){
   y <- rescal(y, x = x, w = w)
   
   # Non-response
-  y <- add0(y, rownames = samp$firm_id)
+  y <- add0(y, rownames = samp$id)
   var_nr <- var_pois(y, pik = samp$response_prob_est, w = samp$w_sample)
   
   # Sampling
   y <- y / samp$response_prob_est
-  var_sampling <- var_srs(y, pik = 1 / samp$w_sample, strata = samp$division)
+  var_sampling <- var_srs(y, pik = 1 / samp$w_sample, strata = samp$strata)
   
   var_sampling + var_nr
   
@@ -151,7 +151,12 @@ technical_data_ict <- list(
   w = ict_survey$w_calib[order(ict_survey$firm_id)],
   
   # samp: sample file
-  samp = ict_sample
+  samp = list(
+    id = ict_sample$firm_id, 
+    w_sample = ict_sample$w_sample,
+    response_prob_est = ict_sample$w_sample / ict_sample$w_nrc,
+    strata = ict_sample$strata
+  )
   
 )
 

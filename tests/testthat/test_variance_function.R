@@ -11,7 +11,7 @@ test_that("rescal works as expected", {
   x <- make_block(x, ict_sample$division)
   expect_equal(rescal(y, x), unname(lm(y ~ as.matrix(x) - 1)$residuals))
   x <- x[, c(1:NCOL(x), 1)]
-  expect_warning(rescal(y, x), regexp = "Some variables in x were discarded due to collinearity.")
+  expect_message(rescal(y, x), regexp = "Some variables in x were discarded due to collinearity.")
   expect_equal(suppressWarnings(rescal(y, x)), unname(lm(y ~ as.matrix(x) - 1)$residuals))
 })
 
@@ -51,18 +51,18 @@ test_that("colinearity detection works", {
   pik <- 1 / ict_sample$w_sample
   strata <- ict_sample$division
   y <- ict_sample$turnover
-  expect_warning(
+  expect_message(
     varDT(y = NULL, pik = pik, x = matrix(rep(pik, 2), ncol = 2), strata = strata),
     regexp = "Some variables in x were discarded due to collinearity."
   )
   expect_identical(
     suppressWarnings(varDT(y = NULL, pik = pik, x = matrix(rep(pik, 2), ncol = 2), strata = strata)),
-    varDT(y = NULL, pik = pik, x = pik, strata = strata)
+    suppressWarnings(varDT(y = NULL, pik = pik, x = pik, strata = strata))
   )
   x_tmp <- make_block(matrix(rep(pik, 2), ncol = 2), strata)[, -c(2, 4)]
   expect_identical(
     suppressWarnings(varDT(y = NULL, pik = pik, x = x_tmp, strata = strata)),
-    varDT(y = NULL, pik = pik, x = pik, strata = strata)
+    suppressWarnings(varDT(y = NULL, pik = pik, x = pik, strata = strata))
   )
 })
 test_that("exhaustive units are handled correctly", {
@@ -70,13 +70,13 @@ test_that("exhaustive units are handled correctly", {
   strata <- ict_sample$division
   y <- ict_sample$turnover
   pik[1:10] <- 1
-  expect_warning(
+  expect_message(
     varDT(y = NULL, pik = pik, strata = strata),
     regexp = "units are exhaustive \\(pik = 1\\). They are discarded from the variance estimation process."
   )
   pik <- 1 / ict_sample$w_sample
   pik[strata == "62"] <- 1
-  expect_warning(
+  expect_message(
     varDT(y = NULL, pik = pik, strata = strata),
     regexp = "units are exhaustive \\(pik = 1\\). They are discarded from the variance estimation process."
   )
@@ -85,7 +85,7 @@ test_that("non-matching id raise an error", {
   id <- ict_sample$firm_id
   pik <- 1 / ict_sample$w_sample
   strata <- ict_sample$division
-  precalc <- varDT(y = NULL, pik = pik, strata = strata, id = id)
+  precalc <- suppressWarnings(varDT(y = NULL, pik = pik, strata = strata, id = id))
   y <- setNames(ict_sample$turnover, id)
   expect_error(varDT(y, precalc = precalc), regexp = NA)
   expect_error(

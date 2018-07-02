@@ -5,7 +5,9 @@ technical_data_ict <- list(
   samp = list(
     id = ict_sample$firm_id,
     exclude = rep(FALSE, NROW(ict_sample)),
-    precalc = var_srs(y = NULL, pik = 1 / ict_sample$w_sample, strata = ict_sample$division)
+    precalc = suppressWarnings(var_srs(
+      y = NULL, pik = 1 / ict_sample$w_sample, strata = ict_sample$strata
+    ))
   ),
   nrc = list(
     id = ict_sample$firm_id[ict_sample$resp],
@@ -16,10 +18,11 @@ technical_data_ict <- list(
     id = ict_sample$firm_id[ict_sample$calib],
     precalc = rescal(y = NULL, 
                      x = as.matrix(ict_sample[
-                       ict_survey$firm_id,
+                       ict_sample$calib,
                        c(paste0("N_", 58:63), paste0("turnover_", 58:63))
                        ]),
-                     w = ict_survey$w_calib[order(ict_survey$firm_id)]
+                     w = ict_sample$w_calib[ict_sample$calib],
+                     id = ict_sample$firm_id
     )
   )
 )
@@ -144,24 +147,24 @@ test_that("argument validity controls work as expected", {
     regexp = "data argument must refer to a data.frame"
   )
   expect_error(
-    define_simple_wrapper(
+    suppressWarnings(define_simple_wrapper(
       data = ict_sample, id = "firm_id", 
-      samp_weight = "w_sample", strata = "division"
-    ),
+      samp_weight = "w_sample", strata = "strata"
+    )),
     regexp = NA
   )
   expect_error(
-    define_simple_wrapper(
+    suppressWarnings(define_simple_wrapper(
       data = tibble::as.tibble(ict_sample), id = "firm_id", 
-      samp_weight = "w_sample", strata = "division"
-    ),
+      samp_weight = "w_sample", strata = "strata"
+    )),
     regexp = NA
   )
   expect_error(
-    define_simple_wrapper(
+    suppressWarnings(define_simple_wrapper(
       data = data.table::as.data.table(ict_sample), id = "firm_id",
-      samp_weight = "w_sample", strata = "division"
-    ),
+      samp_weight = "w_sample", strata = "strata"
+    )),
     regexp = NA
   )
   expect_error(
@@ -178,7 +181,7 @@ test_that("argument validity controls work as expected", {
   expect_error(
     define_simple_wrapper(
       data = ict_sample, id = "firm_id",
-      samp_weight = "w_sample", strata = "division",
+      samp_weight = "w_sample", strata = "strata",
       nrc_weight = "w_nrc", resp_dummy = "blabla"
     ),
     regexp = "Some variables do not exist in ict_sample: \n  - resp_dummy argument: blabla"
@@ -224,26 +227,26 @@ test_that("argument value controls work as expected", {
   rm(ict_sample)
 
   # strata
-  ict_sample$division <- as.numeric(ict_sample$division)
+  ict_sample$strata <- suppressWarnings(as.numeric(ict_sample$strata))
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id",
-      samp_weight = "w_sample", strata = "division"
+      samp_weight = "w_sample", strata = "strata"
     )
   }, regexp = " should be of type factor or character.")
   rm(ict_sample)
   expect_error({
-    define_simple_wrapper(
+    suppressWarnings(define_simple_wrapper(
       data = ict_sample, id = "firm_id",
-      samp_weight = "w_sample", strata = "division"
-    )
+      samp_weight = "w_sample", strata = "strata"
+    ))
   }, regexp = NA)
-  ict_sample$division[1] <- NA
+  ict_sample$strata[1] <- NA
   expect_error({
-    define_simple_wrapper(
+    suppressWarnings(define_simple_wrapper(
       data = ict_sample, id = "firm_id",
-      samp_weight = "w_sample", strata = "division"
-    )
+      samp_weight = "w_sample", strata = "strata"
+    ))
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
   
@@ -256,10 +259,10 @@ test_that("argument value controls work as expected", {
   }, regexp = "should be of type logical or numeric.")
   ict_sample$scope <- rep(TRUE, NROW(ict_sample))
   expect_error({
-    define_simple_wrapper(
+    suppressWarnings(define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      strata = "division", scope_dummy = "scope"
-    )
+      strata = "strata", scope_dummy = "scope"
+    ))
   }, regexp = NA)
   ict_sample$scope[1] <- NA
   expect_error({
@@ -278,10 +281,10 @@ test_that("argument value controls work as expected", {
     )
   }, regexp = "should be of type logical or numeric.")
   expect_error({
-    define_simple_wrapper(
+    suppressWarnings(define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      strata = "division", nrc_weight = "w_nrc", resp_dummy = "resp"
-    )
+      strata = "strata", nrc_weight = "w_nrc", resp_dummy = "resp"
+    ))
   }, regexp = NA)
   ict_sample$resp[1] <- NA
   expect_error({
@@ -311,10 +314,10 @@ test_that("argument value controls work as expected", {
   rm(ict_sample)
   ict_sample$w_nrc[match(FALSE, ict_sample$resp)] <- NA
   expect_error({
-    define_simple_wrapper(
+    suppressWarnings(define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      strata = "division", nrc_weight = "w_nrc", resp_dummy = "resp"
-    )
+      strata = "strata", nrc_weight = "w_nrc", resp_dummy = "resp"
+    ))
   }, regexp = NA)
   rm(ict_sample)
   
@@ -355,15 +358,15 @@ test_that("argument value controls work as expected", {
     )
   }, regexp = "should not contain any missing \\(NA\\) values for units used in the calibration process.")
   rm(ict_sample)
-  ict_sample$w_calib[match(FALSE, ict_sample$calib)] <- NA
-  expect_error({
-    define_simple_wrapper(
-      data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
-      strata = "division", nrc_weight = "w_nrc", resp_dummy = "resp",
-      calib_weight = "w_calib", calib_dummy = "calib", calib_var =  c("N_58", "N_59")
-    )
-  }, regexp = NA)
-  rm(ict_sample)
+  # ict_sample$w_calib[match(FALSE, ict_sample$calib)] <- NA
+  # expect_error({
+  #   define_simple_wrapper(
+  #     data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
+  #     strata = "strata", nrc_weight = "w_nrc", resp_dummy = "resp",
+  #     calib_weight = "w_calib", calib_dummy = "calib", calib_var =  c("N_58", "N_59")
+  #   )
+  # }, regexp = NA)
+  # rm(ict_sample)
   ict_sample$calib[match(TRUE, ict_sample$calib)] <- FALSE
   expect_error({
     define_simple_wrapper(
@@ -379,7 +382,7 @@ test_that("argument value controls work as expected", {
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id",
-      samp_weight = "w_sample", strata = "division",
+      samp_weight = "w_sample", strata = "strata",
       nrc_weight = "w_nrc", resp_dummy = "resp",
       calib_weight = "w_calib", calib_var =  "complex"
     )
@@ -389,19 +392,19 @@ test_that("argument value controls work as expected", {
   expect_error({
     define_simple_wrapper(
       data = ict_sample, id = "firm_id",
-      samp_weight = "w_sample", strata = "division",
+      samp_weight = "w_sample", strata = "strata",
       nrc_weight = "w_nrc", resp_dummy = "resp",
       calib_weight = "w_calib", calib_var =  c("N_58", "N_59")
     )
   }, regexp = "contain missing \\(NA\\) values for units used in the calibration process:")
   rm(ict_sample)
   expect_error({
-    variance_wrapper <- define_simple_wrapper(
+    variance_wrapper <- suppressWarnings(define_simple_wrapper(
       data = ict_sample, id = "firm_id",
-      samp_weight = "w_sample", strata = "division",
+      samp_weight = "w_sample", strata = "strata",
       nrc_weight = "w_nrc", resp_dummy = "resp",
       calib_weight = "w_calib", calib_var =  "division"
-    )
+    ))
     variance_wrapper(ict_survey, turnover)
   }, regexp = NA)
 
@@ -413,16 +416,16 @@ test_that("methodological validation works as expected", {
     ict_sample$scope[match(TRUE, ict_sample$resp)] <- FALSE
     variance_wrapper <- define_simple_wrapper(
       data = ict_sample, id = "firm_id", scope = "scope",
-      samp_weight = "w_sample", strata = "division",
+      samp_weight = "w_sample", strata = "strata",
       nrc_weight = "w_nrc", resp_dummy = "resp"
     )
     rm(ict_sample)
   }, regexp = "The following units are classified both")
   expect_warning({
-    ict_sample$division[1:26] <- letters
+    ict_sample$strata[1:26] <- letters
     variance_wrapper <- define_simple_wrapper(
       data = ict_sample, id = "firm_id",
-      samp_weight = "w_sample", strata = "division",
+      samp_weight = "w_sample", strata = "strata",
       nrc_weight = "w_nrc", resp_dummy = "resp",
       calib_weight = "w_calib", calib_var =  c("N_58", "N_59")
     )
@@ -433,7 +436,7 @@ test_that("methodological validation works as expected", {
     ict_sample$w_sample[1] <- ict_sample$w_sample[1] / 2
     variance_wrapper <- define_simple_wrapper(
       data = ict_sample, id = "firm_id",
-      samp_weight = "w_sample", strata = "division",
+      samp_weight = "w_sample", strata = "strata",
       nrc_weight = "w_nrc", resp_dummy = "resp",
       calib_weight = "w_calib", calib_var =  c("N_58", "N_59")
     )
@@ -447,27 +450,27 @@ test_that("methodological validation works as expected", {
 
 test_that("everest works", {
   expect_error(
-    everest(ict_sample, mean(turnover),
-            id = "firm_id", samp_weight = "w_sample", strata = "division",
+    suppressWarnings(everest(ict_sample, mean(turnover),
+            id = "firm_id", samp_weight = "w_sample", strata = "strata",
             nrc_weight = "w_nrc", resp_dummy = "resp",
             calib_weight = "w_calib", calib_var =  c("division", "turnover_58", "turnover_59")
-    ), 
+    )), 
     regexp= NA
   )
   expect_error({
-    everest_wrapper <- everest(ict_sample, define = TRUE,
-                               id = "firm_id", samp_weight = "w_sample", strata = "division",
+    everest_wrapper <- suppressWarnings(everest(ict_sample, define = TRUE,
+                               id = "firm_id", samp_weight = "w_sample", strata = "strata",
                                nrc_weight = "w_nrc", resp_dummy = "resp",
                                calib_weight = "w_calib", calib_var =  c("division", "turnover_58", "turnover_59")
-    )
+    ))
     everest_wrapper(ict_survey, mean(turnover))
   }, regexp= NA)
   expect_identical(
-    everest(ict_sample, mean(turnover),
-            id = "firm_id", samp_weight = "w_sample", strata = "division",
+    suppressWarnings(everest(ict_sample, mean(turnover),
+            id = "firm_id", samp_weight = "w_sample", strata = "strata",
             nrc_weight = "w_nrc", resp_dummy = "resp",
             calib_weight = "w_calib", calib_var =  c("division", "turnover_58", "turnover_59")
-    ), everest_wrapper(ict_survey, mean(turnover))
+    )), everest_wrapper(ict_survey, mean(turnover))
   )
 })
   

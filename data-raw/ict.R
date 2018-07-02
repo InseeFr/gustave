@@ -26,41 +26,61 @@ ict_pop <- do.call(rbind, lapply(division, function(d){
 }))
 ict_pop$firm_id <- paste0("X", formatC(1:NROW(ict_pop), flag = 0, width = ceiling(log10(NROW(ict_pop)))))
 ict_pop <- ict_pop[, c("firm_id", "division", "employees", "turnover")]
-pryr::object_size(ict_pop)
-sum(ict_pop$employees < 10)
-tapply(ict_pop$turnover, ict_pop$division, summary)
+ict_pop$strata <- ict_pop$division
+ict_pop$strata[ict_pop$employees >= 1000] <- "EXH"
+n_exh <- table(ict_pop$division[ict_pop$strata == "EXH"])
+n[names(n_exh)] <- n[names(n_exh)] - n_exh
+n <- c(n, EXH = sum(n_exh))
+N <- table(ict_pop$strata)
+ict_pop <- ict_pop[order(ict_pop$strata), ]
+tapply(ict_pop$turnover, ict_pop$strata, summary)
 
 # Sample
 id_sample <- sampling::strata(
   data = ict_pop,
-  stratanames = "division",
+  stratanames = "strata",
   size = n,
   method = "srswor"
 )$ID_unit
 ict_sample <- ict_pop[id_sample, ]
-ict_sample$w_sample <- unname((N / n)[ict_sample$division])
+table(ict_sample$strata)
+ict_sample$w_sample <- as.vector((N / n)[ict_sample$strata])
 
-  
-# Non-response generation and correction
+# scope
+ict_sample$scope <- (1 - pmax(15 - ict_sample$employees, 0)/60) >= rnorm(NROW(ict_sample))
+# Note: some units fall under the 10 employees threshold before the survey
+
+# Non-response generation
 ict_sample$response_prob <- pmax(0, pmin(1, 
   response_prob_div[ict_sample$division] + 
     response_prob_turnover * ict_sample$turnover + 
     rnorm(NROW(ict_sample), 0, 0.1)
 ))
-ict_sample$resp <- ict_sample$response_prob > runif(NROW(ict_sample))
+ict_sample$resp <- ict_sample$scope & ict_sample$response_prob > runif(NROW(ict_sample))
 ict_sample <- ict_sample[, setdiff(names(ict_sample), "response_prob")]
-ict_sample$hrg <- with(ict_sample, paste0(
-  division, "_", as.integer(cut(ict_sample$turnover, c(-Inf, quantile(ict_sample$turnover, c(0.2, 0.4, 0.6, 0.8)), Inf)))
-))
-table(ict_sample$resp, ict_sample$hrg)
-response_prob_est <- sapply(split(ict_sample, ict_sample$hrg), function(hrg) with(hrg, sum(w_sample * resp) / sum(w_sample)))
-ict_sample$response_prob_est <- response_prob_est[ict_sample$hrg]
-ict_sample$w_nrc <- ict_sample$w_sample / ict_sample$response_prob_est
 
+# Non-response correction
+# Note: The biggest firms (1,000 employees and 100M turnover or over)
+# are not reweighted
+ict_sample$no_reweighting <- with(ict_sample, employees >= 1000 & turnover >= 1e5)
+ict_sample$nrc <- ict_sample$scope & !ict_sample$no_reweighting
+ict_sample$hrg[ict_sample$nrc] <- with(ict_sample, paste0(
+  strata, "_", as.integer(cut(ict_sample$turnover, c(-Inf, median(ict_sample$turnover), Inf)))
+))[ict_sample$nrc]
+table(ict_sample$resp, ict_sample$hrg)
+response_prob_est <- sapply(
+  split(ict_sample[ict_sample$nrc, ], ict_sample$hrg[ict_sample$nrc]), 
+  function(hrg) with(hrg, sum(w_sample * resp) / sum(w_sample))
+)
+ict_sample$response_prob_est[ict_sample$nrc] <- response_prob_est[ict_sample$hrg[ict_sample$nrc]]
+ict_sample$w_nrc <- with(ict_sample, ifelse(no_reweighting, w_sample, w_sample / ict_sample$response_prob_est))
 
 
 # Calibration
-ict_sample$calib <- ict_sample$resp
+ict_sample$calib <- !ict_sample$no_reweighting
+# Note: Out-of-scope units do participate in calibration
+
+# - calibration variables
 calib_var <- c(paste0("N_", division), paste0("turnover_", division))
 ict_sample$N_58 <- (ict_sample$division == "58") * 1
 ict_sample$N_59 <- (ict_sample$division == "59") * 1
@@ -74,17 +94,30 @@ ict_sample$turnover_60 <- ict_sample$N_60 * ict_sample$turnover
 ict_sample$turnover_61 <- ict_sample$N_61 * ict_sample$turnover
 ict_sample$turnover_62 <- ict_sample$N_62 * ict_sample$turnover
 ict_sample$turnover_63 <- ict_sample$N_63 * ict_sample$turnover
-ict_sample[!ict_sample$resp, calib_var] <- NA
-calib_total <- with(ict_pop, c(table(division), tapply(turnover, division, sum)))
+
+# - calibration margins (taking the non-reweighted units into account)
+calib_N <- table(ict_pop$division)
+calib_N_no_reweighting <- table(ict_sample$division[ict_sample$no_reweighting])
+calib_N[names(calib_N_no_reweighting)] <- calib_N[names(calib_N_no_reweighting)] - calib_N_no_reweighting
+calib_turnover <- with(ict_pop, tapply(turnover, division, sum))
+calib_turnover_no_reweighting <-
+  with(subset(ict_sample, no_reweighting), tapply(turnover, division, sum))
+calib_turnover[names(calib_turnover_no_reweighting)] <- 
+  calib_turnover[names(calib_turnover_no_reweighting)] - calib_turnover_no_reweighting
+calib_total <- c(calib_N, calib_turnover)
 names(calib_total) <- calib_var
-ict_sample$w_calib[ict_sample$resp] <- 
-  ict_sample$w_nrc[ict_sample$resp] * sampling::calib(
-    Xs = ict_sample[ict_sample$resp, calib_var], 
-    d = ict_sample$w_nrc[ict_sample$resp],
+
+# - implement calibration
+ict_sample$w_nrc[ict_sample$calib & is.na(ict_sample$w_nrc)] <-
+  ict_sample$w_sample[ict_sample$calib & is.na(ict_sample$w_nrc)]
+ict_sample$w_calib[ict_sample$calib] <- 
+  ict_sample$w_nrc[ict_sample$calib] * sampling::calib(
+    Xs = ict_sample[ict_sample$calib, calib_var], 
+    d = ict_sample$w_nrc[ict_sample$calib],
     total = calib_total,
     method = "raking"
   )
-
+ict_sample$w_calib[!ict_sample$calib] <- ict_sample$w_sample[!ict_sample$calib]
 
 # Survey variables (without and with NA values)
 
@@ -114,6 +147,9 @@ ict_survey$big_data_NA[runif(NROW(ict_survey)) < big_data_NA_prob] <- NA
 rownames(ict_pop) <- ict_pop$firm_id
 rownames(ict_sample) <- ict_sample$firm_id
 rownames(ict_survey) <- ict_survey$firm_id
+ict_pop <- ict_pop[order(ict_pop$firm_id), ]
+ict_sample <- ict_sample[order(ict_sample$firm_id), ]
+ict_survey <- ict_survey[order(ict_survey$firm_id), ]
 save(ict_pop, file = "data/ict_pop.RData")
 save(ict_sample, file = "data/ict_sample.RData")
 save(ict_survey, file = "data/ict_survey.RData")

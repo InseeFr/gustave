@@ -91,7 +91,7 @@ sumby <- function(y, by, w = NULL, na_rm = TRUE, keep_sparse = FALSE){
   if(!is_sparse_y | !keep_sparse){
     r <- if(is_vector_y) stats::setNames(as.vector(r), rownames(r)) else as.matrix(r)
   }else{
-    if(is_vector_y) warning("sparseVector can't have names, hence the output won't have names.")
+    if(is_vector_y) warn("sparseVector can't have names, hence the output won't have names.")
     r <- methods::as(r, class_y)
   }
   if(is_data.frame_y) r <- as.data.frame(r)
@@ -271,6 +271,7 @@ assign_all <- function(objects, to, from = parent.frame(), not_closure = c(list(
 }
 
 warn <- function(...) warning(..., call. = FALSE, immediate. = TRUE)
+note <- function(...) message("Note: ", ...)
 
 is_linearization_wrapper <- function(x) inherits(x, "gustave_linearization_wrapper")
 
