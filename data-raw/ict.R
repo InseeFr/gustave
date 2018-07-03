@@ -62,7 +62,7 @@ ict_sample <- ict_sample[, setdiff(names(ict_sample), "response_prob")]
 # Non-response correction
 # Note: The biggest firms (1,000 employees and 100M turnover or over)
 # are not reweighted
-ict_sample$no_reweighting <- with(ict_sample, employees >= 1000 & turnover >= 1e5)
+ict_sample$no_reweighting <- with(ict_sample, resp & employees >= 1000 & turnover >= 1e5)
 ict_sample$nrc <- ict_sample$scope & !ict_sample$no_reweighting
 ict_sample$hrg[ict_sample$nrc] <- with(ict_sample, paste0(
   strata, "_", as.integer(cut(ict_sample$turnover, c(-Inf, median(ict_sample$turnover), Inf)))

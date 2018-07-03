@@ -94,6 +94,13 @@ test_that("inconsitency detection works as expected", {
       calib_weight = "blabla"
     ), regexp = "Some arguments are inconsistent:\n  - calibrated weights are provided"
   )
+  expect_error(
+    define_simple_wrapper(
+      data = ict_sample, id = "blabla", 
+      samp_weight = "blabla",
+      no_reweighting_dummy = "blabla"
+    ), regexp = "Some arguments are inconsistent:\n  - a variable indicating the units excluded from the reweighting process is provided"
+  )
 })
 
 test_that("welcome message works as expected", {
@@ -257,7 +264,6 @@ test_that("argument value controls work as expected", {
       scope_dummy = "division"
     )
   }, regexp = "should be of type logical or numeric.")
-  ict_sample$scope <- rep(TRUE, NROW(ict_sample))
   expect_error({
     suppressWarnings(define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
@@ -269,6 +275,33 @@ test_that("argument value controls work as expected", {
     define_simple_wrapper(
       data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
       scope_dummy = "scope"
+    )
+  }, regexp = "should not contain any missing \\(NA\\) values.")
+  rm(ict_sample)
+  
+  # no_reweighting_dummy
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
+      nrc_weight = "w_nrc", resp_dummy = "resp",
+      scope_dummy = "scope", no_reweighting_dummy = "division"
+    )
+  }, regexp = "should be of type logical or numeric.")
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", 
+      samp_weight = "w_sample", strata = "strata",
+      scope_dummy = "scope", nrc_weight = "w_nrc", 
+      resp_dummy = "resp", no_reweighting_dummy = "no_reweighting"
+    )
+  }, regexp = NA)
+  ict_sample$no_reweighting[1] <- NA
+  expect_error({
+    define_simple_wrapper(
+      data = ict_sample, id = "firm_id", 
+      samp_weight = "w_sample", strata = "strata",
+      scope_dummy = "scope", nrc_weight = "w_nrc", 
+      resp_dummy = "resp", no_reweighting_dummy = "no_reweighting"
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -319,6 +352,15 @@ test_that("argument value controls work as expected", {
       strata = "strata", nrc_weight = "w_nrc", resp_dummy = "resp"
     ))
   }, regexp = NA)
+  rm(ict_sample)
+  ict_sample$w_nrc[match(TRUE, ict_sample$no_reweighting)] <- 0
+  expect_error({
+    variance_wrappe <- define_simple_wrapper(
+      data = ict_sample, id = "firm_id", samp_weight = "w_sample", 
+      strata = "strata", nrc_weight = "w_nrc", resp_dummy = "resp",
+      scope_dummy = "scope", no_reweighting_dummy = "no_reweighting"
+    )
+  }, regexp = "For the not reweighted units, the weights after non-response correction")
   rm(ict_sample)
   
   # calib_dummy
@@ -412,7 +454,6 @@ test_that("argument value controls work as expected", {
 
 test_that("methodological validation works as expected", {
   expect_error({
-    ict_sample$scope <- rep(TRUE, NROW(ict_sample))
     ict_sample$scope[match(TRUE, ict_sample$resp)] <- FALSE
     variance_wrapper <- define_simple_wrapper(
       data = ict_sample, id = "firm_id", scope = "scope",
@@ -420,7 +461,19 @@ test_that("methodological validation works as expected", {
       nrc_weight = "w_nrc", resp_dummy = "resp"
     )
     rm(ict_sample)
-  }, regexp = "The following units are classified both")
+  }, regexp =  "the following units are classified both as out-of-scope units")
+  expect_error({
+    ict_sample$resp[match(TRUE, ict_sample$no_reweighting)] <- FALSE
+    ict_sample$scope[match(TRUE, ict_sample$no_reweighting)] <- FALSE
+    variance_wrapper <- define_simple_wrapper(
+      data = ict_sample, id = "firm_id", 
+      samp_weight = "w_sample", strata = "strata",
+      scope_dummy = "scope", nrc_weight = "w_nrc", 
+      resp_dummy = "resp", no_reweighting_dummy = "no_reweighting"
+    )
+    rm(ict_sample)
+  }, regexp =  "the following units are classified both as not reweighted units")
+  
   expect_warning({
     ict_sample$strata[1:26] <- letters
     variance_wrapper <- define_simple_wrapper(

@@ -9,13 +9,14 @@
 \usage{
 everest(data, ..., by = NULL, where = NULL, id = NULL, alpha = 0.05,
   display = TRUE, envir = parent.frame(), samp_weight, strata = NULL,
-  scope_dummy = NULL, nrc_weight = NULL, resp_dummy = NULL,
-  calib_weight = NULL, calib_dummy = NULL, calib_var = NULL,
-  define = FALSE)
+  scope_dummy = NULL, no_reweighting_dummy = NULL, nrc_weight = NULL,
+  resp_dummy = NULL, calib_weight = NULL, calib_dummy = NULL,
+  calib_var = NULL, define = FALSE)
 
 define_simple_wrapper(data, id, samp_weight, strata = NULL,
-  scope_dummy = NULL, nrc_weight = NULL, resp_dummy = NULL,
-  calib_weight = NULL, calib_dummy = NULL, calib_var = NULL)
+  scope_dummy = NULL, no_reweighting_dummy = NULL, nrc_weight = NULL,
+  resp_dummy = NULL, calib_weight = NULL, calib_dummy = NULL,
+  calib_var = NULL)
 }
 \arguments{
 \item{data}{The \code{data.frame} containing all the technical information
@@ -63,6 +64,12 @@ variable in \code{data} indicating whether the unit belongs to the
 scope of the survey or not. Numerical variables are coerced to logical.
 If defined, it should not contain any missing value. If \code{NULL},
 all units are supposed to be within the scope of the survey.}
+
+\item{no_reweighting_dummy}{A character vector of length 1, the name of
+the logical variable in \code{data} indicating whether the units
+did take part in the reweighting process (non-response correction, 
+calibration). Units not taking part in the reweighting process
+are often atypical units whose weight should not be inflated.}
 
 \item{nrc_weight}{A character vector of length 1, the name of the 
 numerical variable in \code{data} corresponding to the weights
