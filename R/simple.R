@@ -34,10 +34,18 @@
 #' @param id The identification variable of the units in \code{data}. 
 #'   It should be unique for each row in \code{data} and not contain any 
 #'   missing values.
+#' @param diss_dummy A character vector of length 1, the name
+#'   of the logical variable in \code{data} indicating whether the unit
+#'   does appear in the disseminated file and should be used for point
+#'   estimates.
+#' @param diss_weight A character vector of length 1, the name
+#'   of the numerical variable in \code{data} corresponding to the 
+#'   dissemination weight of the survey. It should not contain any missing 
+#'   (NA) values.
 #'
 #' @param samp_weight A character vector of length 1, the name of the 
 #'   numeric variable in \code{data} corresponding to the sampling weights 
-#'   of the survey. It should not contain any missing values.
+#'   of the survey. It should not contain any missing (NA) values.
 #' @param strata A character vector of length 1, the name of the factor 
 #'   variable in \code{data} whose level match the stratification
 #'   used in the survey. Character variables are coerced to factor.
@@ -51,12 +59,6 @@
 #'   If defined, it should not contain any missing value. If \code{NULL},
 #'   all units are supposed to be within the scope of the survey.
 #'
-#' @param no_reweighting_dummy A character vector of length 1, the name of
-#'   the logical variable in \code{data} indicating whether the units
-#'   did take part in the reweighting process (non-response correction, 
-#'   calibration). Units not taking part in the reweighting process
-#'   are often atypical units whose weight should not be inflated.
-#'
 #' @param nrc_weight A character vector of length 1, the name of the 
 #'   numerical variable in \code{data} corresponding to the weights
 #'   after non-response correction. If defined, all responding units 
@@ -69,6 +71,11 @@
 #'   unit or not. Numerical variables are coerced to logical. \code{resp_dummy}
 #'   should be defined as long as a \code{nrc_weight} is provided. All units 
 #'   in the scope of the survey should have a non-missing value.
+#' @param nrc_dummy A character vector of length 1, the name of
+#'   the logical variable in \code{data} indicating whether the
+#'   units did take part in the non-response correction process. 
+#'   All units in the scope of the survey should have a non-missing 
+#'   value. 
 #'
 #' @param calib_weight A character vector of length 1, the name of the 
 #'   numerical variable in \code{data} corresponding to the calibrated
@@ -99,11 +106,12 @@ NULL
 
 #' @rdname everest
 #' @export
-everest <- function(data, ..., by = NULL, where = NULL, id = NULL, 
+everest <- function(data, ..., by = NULL, where = NULL, 
                     alpha = 0.05, display = TRUE, envir = parent.frame(),
+                    id, diss_dummy, diss_weight,
                     samp_weight, strata = NULL,
-                    scope_dummy = NULL, no_reweighting_dummy = NULL,
-                    nrc_weight = NULL, resp_dummy = NULL,
+                    scope_dummy = NULL, 
+                    nrc_weight = NULL, resp_dummy = NULL, nrc_dummy = NULL,
                     calib_weight = NULL, calib_dummy = NULL, calib_var = NULL,
                     define = FALSE
 ){
@@ -128,10 +136,10 @@ everest <- function(data, ..., by = NULL, where = NULL, id = NULL,
 #' @rdname everest
 #' @export 
 
-define_simple_wrapper <- function(data, id,
+define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
                                   samp_weight, strata = NULL,
-                                  scope_dummy = NULL, no_reweighting_dummy = NULL,
-                                  nrc_weight = NULL, resp_dummy = NULL,
+                                  scope_dummy = NULL, 
+                                  nrc_weight = NULL, resp_dummy = NULL, nrc_dummy = NULL,
                                   calib_weight = NULL, calib_dummy = NULL, calib_var = NULL
 ){
   
@@ -141,6 +149,8 @@ define_simple_wrapper <- function(data, id,
   is_missing <- c(
     data = missing(data),
     id = missing(id),
+    diss_dummy = missing(diss_dummy),
+    diss_weight = missing(diss_weight),
     samp_weight = missing(samp_weight)
   )
   if(any(is_missing)) stop(
@@ -148,27 +158,23 @@ define_simple_wrapper <- function(data, id,
     paste(names(which(is_missing)), collapse = ", "), "."
   )
   inconsistency <- list(
-    nrc_weight_but_no_resp = !is.null(nrc_weight) && is.null(resp_dummy),
-    resp_but_no_nrc_weight = is.null(nrc_weight) && !is.null(resp_dummy),
+    nrc_weight_but_no_resp_dummy = !is.null(nrc_weight) && is.null(resp_dummy),
+    resp_or_nrc_dummy_but_no_nrc_weight = is.null(nrc_weight) && (!is.null(resp_dummy) || !is.null(nrc_dummy)),
     calib_weight_but_no_calib_var = !is.null(calib_weight) && is.null(calib_var),
-    calib_or_calib_var_but_no_calib_weight = is.null(calib_weight) && (!is.null(calib_dummy) || !is.null(calib_var)),
-    no_reweighting_dummy_but_no_nrc_weignt_nor_calib_weight = 
-      !is.null(no_reweighting_dummy) && is.null(nrc_weight) && is.null(calib_weight)
+    calib_or_calib_var_but_no_calib_weight = is.null(calib_weight) && (!is.null(calib_dummy) || !is.null(calib_var))
   )
   if(any(unlist(inconsistency))) stop(
     "Some arguments are inconsistent:", 
-    if(inconsistency$nrc_weight_but_no_resp) 
+    if(inconsistency$nrc_weight_but_no_resp_dummy) 
       "\n  - weights after non-response correction are provided (nrc_weight argument) but no variable indicating responding units (resp_dummy argument)" else "", 
-    if(inconsistency$resp_but_no_nrc_weight) 
-      "\n  - a variable indicating responding units is provided (resp_dummy argument) but no weights after non-response correction (nrc_weight argument)." else "" ,
+    if(inconsistency$resp_or_nrc_dummy_but_no_nrc_weight) 
+      "\n  - a variable indicating responding units and/or a variable indicating the units taking part in the non-response correction process are provided (resp_dummy and nrc_dummy argument) but no weights after non-response correction (nrc_weight argument)." else "" ,
     # TODO: better handle the case of a user who has no non-response but 
     # uses the resp_dummy argument with a logical variable with only TRUE values.
     if(inconsistency$calib_weight_but_no_calib_var) 
       "\n  - calibrated weights are provided (calib_weight argument) but no calibration variables (calib_var argument)" else "" ,
     if(inconsistency$calib_or_calib_var_but_no_calib_weight) 
-      "\n  - a variable indicating the units taking part in a calibration process and/or calibration variables are provided (calib_dummy and calib_var arguments) but no calibrated weights (calib_weight argument)" else "" ,
-    if(inconsistency$no_reweighting_dummy_but_no_nrc_weignt_nor_calib_weight) 
-      "\n  - a variable indicating the units excluded from the reweighting process is provided (no_reweighting_dummy argument) but no reweighting seems to have been implemented (nrc_weight and calib_weight dummy)" else "" 
+      "\n  - a variable indicating the units taking part in a calibration process and/or calibration variables are provided (calib_dummy and calib_var arguments) but no calibrated weights (calib_weight argument)" else ""
   )
 
   # Step 1.2: Welcome message
@@ -178,7 +184,6 @@ define_simple_wrapper <- function(data, id,
     if(!is.null(strata)) "\n  - stratified simple random sampling" else 
       "\n  - simple random sampling WITHOUT stratification",
     if(!is.null(scope_dummy)) "\n  - out-of-scope units" else "",
-    if(!is.null(no_reweighting_dummy)) "\n  - units excluded from the reweighting process" else "",
     if(!is.null(nrc_weight)) "\n  - non-response correction through reweighting" else "",
     if(!is.null(calib_weight)) "\n  - calibration on margins" else "",
     "\n"
@@ -192,8 +197,10 @@ define_simple_wrapper <- function(data, id,
 
   # Step 2.2: Expected types
   should_be_single_variable_name <- intersect(c(
-    "id", "samp_weight", "strata", "scope_dummy", "no_reweighting_dummy",
-    "nrc_weight", "resp_dummy", "calib_weight", "calib_dummy"
+    "id", "diss_dummy", "diss_weight",
+    "samp_weight", "strata", "scope_dummy", 
+    "nrc_weight", "resp_dummy", "nrc_dummy",
+    "calib_weight", "calib_dummy"
   ), names(arg))
   should_be_variable_name_vector <- intersect(c("calib_var"), names(arg))
   should_be_variable_name <- c(should_be_single_variable_name, should_be_variable_name_vector)
@@ -218,7 +225,6 @@ define_simple_wrapper <- function(data, id,
 
   # Step 2.3: variables in data
   is_not_in_data <- lapply(should_be_variable_name, function(param){
-    # param <- "id"
     tmp <- variable_not_in_data(var = arg[[param]], data = data)
     if(is.null(tmp)) return(NULL)
     paste0("\n  - ", param, " argument: ", paste0(tmp, collapse = " "))
@@ -244,23 +250,36 @@ define_simple_wrapper <- function(data, id,
 
   
   # Step 3: Control arguments value ----
-  
-  # Note: some useful variable are created or normalized: 
-  # resp_dummy, calib_dummy (if !is.null(calib_weight)), reference_weight
 
   # id
   if(anyNA(id))
     stop("The id variable (", arg$id, ") should not contain any missing (NA) values.")
   if(any(duplicated(id)))
     stop("The id variable (", arg$id, ") should not contain any duplicated values.")
+
+  # diss_dummy
+  if(is.numeric(diss_dummy)){
+    note("The dissemination dummy variable (", arg$diss_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
+    diss_dummy <- as.logical(diss_dummy)
+  }
+  if(!is.logical(diss_dummy))
+    stop("The dissemination dummy variable (", arg$diss_dummy, ") should be of type logical or numeric.")
+  if(anyNA(diss_dummy))
+    stop("The dissemination dummy variable (", arg$diss_dummy, ") should not contain any missing (NA) values.")
+  
+  # diss_weight
+  if(!is.numeric(diss_weight))
+    stop("The dissemination weights (", arg$diss_weight, ") should be numeric.")
+  if(anyNA(diss_weight[diss_dummy])) stop(
+    "The dissemination weights (", arg$diss_weight, ") should not contain ", 
+    "any missing (NA) values for disseminated units (", arg$diss_dummy, ")."
+  )
   
   # samp_weight
   if(!is.numeric(samp_weight))
     stop("The sampling weights (", arg$samp_weight, ") should be numeric.")
   if(anyNA(samp_weight))
     stop("The sampling weights (", arg$samp_weight, ") should not contain any missing (NA) values.")
-  reference_weight <- samp_weight
-  reference_weight_name <- arg$samp_weight
 
   # strata
   if(is.null(strata)) strata <- stats::setNames(factor(rep("1", length(id))), id)
@@ -285,18 +304,11 @@ define_simple_wrapper <- function(data, id,
       stop("The scope dummy variable (", arg$scope_dummy, ") should be of type logical or numeric.")
     if(anyNA(scope_dummy))
       stop("The scope dummy variable (", arg$scope_dummy, ") should not contain any missing (NA) values.")
-  }
-  
-  # no_reweighting_dummy
-  if(is.null(no_reweighting_dummy)) no_reweighting_dummy <- rep(FALSE, length(id)) else{
-    if(is.numeric(no_reweighting_dummy)){
-      note("The no-reweighting dummy variable (", arg$no_reweighting_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
-      no_reweighting_dummy <- as.logical(no_reweighting_dummy)
-    }
-    if(!is.logical(no_reweighting_dummy))
-      stop("The no-reweighting dummy variable (", arg$no_reweighting_dummy, ") should be of type logical or numeric.")
-    if(anyNA(no_reweighting_dummy))
-      stop("The no-reweighting dummy variable (", arg$no_reweighting_dummy, ") should not contain any missing (NA) values.")
+    disseminated_out_of_scope <- id[diss_dummy & !scope_dummy]
+    if(length(disseminated_out_of_scope) > 0) stop(
+      "The following units are out-of-scope (", arg$scope_dummy, ") but nonetheless disseminated (",
+      arg$diss_dummy, "): ", display_only_n_first(disseminated_out_of_scope), "."
+    )
   }
   
   # resp_dummy
@@ -310,19 +322,31 @@ define_simple_wrapper <- function(data, id,
     if(anyNA(resp_dummy))
       stop("The response dummy variable (", arg$resp_dummy, ") should not contain any missing (NA) values.")
   }
-    
+  
+  # nrc_dummy
+  if(is.null(nrc_dummy)) nrc_dummy <- scope_dummy else{
+    if(is.numeric(nrc_dummy)){
+      note("The non-reponse correction dummy variable (", arg$nrc_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
+      nrc_dummy <- as.logical(nrc_dummy)
+    }
+    if(!is.logical(nrc_dummy))
+      stop("The non-reponse correction dummy variable (", arg$nrc_dummy, ") should be of type logical or numeric.")
+    if(anyNA(nrc_dummy))
+      stop("The non-reponse correction dummy variable (", arg$nrc_dummy, ") should not contain any missing (NA) values.")
+  }
+  
   # nrc_weight
   if(!is.null(nrc_weight)){
     if(!is.numeric(nrc_weight))
       stop("The weights after non-response correction (", arg$nrc_weight, ") should be numeric.")
-    if(anyNA(nrc_weight[resp_dummy %in% TRUE]))
-      stop("The weights after non-response correction (", arg$nrc_weight, ") should not contain any missing (NA) values for responding units.")
-    if(any((samp_weight != nrc_weight)[no_reweighting_dummy %in% TRUE])) stop(
-      "For the not reweighted units, the weights after non-response correction (", 
-      arg$nrc_weight, ") should exactly match the sampling weights (", arg$samp_weight, ")."
+    if(anyNA(nrc_weight[resp_dummy %in% TRUE & nrc_dummy %in% TRUE])) stop(
+      "The weights after non-response correction (", arg$nrc_weight, ") should not contain any missing (NA) values ",
+      "for responding units (", arg$resp_dummy, ") having taken part in the non-reponse correction process (", arg$nrc_dummy, ")."
     )
+    
   }
   
+
   # calib_dummy
   if(is.null(calib_dummy) && !is.null(calib_weight)) calib_dummy <- resp_dummy
   if(!is.null(calib_dummy)){
@@ -332,8 +356,8 @@ define_simple_wrapper <- function(data, id,
     }
     if(!is.logical(calib_dummy))
       stop("The dummy variable indicating the units used in the calibation process (", arg$calib_dummy, ") should be of type logical or numeric.")
-    if(anyNA(calib_dummy[resp_dummy %in% TRUE]))
-      stop("The dummy variable indicating the units used in the calibation process (", arg$calib_dummy, ") should not contain any missing (NA) values for responding units.")
+    if(anyNA(calib_dummy))
+      stop("The dummy variable indicating the units used in the calibation process (", arg$calib_dummy, ") should not contain any missing (NA) values.")
   }
 
   # calib_weight
@@ -342,14 +366,6 @@ define_simple_wrapper <- function(data, id,
       stop("The weights after calibration (", arg$calib_weight, ") should be numeric.")
     if(anyNA(calib_weight[calib_dummy %in% TRUE]))
       stop("The weights after calibration (", arg$calib_weight, ") should not contain any missing (NA) values for units used in the calibration process.")
-    if(is.null(nrc_weight) && any((samp_weight != calib_weight)[calib_dummy %in% FALSE])) stop(
-      "For the responding units not used in the calibration process, the weights after calibration (", 
-      arg$calib_weight, ") should exactly match the sampling weights (", arg$samp_weight, ")."
-    )else if(!is.null(nrc_weight) && any((nrc_weight != calib_weight)[resp_dummy %in% TRUE & calib_dummy %in% FALSE])) stop(
-      "For the responding units not used in the calibration process, the weights after calibration (", 
-      arg$calib_weight, ") should exactly match the weights after non-response correction (", arg$samp_weight, ")."
-    )
-    
   }
   
   # calib_var
@@ -378,8 +394,7 @@ define_simple_wrapper <- function(data, id,
 
   # Logical controls
   inconsistency <- list(
-    out_of_scope_and_responding = id[!scope_dummy & resp_dummy],
-    not_reweighted_and_not_responding = id[no_reweighting_dummy & !resp_dummy]
+    out_of_scope_and_responding = id[!scope_dummy & resp_dummy]
   )
   if(any(sapply(inconsistency, length) > 0)) stop(
     "Some arguments are inconsistent:", 
@@ -387,11 +402,6 @@ define_simple_wrapper <- function(data, id,
       "\n  - the following units are classified both as out-of-scope units (", 
       arg$scope_dummy, " variable) and as responding units (", arg$resp_dummy, 
       " variable): ", display_only_n_first(inconsistency$out_of_scope_and_responding), "."
-    ),
-    if(length(inconsistency$not_reweighted_and_not_responding) > 0) paste0(
-      "\n  - the following units are classified both as not reweighted units (", 
-      arg$no_reweighting_dummy, " variable) and as not responding units (", arg$resp_dummy, 
-      " variable): ", display_only_n_first(inconsistency$not_reweighted_and_not_responding), "."
     )
   )
 
@@ -459,17 +469,9 @@ define_simple_wrapper <- function(data, id,
   }else calib <- NULL
   
   # Reference id and reference weight
-  reference_id <- id[resp_dummy]
-  reference_weight <- if(!is.null(calib_weight)){
-    calib_weight[resp_dummy %in% TRUE]
-  }else if(!is.null(nrc_weight)){
-    nrc_weight[resp_dummy %in% TRUE]
-  }else samp_weight
+  reference_id <- id[diss_dummy]
+  reference_weight <- diss_weight[diss_dummy]
 
-  # TODO: Add non-reweighted units (units that did not take part
-  # in any reweighting but that are kept for the point estimates)
-  # Should they take part in the variance estimation (are they
-  # exhaustive or not ?)
   
   
   # Step 5: Define the variance wrapper ----

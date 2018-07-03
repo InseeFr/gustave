@@ -7,16 +7,16 @@
 \alias{define_simple_wrapper}
 \title{Perform a variance estimation in most common cases}
 \usage{
-everest(data, ..., by = NULL, where = NULL, id = NULL, alpha = 0.05,
-  display = TRUE, envir = parent.frame(), samp_weight, strata = NULL,
-  scope_dummy = NULL, no_reweighting_dummy = NULL, nrc_weight = NULL,
-  resp_dummy = NULL, calib_weight = NULL, calib_dummy = NULL,
-  calib_var = NULL, define = FALSE)
+everest(data, ..., by = NULL, where = NULL, alpha = 0.05,
+  display = TRUE, envir = parent.frame(), id, diss_dummy, diss_weight,
+  samp_weight, strata = NULL, scope_dummy = NULL, nrc_weight = NULL,
+  resp_dummy = NULL, nrc_dummy = NULL, calib_weight = NULL,
+  calib_dummy = NULL, calib_var = NULL, define = FALSE)
 
-define_simple_wrapper(data, id, samp_weight, strata = NULL,
-  scope_dummy = NULL, no_reweighting_dummy = NULL, nrc_weight = NULL,
-  resp_dummy = NULL, calib_weight = NULL, calib_dummy = NULL,
-  calib_var = NULL)
+define_simple_wrapper(data, id, diss_dummy, diss_weight, samp_weight,
+  strata = NULL, scope_dummy = NULL, nrc_weight = NULL,
+  resp_dummy = NULL, nrc_dummy = NULL, calib_weight = NULL,
+  calib_dummy = NULL, calib_var = NULL)
 }
 \arguments{
 \item{data}{The \code{data.frame} containing all the technical information
@@ -36,10 +36,6 @@ on which the variance estimation is performed.}
 \item{where}{A logical vector indicating a domain on which the variance 
 estimation is to be performed.}
 
-\item{id}{The identification variable of the units in \code{data}. 
-It should be unique for each row in \code{data} and not contain any 
-missing values.}
-
 \item{alpha}{A numeric vector of length 1 indicating the threshold
 for confidence interval derivation (\code{0.05} by default).}
 
@@ -48,9 +44,23 @@ the result of the estimation should be displayed or not.}
 
 \item{envir}{An environment containing a binding to \code{data}.}
 
+\item{id}{The identification variable of the units in \code{data}. 
+It should be unique for each row in \code{data} and not contain any 
+missing values.}
+
+\item{diss_dummy}{A character vector of length 1, the name
+of the logical variable in \code{data} indicating whether the unit
+does appear in the disseminated file and should be used for point
+estimates.}
+
+\item{diss_weight}{A character vector of length 1, the name
+of the numerical variable in \code{data} corresponding to the 
+dissemination weight of the survey. It should not contain any missing 
+(NA) values.}
+
 \item{samp_weight}{A character vector of length 1, the name of the 
 numeric variable in \code{data} corresponding to the sampling weights 
-of the survey. It should not contain any missing values.}
+of the survey. It should not contain any missing (NA) values.}
 
 \item{strata}{A character vector of length 1, the name of the factor 
 variable in \code{data} whose level match the stratification
@@ -65,12 +75,6 @@ scope of the survey or not. Numerical variables are coerced to logical.
 If defined, it should not contain any missing value. If \code{NULL},
 all units are supposed to be within the scope of the survey.}
 
-\item{no_reweighting_dummy}{A character vector of length 1, the name of
-the logical variable in \code{data} indicating whether the units
-did take part in the reweighting process (non-response correction, 
-calibration). Units not taking part in the reweighting process
-are often atypical units whose weight should not be inflated.}
-
 \item{nrc_weight}{A character vector of length 1, the name of the 
 numerical variable in \code{data} corresponding to the weights
 after non-response correction. If defined, all responding units 
@@ -84,6 +88,12 @@ variable in \code{data} indicating whether the unit is a responding
 unit or not. Numerical variables are coerced to logical. \code{resp_dummy}
 should be defined as long as a \code{nrc_weight} is provided. All units 
 in the scope of the survey should have a non-missing value.}
+
+\item{nrc_dummy}{A character vector of length 1, the name of
+the logical variable in \code{data} indicating whether the
+units did take part in the non-response correction process. 
+All units in the scope of the survey should have a non-missing 
+value.}
 
 \item{calib_weight}{A character vector of length 1, the name of the 
 numerical variable in \code{data} corresponding to the calibrated

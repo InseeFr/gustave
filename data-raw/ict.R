@@ -60,9 +60,10 @@ ict_sample$resp <- ict_sample$scope & ict_sample$response_prob > runif(NROW(ict_
 ict_sample <- ict_sample[, setdiff(names(ict_sample), "response_prob")]
 
 # Non-response correction
+ict_sample$no_reweighting <- with(ict_sample, scope & employees >= 1000 & turnover >= 1e5)
 # Note: The biggest firms (1,000 employees and 100M turnover or over)
-# are not reweighted
-ict_sample$no_reweighting <- with(ict_sample, resp & employees >= 1000 & turnover >= 1e5)
+# are not reweighted. When non-respondent, their value is corrected 
+# through imputation.
 ict_sample$nrc <- ict_sample$scope & !ict_sample$no_reweighting
 ict_sample$hrg[ict_sample$nrc] <- with(ict_sample, paste0(
   strata, "_", as.integer(cut(ict_sample$turnover, c(-Inf, median(ict_sample$turnover), Inf)))
@@ -121,7 +122,8 @@ ict_sample$w_calib[!ict_sample$calib] <- ict_sample$w_sample[!ict_sample$calib]
 
 # Survey variables (without and with NA values)
 
-ict_survey <- ict_sample[ict_sample$resp, c("firm_id", "division", "employees", "turnover", "w_calib")]
+ict_sample$dissemination <- ict_sample$resp | ict_sample$no_reweighting
+ict_survey <- ict_sample[ict_sample$dissemination, c("firm_id", "division", "employees", "turnover", "w_calib")]
 
 # - internet connection speed (qualitative polytomous variable)
 fiber_prob <- pmin(ict_survey$turnover / 5e4, 1)
