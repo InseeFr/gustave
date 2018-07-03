@@ -272,10 +272,7 @@ assign_all <- function(objects, to, from = parent.frame(), not_closure = c(list(
 
 replace_variable_name_with_symbol <- function(arg_list, envir, single = TRUE){
   tmp <- lapply(arg_list, function(a){
-    a <- tryCatch(
-      eval(a, envir = evaluation_envir), 
-      error = function(e) list(a)
-    )
+    a <- tryCatch(eval(a, envir = envir), error = function(e) list(a))
     if(is_variable_name(a, Inf)){
       if(single && !is_variable_name(a, 1)) 
         stop("Only single variable names are allowed for the by argument.")
@@ -289,9 +286,8 @@ replace_variable_name_with_symbol <- function(arg_list, envir, single = TRUE){
       stop("Some arguments have longer variable vectors than others.")
     tmp[tmp_length == 1] <- 
       lapply(tmp[tmp_length == 1], `[`, rep(1, max(tmp_length)))
-  }else
-    if(length(tmp) == 1) tmp <- unlist(tmp)
-    tmp
+  }else if(length(tmp) == 1) tmp[1] <- tmp[[1]]
+  tmp
 }
 
 warn <- function(...) warning(..., call. = FALSE, immediate. = TRUE)
