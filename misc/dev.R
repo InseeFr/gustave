@@ -8,7 +8,6 @@ variance_wrapper_ict <- define_simple_wrapper(
 )
 
 variance_wrapper_ict(ict_survey, speed_quanti, by = "strata")
-replace_variable_name_with_symbol(spy["by"], envir = globalenv())
 variance_wrapper_ict(ict_survey, speed_quanti, by = division)
 
 variance_wrapper_ict(ict_survey, mean(speed_quanti))

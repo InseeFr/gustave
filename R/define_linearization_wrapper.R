@@ -175,13 +175,11 @@ define_linearization_wrapper <- function(linearization_function,
     execution_envir <- get_through_parent_frame("execution_envir")
     evaluation_envir <- get("evaluation_envir", execution_envir)
     call <- match.call(expand.dots = TRUE)
-    call_list <- as.list(call)
-    if(!("by" %in% names(call_list))) call_list$by <- substitute(by, execution_envir)
-    if(!("where" %in% names(call_list))) call_list$where <- substitute(where, execution_envir)
-    call <- as.call(call_list)
-    
+    if(!("by" %in% names(call))) call$by <- substitute(by, execution_envir)
+    if(!("where" %in% names(call))) call$where <- substitute(where, execution_envir)
+
     # Try to think about standard evaluation
-    data <- eval(substitute(data), execution_envir)
+    call_list <- as.list(call)
     if(!is.null(call_list$by)) call_list["by"] <- 
       replace_variable_name_with_symbol(call_list["by"], envir = evaluation_envir)
     if(!is.null(call_list$where)) call_list["where"] <- 
@@ -195,6 +193,7 @@ define_linearization_wrapper <- function(linearization_function,
     spy <<- call_list; stop()
     
     # Step 2: Initialize the metadata, data, weight and param slots
+    data <- eval(substitute(data), execution_envir)
     call_display_arg <- c(1, which(names(call) %in% setdiff(names(formals(sys.function())), "...") & !sapply(call, is.null)))
     call_display <- paste(deparse(call[call_display_arg], width.cutoff = 500L), collapse = "")
     data <- eval(substitute(data), execution_envir)
