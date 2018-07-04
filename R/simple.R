@@ -259,7 +259,7 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
 
   # diss_dummy
   if(is.numeric(diss_dummy)){
-    note("The dissemination dummy variable (", arg$diss_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
+    note("The dissemination dummy variable (", arg$diss_dummy, ") is of type numeric. It is automatically coerced to logical.")
     diss_dummy <- as.logical(diss_dummy)
   }
   if(!is.logical(diss_dummy))
@@ -285,7 +285,7 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
   if(is.null(strata)) strata <- stats::setNames(factor(rep("1", length(id))), id)
   if(!is.null(strata)){
     if(is.character(strata)){
-      note("The strata variable (", arg$strata, ") is of type character. It is automatically coerced to factor.\n")
+      note("The strata variable (", arg$strata, ") is of type character. It is automatically coerced to factor.")
       strata <- factor(strata)
     }
     if(!is.factor(strata))
@@ -297,7 +297,7 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
   # scope_dummy
   if(is.null(scope_dummy)) scope_dummy <- rep(TRUE, length(id)) else{
     if(is.numeric(scope_dummy)){
-      note("The scope dummy variable (", arg$scope_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
+      note("The scope dummy variable (", arg$scope_dummy, ") is of type numeric. It is automatically coerced to logical.")
       scope_dummy <- as.logical(scope_dummy)
     }
     if(!is.logical(scope_dummy))
@@ -314,7 +314,7 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
   # resp_dummy
   if(is.null(resp_dummy)) resp_dummy <- scope_dummy else{
     if(is.numeric(resp_dummy)){
-      note("The response dummy variable (", arg$resp_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
+      note("The response dummy variable (", arg$resp_dummy, ") is of type numeric. It is automatically coerced to logical.")
       resp_dummy <- as.logical(resp_dummy)
     }
     if(!is.logical(resp_dummy))
@@ -326,7 +326,7 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
   # nrc_dummy
   if(is.null(nrc_dummy)) nrc_dummy <- scope_dummy else{
     if(is.numeric(nrc_dummy)){
-      note("The non-reponse correction dummy variable (", arg$nrc_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
+      note("The non-reponse correction dummy variable (", arg$nrc_dummy, ") is of type numeric. It is automatically coerced to logical.")
       nrc_dummy <- as.logical(nrc_dummy)
     }
     if(!is.logical(nrc_dummy))
@@ -351,7 +351,7 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
   if(is.null(calib_dummy) && !is.null(calib_weight)) calib_dummy <- resp_dummy
   if(!is.null(calib_dummy)){
     if(is.numeric(calib_dummy)){
-      note("The dummy variable indicating the units used in the calibation process (", arg$calib_dummy, ") is of type numeric. It is automatically coerced to logical.\n")
+      note("The dummy variable indicating the units used in the calibation process (", arg$calib_dummy, ") is of type numeric. It is automatically coerced to logical.")
       calib_dummy <- as.logical(calib_dummy)
     }
     if(!is.logical(calib_dummy))
@@ -377,7 +377,7 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
       "The following calibration variables are neither quantitative (numeric, logical) nor qualitative (factor, character): ",
       display_only_n_first(calib_var_pb_type), "."
     )
-    if(length(calib_var_quali) > 0) message(
+    if(length(calib_var_quali) > 0) note(
       "Note: The following calibration variables are qualitative (factor, character): ",
       display_only_n_first(calib_var_quali), ". They will be automatically discretized."
     )
@@ -418,8 +418,9 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
   }
   
   # Enforce equal probabilities in each stratum
+  samp_weight_equal <- samp_weight
   strata_with_unequal_samp_weight <- 
-    names(which(tapply(samp_weight[!samp_exclude], strata[!samp_exclude], stats::sd) > 1e-6))
+    names(which(tapply(samp_weight_equal[!samp_exclude], strata[!samp_exclude], stats::sd) > 1e-6))
   if(length(strata_with_unequal_samp_weight) > 0){
     # TODO: Enhance warning message when strata = NULL
     warn(
@@ -427,21 +428,34 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
       display_only_n_first(strata_with_unequal_samp_weight), ". ",
       "The mean weight per stratum is used instead."
     )
-    samp_weight[!samp_exclude] <- 
-      tapply(samp_weight, strata, base::mean)[as.character(strata[!samp_exclude])]
+    samp_weight_equal[!samp_exclude] <- 
+      tapply(samp_weight_equal, strata, base::mean)[as.character(strata[!samp_exclude])]
   }
+  
+  # Reference id and reference weight
+  guessed_weight <- samp_weight
+  if(!is.null(nrc_weight)) guessed_weight[resp_dummy & nrc_dummy] <- nrc_weight[resp_dummy & nrc_dummy]
+  if(!is.null(calib_weight)) guessed_weight[calib_dummy] <- calib_weight[calib_dummy] 
+  guessed_weight_not_matching_diss_weight <- id[diss_dummy & guessed_weight != diss_weight]
+  if(length(guessed_weight_not_matching_diss_weight)) stop(
+    "The following units have a disseminated weight (", arg$diss_weight, 
+    ") that does not match the one guessed from the survey description: ",
+    display_only_n_first(guessed_weight_not_matching_diss_weight), "."
+  )
+  reference_id <- id[diss_dummy]
+  reference_weight <- diss_weight[diss_dummy]
+  
+  
 
-
-  
-  
-  
   # Sampling
   samp <- list()
   samp$id <- id
   samp$exclude <- samp_exclude[samp$id]
-  samp$weight <- samp_weight[samp$id]
+  samp$weight <- samp_weight_equal[samp$id]
   samp$strata <- strata[samp$id]
-  samp$precalc <- with(samp, var_srs(y = NULL, pik = 1 / weight[!exclude], strata = strata[!exclude]))
+  samp$precalc <- suppressMessages(with(samp, var_srs(
+    y = NULL, pik = 1 / weight[!exclude], strata = strata[!exclude]
+  )))
   samp <- samp[c("id", "exclude", "precalc")]
 
   # Non-reponse
@@ -468,10 +482,6 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
     calib <- calib[c("id", "precalc")]
   }else calib <- NULL
   
-  # Reference id and reference weight
-  reference_id <- id[diss_dummy]
-  reference_weight <- diss_weight[diss_dummy]
-
   
   
   # Step 5: Define the variance wrapper ----
