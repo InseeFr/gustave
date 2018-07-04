@@ -7,17 +7,28 @@ variance_wrapper_ict <- define_simple_wrapper(
   calib_weight = "w_calib", calib_var =  c("division", "turnover_58", "turnover_59")
 )
 
-variance_wrapper_ict(ict_survey, speed_quanti, by = "strata")
+speed_quanti2 <- ict_survey$speed_quanti
+variance_wrapper_ict(ict_survey, mean(speed_quanti2))
+
+replace_variable_name_with_symbol(
+  spy["y"], envir = globalenv(), single = FALSE
+)
+
+variance_wrapper_ict(ict_survey, speed_quanti)
+variance_wrapper_ict(ict_survey, speed_quanti, by = "division")
 variance_wrapper_ict(ict_survey, speed_quanti, by = division)
 
-variance_wrapper_ict(ict_survey, mean(speed_quanti))
-speed_quanti2 <- ict_survey$speed_quanti
-variance_wrapper_ict(ict_survey, mean(speed_quant2))
-var <- c("speed_quanti", "speed_quali")
-variance_wrapper_ict(ict_survey, mean(var))
+
 num <- c("turnover", "employees")
 denom <- c("employees", "turnover")
-variance_wrapper_ict(ict_survey, ratio(num, denom))
+variance_wrapper_ict(ict_survey, ratio(num, denom), by = division)
+
+
+variance_wrapper_ict(ict_survey, total(speed_quanti))
+variance_wrapper_ict(ict_survey, mean(speed_quanti))
+
+var <- c("speed_quanti", "speed_quali")
+variance_wrapper_ict(ict_survey, mean(var))
 
 
 call_list, data, evaluation_envir
