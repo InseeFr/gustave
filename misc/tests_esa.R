@@ -24,7 +24,9 @@ system("git config --global user.email martin.chevalier@insee.fr")
 
 everest_esa <- everest(
   data = esa, 
-  id = "siren", 
+  id = "siren",
+  diss_dummy = "rep",
+  diss_weight = "poids_apres_calage",
   samp_weight = "poids_avt_calage", 
   strata = "strate",
   scope = "champ",
@@ -49,7 +51,7 @@ system.time(
   everest_esa(esa_rep, mean(r310))
 )
 system.time(
-  everest_esa(esa_rep, mean(r310), by = substr(ape_rep, 1, 2))  
+  everest_esa(esa_rep, mean(r310), by = substr(ape_rep, 1, 2))
 )
 
 

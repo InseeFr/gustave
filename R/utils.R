@@ -296,8 +296,8 @@ replace_variable_name_with_symbol <- function(arg_list, envir, single = TRUE){
   tmp
 }
 
-warn <- function(...) warning(..., call. = FALSE, immediate. = TRUE)
-note <- function(...) message("Note: ", ...)
+warn <- function(...) warning(..., "\n", call. = FALSE, immediate. = TRUE)
+note <- function(...) message("Note: ", ..., "\n")
 
 is_linearization_wrapper <- function(x) inherits(x, "gustave_linearization_wrapper")
 
