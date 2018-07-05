@@ -311,7 +311,8 @@ define_variance_wrapper <- function(variance_function,
 
     # Step 2: Handling domains, qualitative variables and linearization
     # TODO: POC for direct evaluation of ... (compatible with lapply())
-    # data_as_list <<- eval(substitute(...));
+    # linearization_wrapper_list <- as.list(substitute(list(...)))[-1];
+    # spy <<- lapply(linearization_wrapper_list, eval, envir = evaluation_envir); stop()
     linearization_wrapper_list <- eval(substitute(alist(...)))
     linearization_wrapper_label <- names_else_NA(linearization_wrapper_list)
     data_as_list <- unlist(lapply(seq_along(linearization_wrapper_list), function(i){
@@ -331,6 +332,8 @@ define_variance_wrapper <- function(variance_function,
       # with standard evaluation)
       
       # Add labels
+      # TODO: Have labels as list names and use them as metadata 
+      # in a subsequent step
       lapply(d, function(dd){
         dd$metadata$label <- linearization_wrapper_label[i]
         dd

@@ -45,7 +45,7 @@ with(technical_data_ict, variance_function_ict(y, samp = samp, x = x, w = w))
 
 # Step 2 : Definition of a variance wrapper
 
-variance_wrapper_ict <- define_variance_wrapper(
+variance_wrapper <- define_variance_wrapper(
   variance_function = variance_function_ict,
   reference_id = ict_survey$firm_id, 
   reference_weight = ict_survey$w_calib, 
@@ -53,20 +53,46 @@ variance_wrapper_ict <- define_variance_wrapper(
   technical_data = technical_data_ict
 )
 
+var <- c("speed_quanti", "speed_quali")
+variance_wrapper(
+  ict_survey, 
+  "blabla" = mean(speed_quanti), 
+  "blibli" = mean(speed_quali)
+  # not functional yet: "bloblo" = lapply(var, total)
+)
 
-tmp <- variance_wrapper_ict(ict_survey, "blabla" = speed_quanti, where = division == "59", display = FALSE)
-str(tmp[[1]])
+speed_quanti2 <- ict_survey$speed_quanti
+variance_wrapper(ict_survey, speed_quanti2)
+
+
+
+
+
+
+variance_wrapper_ict(ict_survey, speed_quanti, by = "division")
+variance_wrapper_ict(ict_survey, speed_quanti, by = division)
+
+
+num <- c("turnover", "employees")
+denom <- c("employees", "turnover")
+variance_wrapper_ict(ict_survey, ratio(num, denom), by = division)
+
+
+variance_wrapper_ict(ict_survey, total(speed_quanti))
+variance_wrapper_ict(ict_survey, mean(speed_quanti))
+
+var <- c("speed_quanti", "speed_quali")
+variance_wrapper_ict(ict_survey, mean(var))
+
+
 
 
 variance_wrapper_ict <- define_simple_wrapper(
   data = ict_sample, id = "firm_id",
-  samp_weight = "w_sample", strata = "division",
+  samp_weight = "w_sample", strata = "strata",
   nrc_weight = "w_nrc", resp = "resp",
   calib_weight = "w_calib", calib_var =  c("division", "turnover_58", "turnover_59")
 )
-
-variance_wrapper_ict(ict_survey, test = speed_quanti)
-
 
 everest(ict_sample, mean(turnover),
         id = "firm_id", samp_weight = "w_sample", strata = "division",

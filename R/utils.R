@@ -270,6 +270,32 @@ assign_all <- function(objects, to, from = parent.frame(), not_closure = c(list(
   }
 }
 
+is_error <- function(expr) 
+  inherits(try(expr, silent = TRUE), "try-error")
+
+# TODO: rewrite in order to take the case of variables
+# evaluated outside of data into account
+replace_variable_name_with_symbol <- function(arg_list, envir, single = TRUE){
+  tmp <- lapply(arg_list, function(a){
+    if(is_error(a_eval <- eval(a, envir = envir))){
+      a_out <- list(a)
+    }else if(is_variable_name(a_eval, Inf)){
+      if(single && !is_variable_name(a_eval, 1)) 
+        stop("Only single variable names are allowed for the by argument.")
+      a_out <- lapply(a_eval, as.symbol)
+    }else a_out <- list(a)
+    a_out
+  })
+  if(!single){
+    tmp_length <- sapply(tmp, length)
+    if(!all(tmp_length %in% c(1, max(tmp_length))))
+      stop("Some arguments have longer variable vectors than others.")
+    tmp[tmp_length == 1] <- 
+      lapply(tmp[tmp_length == 1], `[`, rep(1, max(tmp_length)))
+  }else if(length(tmp) == 1) tmp[1] <- tmp[[1]]
+  tmp
+}
+
 warn <- function(...) warning(..., "\n", call. = FALSE, immediate. = TRUE)
 note <- function(...) message("Note: ", ..., "\n")
 

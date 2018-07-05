@@ -167,70 +167,89 @@ define_linearization_wrapper <- function(linearization_function,
   
   # Step II: Create the linearization wrapper
   linearization_wrapper <- function(by = NULL, where = NULL){
-    
-    data_as_list <- list(list())
-    # TODO: use a  two dimensional list instead
 
-    # Step 1: Modify the call to add by and where
+    # Step 1: Rewrite the call to add by and where from the variance wrapper call
     execution_envir <- get_through_parent_frame("execution_envir")
     evaluation_envir <- get("evaluation_envir", execution_envir)
-    call <- match.call(expand.dots = TRUE)
-    call_list <- as.list(call)
+    call_list <- as.list(match.call(expand.dots = TRUE))
     if(!("by" %in% names(call_list))) call_list$by <- substitute(by, execution_envir)
     if(!("where" %in% names(call_list))) call_list$where <- substitute(where, execution_envir)
-    call <- as.call(call_list)
+
+    # Step 2: Rewrite the call to take standard evaluation into account
+    if(!is.null(call_list$by)) call_list["by"] <- 
+      replace_variable_name_with_symbol(call_list["by"], envir = evaluation_envir)
+    if(!is.null(call_list$where)) call_list["where"] <- 
+      replace_variable_name_with_symbol(call_list["where"], envir = evaluation_envir)
+    data_arg <- replace_variable_name_with_symbol(
+      call_list[arg_type$data], envir = evaluation_envir, single = FALSE
+    )
+    call_list <- lapply(seq_along(data_arg[[1]]), function(c){
+      call_list[names(data_arg)] <- lapply(data_arg, `[[`, c)
+      call_list
+    })
+    # spy <<- call_list; stop()
+
+    # Step 3: Initialize the call and metadata slot
+    data_as_list <- lapply(call_list, function(d) list(
+      call = as.call(d),
+      metadata = list(
+        call = paste(deparse(as.call(d), width.cutoff = 500L), collapse = ""),
+        by = NA, mod = NA
+      )
+    ))
     
-    # Step 2: Initialize the metadata, data, weight and param slots
-    call_display_arg <- c(1, which(names(call) %in% setdiff(names(formals(sys.function())), "...") & !sapply(call, is.null)))
-    call_display <- paste(deparse(call[call_display_arg], width.cutoff = 500L), collapse = "")
+    # Step 4: Evaluate the arguments and create the data, weight and param slots
     data <- eval(substitute(data), execution_envir)
-    data_as_list[[1]] <- list(
-      metadata = list(call = call_display, by = NA, mod = NA),
-      data = lapply(call_list[arg_type$data], eval, envir = data, enclos = evaluation_envir), 
-      weight = lapply(
+    data_as_list <- lapply(data_as_list, function(d){
+      d$data <- lapply(
+        as.list(d$call)[arg_type$data], 
+        eval, envir = data, enclos = evaluation_envir
+      )
+      d$weight <- lapply(
         stats::setNames(arg_type$weight, arg_type$weight),
         function(w) eval(substitute(reference_weight), envir = execution_envir)
-      ),
-      param = lapply(call_list[arg_type$param], eval, envir = evaluation_envir)
-    )
+      )
+      d$param <- lapply(
+        as.list(d$call)[arg_type$param], 
+        eval, envir = evaluation_envir
+      )
+      d$metadata$row_number <- seq_along(d$data[[1]])
+      d
+    })
     if(all(sapply(data_as_list[[1]]$data, is.null))) return(NULL)
-    data_as_list[[1]]$metadata$row_number <- seq_along(data_as_list[[1]]$data[[1]])
-    # TODO: Allow standard evaluation (automatic detection)
-    
-    # Step 3: Where 
-    if(!is.null(call_list$where)){
-      where <- as.logical(eval(call_list$where, data))
-      if(!any(where)) stop("where argument excludes all observations.")
-      data_as_list <- lapply(data_as_list, function(d){
-        d$metadata$row_number <- d$metadata$row_number[where]
-        d$data[arg_domain$data] <- lapply(d$data[arg_domain$data], `[`, where)
-        d$weight[arg_domain$weight] <- lapply(d$weight[arg_domain$weight], `[`, where)
-        d
-      })
-    }
 
-    # Step 4: By
-    if(!is.null(call_list$by)){
-      by <- droplevels(as.factor(eval(call_list$by, data)))
-      by_split <- split(seq_along(by), by)
-      data_as_list <- unlist(lapply(data_as_list, function(d){
-        tmp <- lapply(levels(by), function(by_group){
-          d_by <- d
-          in_by_group <- d_by$metadata$row_number %in% by_split[[by_group]]
-          if(!any(in_by_group)) return(NULL) 
-          d_by$metadata$by <- by_group
-          d_by$metadata$row_number <- d_by$metadata$row_number[in_by_group]
-          d_by$data[arg_domain$data] <- 
-            lapply(d_by$data[arg_domain$data], `[`, in_by_group)
-          d_by$weight[arg_domain$weight] <- 
-            lapply(d_by$weight[arg_domain$weight], `[`, in_by_group)
-          d_by
-        })
-        tmp[!sapply(tmp, is.null)]
-      }), recursive = FALSE)
-    }
+    # Step 5: Where 
+    data_as_list <- lapply(data_as_list, function(d){
+      if(is.null(d$call$where)) return(d)
+      where <- as.logical(eval(d$call$where, data))
+      if(!any(where)) stop("where argument excludes all observations.")
+      d$metadata$row_number <- d$metadata$row_number[where]
+      d$data[arg_domain$data] <- lapply(d$data[arg_domain$data], `[`, where)
+      d$weight[arg_domain$weight] <- lapply(d$weight[arg_domain$weight], `[`, where)
+      d
+    })
     
-    # Step 5: Handle factors and character variables in data
+    # Step 6: By
+    data_as_list <- unlist(lapply(data_as_list, function(d){
+      if(is.null(d$call$by)) return(list(d))
+      by <- droplevels(as.factor(eval(d$call$by, data)))
+      by_split <- split(seq_along(by), by)
+      tmp <- lapply(levels(by), function(by_group){
+        d_by <- d
+        in_by_group <- d_by$metadata$row_number %in% by_split[[by_group]]
+        if(!any(in_by_group)) return(NULL) 
+        d_by$metadata$by <- by_group
+        d_by$metadata$row_number <- d_by$metadata$row_number[in_by_group]
+        d_by$data[arg_domain$data] <- 
+          lapply(d_by$data[arg_domain$data], `[`, in_by_group)
+        d_by$weight[arg_domain$weight] <- 
+          lapply(d_by$weight[arg_domain$weight], `[`, in_by_group)
+        d_by
+      })
+      tmp[!sapply(tmp, is.null)]
+    }), recursive = FALSE)
+    
+    # Step 7: Handle factors and character variables in data
     data_as_list <- unlist(lapply(data_as_list, function(d){
       if(!any(sapply(d$data, function(var) is.character(var) || is.factor(var))))
         return(list(d))
@@ -244,10 +263,10 @@ define_linearization_wrapper <- function(linearization_function,
       })
     }), recursive = FALSE)
     
-    # Step 6: Call the linearization function
+    # Step 8: Call the linearization function
     data_as_list <- lapply(data_as_list, function(d){
       linearization_function_arg <- 
-        unlist(d[c("data", "weight", "param")], recursive = FALSE, use.names = FALSE)
+        unlist(unname(d[c("data", "weight", "param")]), recursive = FALSE)
       tmp <- do.call(linearization_function, linearization_function_arg)
       d$metadata <- c(d$metadata, tmp$metadata)
       d$linearization_function <- linearization_function
@@ -270,7 +289,7 @@ define_linearization_wrapper <- function(linearization_function,
 
   # Step III.2: Include objects in linearization_wrapper enclosing environment
   e <- new.env(parent = globalenv())
-  assign_all(objects = c("discretize_qualitative_var", "get_through_parent_frame"), to = e, from = asNamespace("gustave"))
+  assign_all(objects = c("discretize_qualitative_var", "get_through_parent_frame", "replace_variable_name_with_symbol", "is_error"), to = e, from = asNamespace("gustave"))
   assign_all(objects = c("linearization_function", "arg_type", "arg_domain", "display_function"), to = e, from = environment())
   linearization_wrapper <- change_enclosing(linearization_wrapper, envir = e)
   
