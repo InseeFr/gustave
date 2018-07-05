@@ -266,7 +266,7 @@ define_linearization_wrapper <- function(linearization_function,
     # Step 8: Call the linearization function
     data_as_list <- lapply(data_as_list, function(d){
       linearization_function_arg <- 
-        unlist(d[c("data", "weight", "param")], recursive = FALSE, use.names = FALSE)
+        unlist(unname(d[c("data", "weight", "param")]), recursive = FALSE)
       tmp <- do.call(linearization_function, linearization_function_arg)
       d$metadata <- c(d$metadata, tmp$metadata)
       d$linearization_function <- linearization_function
