@@ -38,20 +38,21 @@ everest_esa <- everest(
   define = TRUE
 )
 
-exclude <- (tapply(esa$strate, esa$strate, length) < 2)[esa$strate] | esa$poids_avt_calage == 0
-strata <- esa$strate[!exclude]
-pik <- (1 / esa$poids_avt_calage)[!exclude]
-pik <- tapply(pik, strata, base::mean)[strata]
-tmp <- var_srs(y = NULL, pik = pik, strata = strata)
-
 everest_esa(esa, mean(r310))
 
 esa_rep <- esa[esa$rep == 1, ]
+everest_esa(esa_rep, total("r003"))
+everest_esa(esa_rep, ratio("r217", "r216"))
+
+var <- c("r003", "r310")
+everest_esa(esa_rep, mean(var))
+
 system.time(
-  everest_esa(esa_rep, mean(r310))
+  everest_esa(esa_rep, mean("r310"))
 )
+var <- c("r310", "r240")
 system.time(
-  everest_esa(esa_rep, mean(r310), by = substr(ape_rep, 1, 2))
+  tmp <- everest_esa(esa_rep, mean(var), by = substr(ape_rep, 1, 2))
 )
 
 

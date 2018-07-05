@@ -187,7 +187,6 @@ define_linearization_wrapper <- function(linearization_function,
       call_list[names(data_arg)] <- lapply(data_arg, `[[`, c)
       call_list
     })
-    # spy <<- call_list; stop()
 
     # Step 3: Initialize the call and metadata slot
     data_as_list <- lapply(call_list, function(d) list(
@@ -262,7 +261,7 @@ define_linearization_wrapper <- function(linearization_function,
         d_mod
       })
     }), recursive = FALSE)
-    
+
     # Step 8: Call the linearization function
     data_as_list <- lapply(data_as_list, function(d){
       linearization_function_arg <- 
