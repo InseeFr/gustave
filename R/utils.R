@@ -273,8 +273,6 @@ assign_all <- function(objects, to, from = parent.frame(), not_closure = c(list(
 is_error <- function(expr) 
   inherits(try(expr, silent = TRUE), "try-error")
 
-# TODO: rewrite in order to take the case of variables
-# evaluated outside of data into account
 replace_variable_name_with_symbol <- function(arg_list, envir, single = TRUE){
   tmp <- lapply(arg_list, function(a){
     if(is_error(a_eval <- eval(a, envir = envir))){

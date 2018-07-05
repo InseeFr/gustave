@@ -49,7 +49,7 @@ test_that("common error messages do work", {
   expect_error(variance_wrapper(ict_survey), regexp = "The following arguments are missing: id.")
 })
 
-# TODO: add controls about technical_data and tchnical_param
+# TODO: add controls about technical_data and technical_param
 
 test_that("variance_wrapper can be defined in another function", {
   expect_error({

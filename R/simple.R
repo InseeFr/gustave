@@ -1,4 +1,8 @@
 
+# TODO: change everest name to gustave
+# TODO: do not export define_simple_wrapper
+
+
 
 #' Perform a variance estimation in most common cases
 #' 
