@@ -187,6 +187,7 @@ define_linearization_wrapper <- function(linearization_function,
       call_list[names(data_arg)] <- lapply(data_arg, `[[`, c)
       call_list
     })
+    # spy <<- call_list; stop()
 
     # Step 3: Initialize the call and metadata slot
     data_as_list <- lapply(call_list, function(d) list(
@@ -201,19 +202,22 @@ define_linearization_wrapper <- function(linearization_function,
     data <- eval(substitute(data), execution_envir)
     data_as_list <- lapply(data_as_list, function(d){
       d$data <- lapply(
-        d$call[arg_type$data], 
+        as.list(d$call)[arg_type$data], 
         eval, envir = data, enclos = evaluation_envir
       )
       d$weight <- lapply(
         stats::setNames(arg_type$weight, arg_type$weight),
         function(w) eval(substitute(reference_weight), envir = execution_envir)
       )
-      d$param <- lapply(d$call[arg_type$param], eval, envir = evaluation_envir)
+      d$param <- lapply(
+        as.list(d$call)[arg_type$param], 
+        eval, envir = evaluation_envir
+      )
       d$metadata$row_number <- seq_along(d$data[[1]])
       d
     })
     if(all(sapply(data_as_list[[1]]$data, is.null))) return(NULL)
-    
+
     # Step 5: Where 
     data_as_list <- lapply(data_as_list, function(d){
       if(is.null(d$call$where)) return(d)
@@ -285,7 +289,7 @@ define_linearization_wrapper <- function(linearization_function,
 
   # Step III.2: Include objects in linearization_wrapper enclosing environment
   e <- new.env(parent = globalenv())
-  assign_all(objects = c("discretize_qualitative_var", "get_through_parent_frame"), to = e, from = asNamespace("gustave"))
+  assign_all(objects = c("discretize_qualitative_var", "get_through_parent_frame", "replace_variable_name_with_symbol", "is_error"), to = e, from = asNamespace("gustave"))
   assign_all(objects = c("linearization_function", "arg_type", "arg_domain", "display_function"), to = e, from = environment())
   linearization_wrapper <- change_enclosing(linearization_wrapper, envir = e)
   

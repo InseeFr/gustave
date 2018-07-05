@@ -8,13 +8,13 @@ variance_wrapper_ict <- define_simple_wrapper(
 )
 
 speed_quanti2 <- ict_survey$speed_quanti
-variance_wrapper_ict(ict_survey, mean(speed_quanti2))
+variance_wrapper_ict(ict_survey, speed_quanti2)
 
-replace_variable_name_with_symbol(
-  spy["y"], envir = globalenv(), single = FALSE
-)
 
 variance_wrapper_ict(ict_survey, speed_quanti)
+
+
+
 variance_wrapper_ict(ict_survey, speed_quanti, by = "division")
 variance_wrapper_ict(ict_survey, speed_quanti, by = division)
 
@@ -31,7 +31,6 @@ var <- c("speed_quanti", "speed_quali")
 variance_wrapper_ict(ict_survey, mean(var))
 
 
-call_list, data, evaluation_envir
 
 everest(ict_sample, mean(turnover),
         id = "firm_id", samp_weight = "w_sample", strata = "division",

@@ -277,13 +277,14 @@ is_error <- function(expr)
 # evaluated outside of data into account
 replace_variable_name_with_symbol <- function(arg_list, envir, single = TRUE){
   tmp <- lapply(arg_list, function(a){
-    a <- tryCatch(eval(a, envir = envir), error = function(e) list(a))
-    if(is_variable_name(a, Inf)){
-      if(single && !is_variable_name(a, 1)) 
+    if(is_error(a_eval <- eval(a, envir = envir))){
+      a_out <- list(a)
+    }else if(is_variable_name(a_eval, Inf)){
+      if(single && !is_variable_name(a_eval, 1)) 
         stop("Only single variable names are allowed for the by argument.")
-      a <- lapply(a, as.symbol)
-    }
-    a
+      a_out <- lapply(a_eval, as.symbol)
+    }else a_out <- list(a)
+    a_out
   })
   if(!single){
     tmp_length <- sapply(tmp, length)
