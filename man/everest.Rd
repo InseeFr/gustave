@@ -2,13 +2,14 @@
 % Please edit documentation in R/everest.R
 \name{everest}
 \alias{everest}
-\title{Perform a variance estimation in most common cases}
+\title{Perform a variance estimation for one-stage stratified surveys 
+taking out-of-scope units, non-response and calibration into acount}
 \usage{
 everest(data, ..., by = NULL, where = NULL, alpha = 0.05,
-  display = TRUE, id, dissemination_dummy, dissemination_weight, samp_weight,
-  strata = NULL, scope_dummy = NULL, nrc_weight = NULL,
-  resp_dummy = NULL, nrc_dummy = NULL, calib_weight = NULL,
-  calib_dummy = NULL, calib_var = NULL, define = FALSE,
+  display = TRUE, id, dissemination_dummy, dissemination_weight,
+  sampling_weight, strata = NULL, scope_dummy = NULL, nrc_weight = NULL,
+  response_dummy = NULL, nrc_dummy = NULL, calibration_weight = NULL,
+  calibration_dummy = NULL, calibration_var = NULL, define = FALSE,
   envir = parent.frame())
 }
 \arguments{
@@ -49,7 +50,7 @@ of the numerical variable in \code{data} corresponding to the
 dissemination weight of the survey. It should not contain any missing 
 (NA) values.}
 
-\item{samp_weight}{A character vector of length 1, the name of the 
+\item{sampling_weight}{A character vector of length 1, the name of the 
 numeric variable in \code{data} corresponding to the sampling weights 
 of the survey. It should not contain any missing (NA) values.}
 
@@ -74,9 +75,9 @@ units are supposed to be responding and the variance estimation
 process does not include a second phase in order to take non-response
 into account.}
 
-\item{resp_dummy}{A character vector of length 1, the name of of the logical 
+\item{response_dummy}{A character vector of length 1, the name of of the logical 
 variable in \code{data} indicating whether the unit is a responding 
-unit or not. Numerical variables are coerced to logical. \code{resp_dummy}
+unit or not. Numerical variables are coerced to logical. \code{response_dummy}
 should be defined as long as a \code{nrc_weight} is provided. All units 
 in the scope of the survey should have a non-missing value.}
 
@@ -86,25 +87,25 @@ units did take part in the non-response correction process.
 All units in the scope of the survey should have a non-missing 
 value.}
 
-\item{calib_weight}{A character vector of length 1, the name of the 
+\item{calibration_weight}{A character vector of length 1, the name of the 
 numerical variable in \code{data} corresponding to the calibrated
 weights. If defined, all responding units (see above) should have 
 a non-missing value. If \code{NULL}, the variance estimation
 process does not take any calibration step into account.}
 
-\item{calib_dummy}{A character vector of length 1, the name of of the logical 
+\item{calibration_dummy}{A character vector of length 1, the name of of the logical 
 variable in \code{data} indicating whether the unit did take part
 in the calibration process or not. Numerical variables are coerced to 
 logical. If defined, all responding units should have a non-missing
 value. If \code{NULL}, calibration is supposed to have been performed
 on all responding units.}
 
-\item{calib_var}{A character vector, the name of the variable(s) used in
+\item{calibration_var}{A character vector, the name of the variable(s) used in
 the calibration process. Logical variables are coerced to numeric. 
 Character and factor variables are automatically discretized. 
-\code{calib_var} should be defined as long as a \code{calib_weight} is 
+\code{calibration_var} should be defined as long as a \code{calibration_weight} is 
 provided. All units taking part in the calibration process should have
-only non-missing values for all variables in \code{calib_var}.}
+only non-missing values for all variables in \code{calibration_var}.}
 
 \item{define}{Logical vector of lentgh 1. Should a variance wrapper
 be defined instead of performing a variance estimation?}
@@ -112,12 +113,34 @@ be defined instead of performing a variance estimation?}
 \item{envir}{An environment containing a binding to \code{data}.}
 }
 \description{
-\code{everest} is a ready-to-use function performing
-analytical variance estimation in most common cases, that is: 
-\itemize{\item (stratified) simple random sampling \item non-response
-correction (if any) through reweighting \item calibration (if any)}.
+\code{everest} is a function performing analytical 
+variance estimation in most common cases, that is: \itemize{\item stratified 
+simple random sampling \item correct handling of out-of-scope units \item 
+non-response correction (if any) through reweighting \item calibration (if any)}
 
 Used with \code{define = TRUE}, it defines a so-called variance wrapper, that 
 is a standalone ready-to-use function that can be applied to the survey dataset 
 without having to specify the methodological characteristics of the survey.
+}
+\details{
+\code{everest} aims at being a straightforward variance
+  estimation tool in the most common cases in social or business
+  surveys, that is a stratified simple random sampling with 
+  additional reweighting steps to correct non-response bias
+  or reduce variance through calibration.
+  
+  It performs not only tehnical but also methodological checks
+  in order to ensure that the variance estimation methodology 
+  do apply (e.g. equal probability of inclusion within strata, 
+  number of units per stratum). 
+  
+  When the sampling design or reweighting schemes are more complex,
+  a specific variance estimation wrapper may be defined using
+  the \code{\link{define_variance_wrapper}} function.
+  
+  "everest" strands for (in French) "Variance estimation
+  for stratified simple random sampling surveys with reweighting".
+}
+\seealso{
+\code{\link{define_variance_wrapper}} \code{\link{standard_statistic_wrapper}}
 }

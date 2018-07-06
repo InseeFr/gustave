@@ -12,7 +12,7 @@ technical_data_ict <- list(
   nrc = list(
     id = ict_sample$firm_id[ict_sample$resp],
     response_prob = ict_sample$response_prob_est[ict_sample$resp],
-    samp_weight = ict_sample$w_sample[ict_sample$resp]
+    sampling_weight = ict_sample$w_sample[ict_sample$resp]
   ),
   calib = list(
     id = ict_sample$firm_id[ict_sample$calib],
@@ -56,33 +56,33 @@ test_that("a variance wrapper can be manually defined on top of var_simple", {
 test_that("inconsitency detection works as expected", {
   expect_error(
     everest(), 
-    regexp = "The following arguments are missing: data, id, dissemination_dummy, dissemination_weight, samp_weight."
+    regexp = "The following arguments are missing: data, id, dissemination_dummy, dissemination_weight, sampling_weight."
   )
   expect_error(
     everest(
       data = blabla, id = "blabla", dissemination_dummy = "blabla", dissemination_weight = "blabla",
-      samp_weight = "blabla",
+      sampling_weight = "blabla",
       nrc_weight = "blabla"
     ), regexp = "weights after non-response"
   )
   expect_error(
     everest(
       data = ict_sample, id = "blabla", dissemination_dummy = "blabla", dissemination_weight = "blabla", 
-      samp_weight = "blabla",
-      calib_dummy = "blabla"
+      sampling_weight = "blabla",
+      calibration_dummy = "blabla"
     ), regexp = "a variable indicating the units taking part"
   )
   expect_error(
     everest(
       data = ict_sample, id = "blabla", dissemination_dummy = "blabla", dissemination_weight = "blabla",
-      samp_weight = "blabla",
-      calib_weight = "blabla"
+      sampling_weight = "blabla",
+      calibration_weight = "blabla"
     ), regexp = "calibrated weights are provided"
   )
   expect_error(
     everest(
       data = ict_sample, id = "blabla", dissemination_dummy = "blabla", dissemination_weight = "blabla",
-      samp_weight = "blabla",
+      sampling_weight = "blabla",
       nrc_dummy = "blabla"
     ), regexp = "a variable indicating responding units and/or a variable"
   )
@@ -94,26 +94,26 @@ test_that("welcome message works as expected", {
   expect_message(
     everest(
       data = blabla,
-      samp_weight = "blabla"
+      sampling_weight = "blabla"
     ), regexp = paste0(welcome, "\n  - simple random sampling WITHOUT stratification")
   )
   expect_message(
     everest(
       data = blabla,
-      samp_weight = "blabla", strata = "blabla"
+      sampling_weight = "blabla", strata = "blabla"
     ), regexp = tmp <- paste0(welcome, "\n  - stratified simple random sampling")
   )
   expect_message(
     everest(
       data = blabla,
-      samp_weight = "blabla", strata = "blabla",
+      sampling_weight = "blabla", strata = "blabla",
       scope_dummy = "blabla"
     ), regexp = tmp <- paste0(tmp, "\n  - out-of-scope units")
   )
   expect_message(
     everest(
       data = blabla,
-      samp_weight = "blabla", strata = "blabla",
+      sampling_weight = "blabla", strata = "blabla",
       scope_dummy = "blabla",
       nrc_weight = "blabla", resp = "blabla"
     ), regexp = tmp <- paste0(tmp, "\n  - non-response correction through reweighting")
@@ -121,10 +121,10 @@ test_that("welcome message works as expected", {
   expect_message(
     everest(
       data = blabla,
-      samp_weight = "blabla", strata = "blabla",
+      sampling_weight = "blabla", strata = "blabla",
       scope_dummy = "blabla",
       nrc_weight = "blabla", resp = "blabla",
-      calib_weight = "blabla", calib_var = "blabla"
+      calibration_weight = "blabla", calibration_var = "blabla"
     ), regexp = paste0(tmp, "\n  - calibration on margins")
   )
 })
@@ -134,7 +134,7 @@ test_that("argument validity controls work as expected", {
     everest(
       data = blabla, 
       id = "blabla", dissemination_dummy = "blabla", dissemination_weight = "blabla", 
-      samp_weight = "blabla"
+      sampling_weight = "blabla"
     ), 
     regexp = "obj"
   )
@@ -142,7 +142,7 @@ test_that("argument validity controls work as expected", {
     everest(
       data = matrix(1:10), 
       id = "blabla", dissemination_dummy = "blabla", dissemination_weight = "blabla",
-      samp_weight = "blabla"
+      sampling_weight = "blabla"
     ), 
     regexp = "data argument must refer to a data.frame"
   )
@@ -150,7 +150,7 @@ test_that("argument validity controls work as expected", {
     suppressWarnings(everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample", 
-      samp_weight = "w_sample", strata = "strata"
+      sampling_weight = "w_sample", strata = "strata"
     )),
     regexp = NA
   )
@@ -158,7 +158,7 @@ test_that("argument validity controls work as expected", {
     suppressWarnings(everest(
       data = tibble::as.tibble(ict_sample), 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample", 
-      samp_weight = "w_sample", strata = "strata"
+      sampling_weight = "w_sample", strata = "strata"
     )),
     regexp = NA
   )
@@ -166,7 +166,7 @@ test_that("argument validity controls work as expected", {
     suppressWarnings(everest(
       data = data.table::as.data.table(ict_sample), 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample", strata = "strata"
+      sampling_weight = "w_sample", strata = "strata"
     )),
     regexp = NA
   )
@@ -174,7 +174,7 @@ test_that("argument validity controls work as expected", {
     everest(
       data = ict_sample, 
       id = "blabla", dissemination_dummy = "dissemination", dissemination_weight = "w_calib", 
-      samp_weight = c("blabla", "bloblo")
+      sampling_weight = c("blabla", "bloblo")
     ),
     regexp = "The following arguments do not refer to a variable name"
   )
@@ -182,8 +182,8 @@ test_that("argument validity controls work as expected", {
     everest(
       data = ict_sample, 
       id = "blabla", dissemination_dummy = "dissemination", dissemination_weight = "w_calib", 
-      samp_weight = "blabla", 
-      calib_weight = "blabla", calib_var = 2
+      sampling_weight = "blabla", 
+      calibration_weight = "blabla", calibration_var = 2
     ), 
     regexp = "The following arguments do not refer to a vector of variable names"
   )
@@ -191,10 +191,10 @@ test_that("argument validity controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
-      samp_weight = "w_sample", strata = "strata",
-      nrc_weight = "w_nrc", resp_dummy = "blabla"
+      sampling_weight = "w_sample", strata = "strata",
+      nrc_weight = "w_nrc", response_dummy = "blabla"
     ),
-    regexp = "Some variables do not exist in ict_sample: \n  - resp_dummy argument: blabla"
+    regexp = "Some variables do not exist in ict_sample: \n  - response_dummy argument: blabla"
   )
 })
 
@@ -206,7 +206,7 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample"
+      sampling_weight = "w_sample"
     )
   }, regexp = "contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -215,7 +215,7 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample"
+      sampling_weight = "w_sample"
     )
   }, regexp = "contain any duplicated values.")
   rm(ict_sample)
@@ -225,14 +225,14 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "division", dissemination_weight = "w_sample",
-      samp_weight = "w_sample"
+      sampling_weight = "w_sample"
     )
   }, regexp = "should be of type logical or numeric.")
   expect_error({
     suppressWarnings(everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample"
+      sampling_weight = "w_sample"
     ))
   }, regexp = NA)
   ict_sample$dissemination[1] <- NA
@@ -240,7 +240,7 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample"
+      sampling_weight = "w_sample"
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -251,7 +251,7 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample"
+      sampling_weight = "w_sample"
     )
   }, regexp = "should be numeric.")
   rm(ict_sample)
@@ -260,19 +260,19 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample"
+      sampling_weight = "w_sample"
     )
   }, regexp = "contain any missing \\(NA\\) values.")
   rm(ict_sample)
   
 
-  # samp_weight
+  # sampling_weight
   ict_sample$w_sample <- as.character(ict_sample$w_sample)
   expect_error({
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample"
+      sampling_weight = "w_sample"
     )
   }, regexp = "should be numeric.")
   rm(ict_sample)
@@ -281,7 +281,7 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample"
+      sampling_weight = "w_sample"
     )
   }, regexp = "contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -292,7 +292,7 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample", strata = "strata"
+      sampling_weight = "w_sample", strata = "strata"
     )
   }, regexp = " should be of type factor or character.")
   rm(ict_sample)
@@ -300,7 +300,7 @@ test_that("argument value controls work as expected", {
     suppressWarnings(everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample", strata = "strata"
+      sampling_weight = "w_sample", strata = "strata"
     ))
   }, regexp = NA)
   ict_sample$strata[1] <- NA
@@ -308,7 +308,7 @@ test_that("argument value controls work as expected", {
     suppressWarnings(everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample", strata = "strata"
+      sampling_weight = "w_sample", strata = "strata"
     ))
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -318,7 +318,7 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "division"
     )
   }, regexp = "should be of type logical or numeric.")
@@ -326,7 +326,7 @@ test_that("argument value controls work as expected", {
     suppressWarnings(everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope"
     ))
   }, regexp = NA)
@@ -335,7 +335,7 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope"
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
@@ -345,9 +345,9 @@ test_that("argument value controls work as expected", {
     variance_wrapper <- everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
     )
   }, regexp =  "The following units are out-of-scope")
   rm(ict_sample)
@@ -357,18 +357,18 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "division"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "division"
     )
   }, regexp = "should be of type logical or numeric.")
   expect_error({
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
     )
   }, regexp = NA)
   ict_sample$nrc[1] <- NA
@@ -376,30 +376,30 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
   
-  # resp_dummy
+  # response_dummy
   expect_error({
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "division", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "division", nrc_dummy = "nrc"
     )
   }, regexp = "should be of type logical or numeric.")
   expect_error({
     suppressWarnings(everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
     ))
   }, regexp = NA)
   ict_sample$resp[1] <- NA
@@ -407,9 +407,9 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -420,9 +420,9 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
     )
   }, regexp = "should be numeric.")
   rm(ict_sample)
@@ -432,9 +432,9 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc2", resp_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc2", response_dummy = "resp", nrc_dummy = "nrc"
     )
   }, regexp = "should not contain any missing \\(NA\\) values for responding units.")
   rm(ict_sample)
@@ -443,22 +443,22 @@ test_that("argument value controls work as expected", {
     suppressWarnings(everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
     ))
   }, regexp = NA)
   rm(ict_sample)
   
-  # calib_dummy
+  # calibration_dummy
   expect_error({
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_calib",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc",
-      calib_weight = "w_calib", calib_dummy = "division", calib_var =  c("N_58", "N_59")
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      calibration_weight = "w_calib", calibration_dummy = "division", calibration_var =  c("N_58", "N_59")
     )
   }, regexp = "should be of type logical or numeric.")
   ict_sample$calib <- NA
@@ -466,38 +466,38 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_calib",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc",
-      calib_weight = "w_calib", calib_dummy = "calib", calib_var =  c("N_58", "N_59")
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      calibration_weight = "w_calib", calibration_dummy = "calib", calibration_var =  c("N_58", "N_59")
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
   
-  # calib_weight
+  # calibration_weight
   ict_sample$w_calib <- as.character(ict_sample$w_calib)
   expect_error({
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_calib",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc",
-      calib_weight = "w_calib", calib_dummy = "calib", calib_var =  c("N_58", "N_59")
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      calibration_weight = "w_calib", calibration_dummy = "calib", calibration_var =  c("N_58", "N_59")
     )
   }, regexp = "should be numeric.")
   rm(ict_sample)
 
-  # calib_var
+  # calibration_var
   ict_sample$complex <- complex(real = 1:NROW(ict_sample), imaginary = 1:NROW(ict_sample))
   expect_error({
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_calib",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc",
-      calib_weight = "w_calib", calib_var =  "complex"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      calibration_weight = "w_calib", calibration_var =  "complex"
     )
   }, regexp = "The following calibration variables are neither quantitative")
   rm(ict_sample)
@@ -506,10 +506,10 @@ test_that("argument value controls work as expected", {
     everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_calib",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc",
-      calib_weight = "w_calib", calib_var =  c("N_58", "N_59")
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      calibration_weight = "w_calib", calibration_var =  c("N_58", "N_59")
     )
   }, regexp = "contain missing \\(NA\\) values for units used in the calibration process:")
   rm(ict_sample)
@@ -517,10 +517,10 @@ test_that("argument value controls work as expected", {
     variance_wrapper <- suppressWarnings(everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_calib",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc",
-      calib_weight = "w_calib", calib_var =  "division"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      calibration_weight = "w_calib", calibration_var =  "division"
     ))
     variance_wrapper(ict_survey, turnover)
   }, regexp = NA)
@@ -533,10 +533,10 @@ test_that("methodological validation works as expected", {
     variance_wrapper <- everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc",
-      calib_weight = "w_calib", calib_var =  c("N_58", "N_59")
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      calibration_weight = "w_calib", calibration_var =  c("N_58", "N_59")
     )
     
   }, regexp =  "The following units have a disseminated weight")
@@ -547,9 +547,9 @@ test_that("methodological validation works as expected", {
     variance_wrapper <- everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_calib",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
     )
     
   }, regexp =  "the following units are classified both as out-of-scope units")
@@ -560,10 +560,10 @@ test_that("methodological validation works as expected", {
     variance_wrapper <- everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_calib",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc",
-      calib_weight = "w_calib", calib_var =  c("N_58", "N_59")
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      calibration_weight = "w_calib", calibration_var =  c("N_58", "N_59")
     )
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = "The following strata contain less than two sampled units.")
@@ -574,10 +574,10 @@ test_that("methodological validation works as expected", {
     variance_wrapper <- everest(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_calib",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc",
-      calib_weight = "w_calib", calib_var =  c("N_58", "N_59")
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      calibration_weight = "w_calib", calibration_var =  c("N_58", "N_59")
     )
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = "The following strata contain units whose sampling weights")
@@ -593,10 +593,10 @@ test_that("everest works", {
     everest(
       ict_sample, mean(turnover),
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_calib",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc",
-      calib_weight = "w_calib", calib_var =  c("division", "turnover_58", "turnover_59")
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      calibration_weight = "w_calib", calibration_var =  c("division", "turnover_58", "turnover_59")
     ), 
     regexp = NA
   )
@@ -604,10 +604,10 @@ test_that("everest works", {
     everest_wrapper <- suppressWarnings(everest(
       ict_sample, define = TRUE,
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_calib",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc",
-      calib_weight = "w_calib", calib_var =  c("division", "turnover_58", "turnover_59")
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      calibration_weight = "w_calib", calibration_var =  c("division", "turnover_58", "turnover_59")
     ))
     everest_wrapper(ict_survey, mean(turnover))
   }, regexp = NA)
@@ -615,10 +615,10 @@ test_that("everest works", {
     suppressWarnings(everest(
       ict_sample, mean(turnover),
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_calib",
-      samp_weight = "w_sample", strata = "strata", 
+      sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", resp_dummy = "resp", nrc_dummy = "nrc",
-      calib_weight = "w_calib", calib_var =  c("division", "turnover_58", "turnover_59")
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      calibration_weight = "w_calib", calibration_var =  c("division", "turnover_58", "turnover_59")
     )), 
     everest_wrapper(ict_survey, mean(turnover))
   )
