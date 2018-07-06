@@ -1,7 +1,4 @@
 
-# TODO: change everest name to gustave
-# TODO: do not export define_simple_wrapper
-
 
 
 #' Perform a variance estimation in most common cases
@@ -9,19 +6,18 @@
 #' @description \code{everest} is a ready-to-use function performing
 #' analytical variance estimation in most common cases, that is: 
 #' \itemize{\item (stratified) simple random sampling \item non-response
-#' correction (if any) through reweighting \item calibration (if any)}
+#' correction (if any) through reweighting \item calibration (if any)}.
 #' 
-#' \code{define_simple_wrapper} (or \code{everest} with \code{define = TRUE})
-#' defines a so-called variance wrapper, that is a standalone function that
-#' can be applied to the survey dataset in order to perform the variance estimation
+#' Used with \code{define = TRUE}, it defines a so-called variance wrapper, that 
+#' is a standalone ready-to-use function that can be applied to the survey dataset 
 #' without having to specify the methodological characteristics of the survey.
 #'
 #' @param data The \code{data.frame} containing all the technical information
 #'   required to prepare the variance estimation process (see other arguments 
 #'   below). Note that this file should contain all the units sampled, 
-#'   including the out-of-scope and non-responding units. For the \code{everest}
-#'   function, it should also contain the variables of interest (the variables
-#'   to perform the variance estimation on).
+#'   including the out-of-scope and non-responding units. If a variance
+#'   estimation is to be performed right away (when \code{define = FALSE}),
+#'   it should also contain the variables of interest.
 #' @param ... One or more calls to a statistic wrapper (e.g. \code{total()}, 
 #'   \code{mean()}, \code{ratio()}). See examples and 
 #'   \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}})
@@ -33,16 +29,15 @@
 #'   for confidence interval derivation (\code{0.05} by default).
 #' @param display A logical verctor of length 1 indicating whether
 #'   the result of the estimation should be displayed or not.
-#' @param envir An environment containing a binding to \code{data}.
 #'   
 #' @param id The identification variable of the units in \code{data}. 
 #'   It should be unique for each row in \code{data} and not contain any 
 #'   missing values.
-#' @param diss_dummy A character vector of length 1, the name
+#' @param dissemination_dummy A character vector of length 1, the name
 #'   of the logical variable in \code{data} indicating whether the unit
 #'   does appear in the disseminated file and should be used for point
 #'   estimates.
-#' @param diss_weight A character vector of length 1, the name
+#' @param dissemination_weight A character vector of length 1, the name
 #'   of the numerical variable in \code{data} corresponding to the 
 #'   dissemination weight of the survey. It should not contain any missing 
 #'   (NA) values.
@@ -101,50 +96,55 @@
 #' 
 #' @param define Logical vector of lentgh 1. Should a variance wrapper
 #'   be defined instead of performing a variance estimation?
+#' @param envir An environment containing a binding to \code{data}.
 #' 
-#' 
-#' @name everest
-#' @aliases everest define_simple_wrapper
-
-NULL
-
-#' @rdname everest
 #' @export
 everest <- function(data, ..., by = NULL, where = NULL, 
-                    alpha = 0.05, display = TRUE, envir = parent.frame(),
-                    id, diss_dummy, diss_weight,
+                    alpha = 0.05, display = TRUE, 
+                    id, dissemination_dummy, dissemination_weight,
                     samp_weight, strata = NULL,
                     scope_dummy = NULL, 
                     nrc_weight = NULL, resp_dummy = NULL, nrc_dummy = NULL,
                     calib_weight = NULL, calib_dummy = NULL, calib_var = NULL,
-                    define = FALSE
+                    define = FALSE, envir = parent.frame()
 ){
   
+  # Step 1: Define the variance wrapper
   call <- as.list(match.call())[-1]
+  call$envir <- envir
   everest_wrapper <- do.call(
-    define_simple_wrapper, 
-    call[names(call) %in% names(formals(define_simple_wrapper))]
+    define_everest_wrapper, 
+    call[names(call) %in% names(formals(define_everest_wrapper))]
   )
-  if(define) everest_wrapper else{
-    everest_data <- data[data[, id] %in% environment(everest_wrapper)$reference_id, ]  
-    call$data <- substitute(everest_data)
-    call$envir <- environment()
-    do.call(
-      everest_wrapper,
-      call[names(call) == "" | names(call) %in% names(formals(everest_wrapper))]
-    )
+  
+  # Step 2: Export the variance wrapper
+  if(define || missing(...)){
+    if(define){
+      note("As define = TRUE, a ready-to-use variance wrapper is (invisibly) returned.")  
+    }else{
+      note("No variable to perform variance estimation on are specified. A ready-to-use variance wrapper is (invisibly) returned instead.")
+    }
+    return(invisible(everest_wrapper))
   }
   
+  # Step 3: Estimate variance
+  everest_data <- data[data[, id] %in% environment(everest_wrapper)$reference_id, ]  
+  call$data <- substitute(everest_data)
+  call$envir <- environment()
+  do.call(
+    everest_wrapper,
+    call[names(call) == "" | names(call) %in% names(formals(everest_wrapper))]
+  )
+
 }
 
-#' @rdname everest
-#' @export 
-
-define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
+# Unexported workhorse of everest
+define_everest_wrapper <- function(data, id, dissemination_dummy, dissemination_weight,
                                   samp_weight, strata = NULL,
                                   scope_dummy = NULL, 
                                   nrc_weight = NULL, resp_dummy = NULL, nrc_dummy = NULL,
-                                  calib_weight = NULL, calib_dummy = NULL, calib_var = NULL
+                                  calib_weight = NULL, calib_dummy = NULL, calib_var = NULL,
+                                  envir = parent.frame()
 ){
   
   # Step 1: Control arguments consistency and display the welcome message ----
@@ -153,8 +153,8 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
   is_missing <- c(
     data = missing(data),
     id = missing(id),
-    diss_dummy = missing(diss_dummy),
-    diss_weight = missing(diss_weight),
+    dissemination_dummy = missing(dissemination_dummy),
+    dissemination_weight = missing(dissemination_weight),
     samp_weight = missing(samp_weight)
   )
   if(any(is_missing)) stop(
@@ -196,12 +196,14 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
   # Step 2: Control that arguments do exist and retrive their value ----
 
   # Step 2.1: Evaluation of all arguments
+  deparse_data <- deparse(substitute(data))
+  data <- eval(substitute(data), envir = envir)
   if(!is.data.frame(data)) stop("data argument must refer to a data.frame")
   arg <- lapply(as.list(match.call())[-1], eval)
 
   # Step 2.2: Expected types
   should_be_single_variable_name <- intersect(c(
-    "id", "diss_dummy", "diss_weight",
+    "id", "dissemination_dummy", "dissemination_weight",
     "samp_weight", "strata", "scope_dummy", 
     "nrc_weight", "resp_dummy", "nrc_dummy",
     "calib_weight", "calib_dummy"
@@ -234,7 +236,7 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
     paste0("\n  - ", param, " argument: ", paste0(tmp, collapse = " "))
   })
   if(length(unlist(is_not_in_data)) > 0) stop(
-    "Some variables do not exist in ", deparse(substitute(data)), ": ",
+    "Some variables do not exist in ", deparse_data, ": ",
     unlist(is_not_in_data[!is.null(is_not_in_data)])
   )
   
@@ -261,22 +263,22 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
   if(any(duplicated(id)))
     stop("The id variable (", arg$id, ") should not contain any duplicated values.")
 
-  # diss_dummy
-  if(is.numeric(diss_dummy)){
-    note("The dissemination dummy variable (", arg$diss_dummy, ") is of type numeric. It is automatically coerced to logical.")
-    diss_dummy <- as.logical(diss_dummy)
+  # dissemination_dummy
+  if(is.numeric(dissemination_dummy)){
+    note("The dissemination dummy variable (", arg$dissemination_dummy, ") is of type numeric. It is automatically coerced to logical.")
+    dissemination_dummy <- as.logical(dissemination_dummy)
   }
-  if(!is.logical(diss_dummy))
-    stop("The dissemination dummy variable (", arg$diss_dummy, ") should be of type logical or numeric.")
-  if(anyNA(diss_dummy))
-    stop("The dissemination dummy variable (", arg$diss_dummy, ") should not contain any missing (NA) values.")
+  if(!is.logical(dissemination_dummy))
+    stop("The dissemination dummy variable (", arg$dissemination_dummy, ") should be of type logical or numeric.")
+  if(anyNA(dissemination_dummy))
+    stop("The dissemination dummy variable (", arg$dissemination_dummy, ") should not contain any missing (NA) values.")
   
-  # diss_weight
-  if(!is.numeric(diss_weight))
-    stop("The dissemination weights (", arg$diss_weight, ") should be numeric.")
-  if(anyNA(diss_weight[diss_dummy])) stop(
-    "The dissemination weights (", arg$diss_weight, ") should not contain ", 
-    "any missing (NA) values for disseminated units (", arg$diss_dummy, ")."
+  # dissemination_weight
+  if(!is.numeric(dissemination_weight))
+    stop("The dissemination weights (", arg$dissemination_weight, ") should be numeric.")
+  if(anyNA(dissemination_weight[dissemination_dummy])) stop(
+    "The dissemination weights (", arg$dissemination_weight, ") should not contain ", 
+    "any missing (NA) values for disseminated units (", arg$dissemination_dummy, ")."
   )
   
   # samp_weight
@@ -308,10 +310,10 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
       stop("The scope dummy variable (", arg$scope_dummy, ") should be of type logical or numeric.")
     if(anyNA(scope_dummy))
       stop("The scope dummy variable (", arg$scope_dummy, ") should not contain any missing (NA) values.")
-    disseminated_out_of_scope <- id[diss_dummy & !scope_dummy]
+    disseminated_out_of_scope <- id[dissemination_dummy & !scope_dummy]
     if(length(disseminated_out_of_scope) > 0) stop(
       "The following units are out-of-scope (", arg$scope_dummy, ") but nonetheless disseminated (",
-      arg$diss_dummy, "): ", display_only_n_first(disseminated_out_of_scope), "."
+      arg$dissemination_dummy, "): ", display_only_n_first(disseminated_out_of_scope), "."
     )
   }
   
@@ -440,17 +442,15 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
   guessed_weight <- samp_weight
   if(!is.null(nrc_weight)) guessed_weight[resp_dummy & nrc_dummy] <- nrc_weight[resp_dummy & nrc_dummy]
   if(!is.null(calib_weight)) guessed_weight[calib_dummy] <- calib_weight[calib_dummy] 
-  guessed_weight_not_matching_diss_weight <- id[diss_dummy & guessed_weight != diss_weight]
-  if(length(guessed_weight_not_matching_diss_weight)) stop(
-    "The following units have a disseminated weight (", arg$diss_weight, 
+  guessed_weight_not_matching_dissemination_weight <- id[dissemination_dummy & guessed_weight != dissemination_weight]
+  if(length(guessed_weight_not_matching_dissemination_weight)) stop(
+    "The following units have a disseminated weight (", arg$dissemination_weight, 
     ") that does not match the one guessed from the survey description: ",
-    display_only_n_first(guessed_weight_not_matching_diss_weight), "."
+    display_only_n_first(guessed_weight_not_matching_dissemination_weight), "."
   )
-  reference_id <- id[diss_dummy]
-  reference_weight <- diss_weight[diss_dummy]
+  reference_id <- id[dissemination_dummy]
+  reference_weight <- dissemination_weight[dissemination_dummy]
   
-  
-
   # Sampling
   samp <- list()
   samp$id <- id
@@ -489,7 +489,7 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
   
   
   # Step 5: Define the variance wrapper ----
-  simple_wrapper <- define_variance_wrapper(
+  everest_wrapper <- define_variance_wrapper(
     variance_function = var_simple,
     reference_id = reference_id,
     reference_weight = reference_weight,
@@ -497,7 +497,7 @@ define_simple_wrapper <- function(data, id, diss_dummy, diss_weight,
     technical_data = list(samp = samp, nrc = nrc, calib = calib)
   )
   
-  simple_wrapper
+  everest_wrapper
 
 }
 
