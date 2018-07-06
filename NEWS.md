@@ -9,6 +9,10 @@
     * Deprecated: `default` is replaced by `default_id`, as `default$weight` and `default$stat` are no longer needed. As for `default$alpha`, its value is set to 0.05 and cannot be changed anymore while defining the variance wrapper (as this can easily be done afterwards using `formals<-`).
     * Deprecated: `objects_to_include_from`
 
+- Breaking: Rebranding and heavy remanufacturing of `define_statistic_wrapper` (previously known as `define_linearization_wrapper`)
+
+    * New: standard evaluation is now available
+    
 - New: TODO define_simple_wrapper 
 - Example data: calibration variables in ict_sample instead of ict_survey
 

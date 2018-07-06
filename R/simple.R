@@ -22,9 +22,9 @@
 #'   including the out-of-scope and non-responding units. For the \code{everest}
 #'   function, it should also contain the variables of interest (the variables
 #'   to perform the variance estimation on).
-#' @param ... One or more calls to a linearization wrapper (e.g. \code{total()}, 
+#' @param ... One or more calls to a statistic wrapper (e.g. \code{total()}, 
 #'   \code{mean()}, \code{ratio()}). See examples and 
-#'   \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}})
+#'   \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}})
 #' @param where A logical vector indicating a domain on which the variance 
 #'   estimation is to be performed.
 #' @param by A qualitative variable whose levels are used to define domains

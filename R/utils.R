@@ -297,7 +297,7 @@ replace_variable_name_with_symbol <- function(arg_list, envir, single = TRUE){
 warn <- function(...) warning(..., "\n", call. = FALSE, immediate. = TRUE)
 note <- function(...) message("Note: ", ..., "\n")
 
-is_linearization_wrapper <- function(x) inherits(x, "gustave_linearization_wrapper")
+is_statistic_wrapper <- function(x) inherits(x, "gustave_statistic_wrapper")
 
 names_else_NA <- function(x){
   if(is.null(names(x))) rep(NA, length(x)) else{

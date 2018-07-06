@@ -26,9 +26,9 @@ including the out-of-scope and non-responding units. For the \code{everest}
 function, it should also contain the variables of interest (the variables
 to perform the variance estimation on).}
 
-\item{...}{One or more calls to a linearization wrapper (e.g. \code{total()}, 
+\item{...}{One or more calls to a statistic wrapper (e.g. \code{total()}, 
 \code{mean()}, \code{ratio()}). See examples and 
-\code{\link[=linearization_wrapper_standard]{standard linearization wrappers}})}
+\code{\link[=standard_statistic_wrapper]{standard statistic wrappers}})}
 
 \item{by}{A qualitative variable whose levels are used to define domains
 on which the variance estimation is performed.}

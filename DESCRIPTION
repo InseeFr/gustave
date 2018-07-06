@@ -28,7 +28,7 @@ Description:
 License: GPL-3
 Collate: 
   'data.R' 'utils.R' 'define_variance_wrapper.R' 'variance_function.R' 
-  'define_linearization_wrapper.R' 'linearization_wrapper_standard.R'
+  'define_statistic_wrapper.R' 'standard_statistic_wrapper.R'
   'simple.R'
 Encoding: UTF-8
 LazyData: true

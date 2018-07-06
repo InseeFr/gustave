@@ -49,7 +49,7 @@ test_that("standard and non-standard evaluation yields the same results", {
 
   expect_identical(
     variance_wrapper(ict_survey, total(speed_quanti), by = division),
-    variance_wrapper(ict_survey, total(speed_quanti, by = division)),
+    variance_wrapper(ict_survey, total(speed_quanti, by = division))
   )
   expect_identical(
     variance_wrapper(ict_survey, total(speed_quanti))[, -1],
@@ -78,15 +78,12 @@ test_that("standard and non-standard evaluation yields the same results", {
 
 # define a new linearization_wrapper and include it in the variance_wrapper
 
-total2 <- define_linearization_wrapper(
-  linearization_function = function(y, w, w2){
+total2 <- define_statistic_wrapper(
+  statistic_function = function(y, w, w2){
     na <- is.na(y)
     y[na] <- 0
-    total <- sum(y * w)
-    list(
-      lin = list(y), 
-      metadata = list(est = total, n = sum(!na))
-    )
+    point <- sum(y * w)
+    list(point = point, lin = y, metadata = list(n = sum(!na)))
   }, 
   arg_type = list(data = "y" , weight = c("w", "w2")),
   arg_not_affected_by_domain = "w2"

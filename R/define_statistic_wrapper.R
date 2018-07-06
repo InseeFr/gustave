@@ -1,30 +1,20 @@
 
-#' Define a linearization wrapper
+#' Define a statistic wrapper
 
-#' @description Given a linearization \emph{function} (specific to an
-#'   estimator), \code{define_linearization_wrapper} defines a 
-#'   linearization \emph{wrapper} to be used together with
-#'   \code{\link[=define_variance_wrapper]{variance estimation wrappers}}
-#'   in order to make variance estimation easier. 
-#'   This function is intended for \strong{advanced use only} (see Details), 
-#'   standard linearization wrappers are included in the gustave package (see
-#'   \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}})
+#' @description \code{define_statistic_wrapper} defines 
+#'   statistic \emph{wrappers} to be used together with
+#'   \code{\link[=define_variance_wrapper]{variance estimation wrappers}}. 
+#'   A statistic wrapper produces both the point estimator and the 
+#'   linearized variable associated with a given statistic to estimate 
+#'   variance on (Deville, 1999). \code{define_statistic_wrapper} is intended 
+#'   for \strong{advanced use only}, standard statistic wrappers are included 
+#'   in the gustave package (see \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}})
 #'   
-#' @param linearization_function An R function with input the quantities 
-#'   used in the linearization formula and with output a list with two 
-#'   named element: \itemize{\item \code{lin}: a list of numerical vectors (most
-#'   of the time, only 1) which correspond to the value of the linearized 
-#'   variable \item \code{metadata}: a list of metadata to be used by the display
-#'   function (see \code{display_function} argument), including (for the
-#'   standard display function) \code{est} for the point-estimate and 
-#'   \code{n} for the number of observations used in the estimation.}
+#' @param statistic_function An R function specific to the statistic to
+#'   calculate. It should produce at least the point estimator and the
+#'   linearized variable associated with the statistic (see Details).
 #' @param arg_type A named list with three character vectors describing 
-#'   the type of each argument of \code{linearization_function}: \itemize{
-#'   \item \code{data}: data argument(s), numerical vector(s) to be used in the
-#'   linearization formula \item \code{weight}: weight argument, numerical vector
-#'   to be used as row weights in the linearization formula \item \code{param}: 
-#'   parameters, non-data arguments (most of the time boolean) to be used to 
-#'   control some aspect of the linearization formula}
+#'   the type of each argument of \code{statistic_function} (see Details).
 #' @param arg_not_affected_by_domain A character vector indicating the (data) 
 #'   arguments which should not be affected by domain-splitting. Such parameters
 #'   may appear in some complex linearization formula, for instance when the 
@@ -32,50 +22,64 @@
 #'   line calculated at the national level.
 #' @param  display_function An R function which produces, for each variance 
 #'   estimation, the data.frame row to be displayed by the variance estimation 
-#'   wrapper. It uses three arguments: 
-#'   \itemize{\item \code{var} the estimated variance \item \code{metadata} the 
-#'   metadata associated with the estimation, especially the one outputted by 
-#'   \code{linearization_function} (e.g. \code{est}, \code{n}) \item \code{alpha} 
-#'   the level for the construction of confidence intervals (at execution time, 
-#'   its value is taken from the \code{alpha} argument of the variance wrapper.)}
-#'   The default display function (\code{standard_display}) uses standard metadata
-#'   to display usual variance indicator (variance, standard deviation, coefficient
-#'   of variation, confidence interval) broken down by linearization wrapper, domain 
-#'   (if any) and level (if the variable is a factor).
+#'   wrapper. The default display function (\code{standard_display}) uses 
+#'   standard metadata to display usual variance indicator (point estimate, 
+#'   variance, standard  deviation, coefficient of variation, confidence interval) 
+#'   broken down by statistic wrapper, domain (if any) and level (if the variable 
+#'   is a factor).
 #'   
-#' @details When the estimator is not the estimator of a total, the application of 
+#' @details When the statistic to estimate is not a total, the application of 
 #'   analytical variance estimation formulae developed for the estimator of a total 
 #'   is not straightforward (Deville, 1999). An asymptotically unbiased variance 
 #'   estimator can nonetheless be obtained if the estimation of variance is performed
 #'   on a variable obtained from the original data through a linearization step. 
 #'   
-#'   \code{define_linearization_wrapper} is the function used to create, given 
-#'   a linearization \emph{function} implementing a given linearization 
-#'   \emph{formula}, a linearization \emph{wrapper} which can be used together 
-#'   with a variance wrapper. 
+#'   \code{define_statistic_wrapper} is the function used to create, for a 
+#'   given statistic, an easy-to-use function which calculates both the point
+#'   estimator and the linearized variable associated with the statistic. These
+#'   operations are implemented by the \code{statistic_function}, which can have
+#'   any needed input (for example \code{num} and \code{denom} for a ratio
+#'   estimator) and should output a list with three named elements: \itemize{
+#'   \item \code{point}: the point estimator of the statistic
+#'   \item \code{lin}: the linearized variable to be passed on to the variance
+#'   estimation formula. If several variables are to be associated with
+#'   the statistics, \code{lin} can be a list itself.
+#'   \item \code{metadata}: optional metadata to be used when displaying
+#'   the results of the variance estimation.
+#'   }
 #'   
-#'   Linearization wrappers are quite flexible tools
-#'   to apply a variance function to an estimator requiring a linearization step
-#'   (e.g. all estimators except the estimator of a total) with virtually no 
-#'   additional complexity for the end-user. To some extent, linearization wrappers 
-#'   can be seen as ggplot2 \code{geom_} and \code{stat_} functions: they help 
-#'   the end-user in writing down what he or she wants without having to go too 
-#'   deep into the details of the corresponding layers. 
+#'   \code{arg_type} is a named list of three elements that describe the nature 
+#'   of the argument of \code{statistic_function}: \itemize{
+#'   \item \code{data}: data argument(s), numerical vector(s) to be used 
+#'   to calculate the point estimate and the linearized variable associated
+#'   with the statistic 
+#'   \item \code{weight}: weight argument, numerical vector to be used 
+#'   as row weights in the linearization formula 
+#'   \item \code{param}: parameters, non-data arguments to be used to 
+#'   control some aspect of the computation of ths statistic}
 #'   
-#'   \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}} 
-#'   are included within the gustave package and  automatically added 
-#'   to the variance estimation wrappers. New linearization wrappers can be defined
-#'   using the \code{define_linearization_wrapper} and then explicitly added to the 
+#'   Statistic wrappers are quite flexible tools to apply a variance function 
+#'   to an estimator requiring a linearization step (e.g. all estimators except 
+#'   the estimator of a total) with virtually no  additional complexity for the
+#'   end-user. To some extent, statistic wrappers can be seen as ggplot2
+#'   \code{geom_} and \code{stat_} functions: they help the end-user in writing 
+#'   down what he or she wants without having to go too  deep into the details 
+#'   of the corresponding layers. 
+#'   
+#'   \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}} 
+#'   are included within the gustave package and automatically added 
+#'   to the variance estimation wrappers. New statistic wrappers can be defined
+#'   using the \code{define_statistic_wrapper} and then explicitly added to the 
 #'   variance estimation wrappers using the \code{objects_to_include} argument.
 #'   
-#' @return A function to be used within a variance estimation wrapper to perform
-#'   a specific linearization (see examples). Its formals are the ones of 
-#'   \code{linearization_function} with the addition of \code{by} and \code{where} 
+#' @return A function to be used within a variance estimation wrapper to estimate
+#'   a specific statistic (see examples). Its formals are the ones of 
+#'   \code{statistic_function} with the addition of \code{by} and \code{where} 
 #'   (for domain estimation, set to \code{NULL} by default). 
 #' 
 #' @author Martin Chevalier
 #'    
-#' @seealso \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}} 
+#' @seealso \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}} 
 #'   \code{\link{define_variance_wrapper}}
 #'   
 #' @references 
@@ -103,22 +107,19 @@
 #' )
 #' variance_wrapper(ict_survey, total(speed_quanti))
 #' 
-#' # Step 2 : Redefine the mean linearization wrapper
-#' # The mean() linearization wrapper defined in the gustave 
-#' # package is bulit on top of the ratio() linearization wrapper.
+#' # Step 2 : Redefine the mean statistic wrapper
+#' # The mean() statistic wrapper defined in the gustave 
+#' # package is bulit on top of the ratio() statistic wrapper.
 #' variance_wrapper(ict_survey, mean(speed_quanti))
 #' 
 #' # Let's redefine it directly from the formula found for instance
 #' # in (Caron, Deville, Sautory, 1998) and without handling NA
 #' # values
-#' mean2 <- define_linearization_wrapper(
-#'   linearization_function = function(y, weight){
-#'     est <- sum(y * weight) / sum(weight)
-#'     lin <- (y - est) / sum(weight)
-#'     list(
-#'       lin = list(lin), 
-#'       metadata = list(est = est, n = length(y))
-#'     )
+#' mean2 <- define_statistic_wrapper(
+#'   statistic_function = function(y, weight){
+#'     point <- sum(y * weight) / sum(weight)
+#'     lin <- (y - point) / sum(weight)
+#'     list(point = point, lin = lin, metadata = list(n = length(y)))
 #'   },
 #'   arg_type = list(data = "y", weight = "weight")
 #' )
@@ -126,35 +127,33 @@
 #' 
 #' @export
 
-define_linearization_wrapper <- function(linearization_function, 
-                                         arg_type, 
-                                         arg_not_affected_by_domain = NULL, 
-                                         display_function = standard_display
+define_statistic_wrapper <- function(statistic_function, 
+                                     arg_type, 
+                                     arg_not_affected_by_domain = NULL, 
+                                     display_function = standard_display
 ){
   
-  # TODO: Rebrand linearization_wrapper > statistic_wrapper
-
   # Step I: Control arguments consistency
   inconsistent_arg <- list(
-    in_arg_type_not_in_linearization_function = setdiff(unlist(arg_type), names(formals(linearization_function))), 
-    in_linearization_function_not_in_arg_type = setdiff(names(formals(linearization_function)), unlist(arg_type)), 
-    in_arg_not_affected_by_domain_not_in_linearization_function = setdiff(arg_not_affected_by_domain, names(formals(linearization_function)))
+    in_arg_type_not_in_statistic_function = setdiff(unlist(arg_type), names(formals(statistic_function))), 
+    in_statistic_function_not_in_arg_type = setdiff(names(formals(statistic_function)), unlist(arg_type)), 
+    in_arg_not_affected_by_domain_not_in_statistic_function = setdiff(arg_not_affected_by_domain, names(formals(statistic_function)))
   )
   if(length(unlist(inconsistent_arg)) > 0) stop(
     "Some arguments are inconsistent:", 
-    if(length(inconsistent_arg[[1]]) > 0) paste("\n  -", paste(inconsistent_arg[[1]], collapse = ", "), "in arg_type but not in linearization_function arguments") else "", 
-    if(length(inconsistent_arg[[2]]) > 0) paste("\n  -", paste(inconsistent_arg[[2]], collapse = ", "), "in linearization_function arguments but not in arg_type") else "", 
-    if(length(inconsistent_arg[[3]]) > 0) paste("\n  -", paste(inconsistent_arg[[3]], collapse = ", "), "in arg_not_affected_by_domain but not in linearization_function arguments") else ""
+    if(length(inconsistent_arg[[1]]) > 0) paste("\n  -", paste(inconsistent_arg[[1]], collapse = ", "), "in arg_type but not in statistic_function arguments") else "", 
+    if(length(inconsistent_arg[[2]]) > 0) paste("\n  -", paste(inconsistent_arg[[2]], collapse = ", "), "in statistic_function arguments but not in arg_type") else "", 
+    if(length(inconsistent_arg[[3]]) > 0) paste("\n  -", paste(inconsistent_arg[[3]], collapse = ", "), "in arg_not_affected_by_domain but not in statistic_function arguments") else ""
   )
   if(is.null(arg_type$weight))
-    stop("A weight argument must be provided in order to create a linearization wrapper.")
+    stop("A weight argument must be provided in order to create a statistic wrapper.")
   arg_domain <- list(
     data = setdiff(arg_type$data, arg_not_affected_by_domain),
     weight = setdiff(arg_type$weight, arg_not_affected_by_domain)
   )
   
-  # Step II: Create the linearization wrapper
-  linearization_wrapper <- function(by = NULL, where = NULL){
+  # Step II: Create the statistic wrapper
+  statistic_wrapper <- function(by = NULL, where = NULL){
 
     # Step 1: Rewrite the call to add by and where from the variance wrapper call
     execution_envir <- get_through_parent_frame("execution_envir")
@@ -250,14 +249,15 @@ define_linearization_wrapper <- function(linearization_function,
       })
     }), recursive = FALSE)
 
-    # Step 8: Call the linearization function
+    # Step 8: Call the statistic function
     data_as_list <- lapply(data_as_list, function(d){
-      linearization_function_arg <- 
+      statistic_function_arg <- 
         unlist(unname(d[c("data", "weight", "param")]), recursive = FALSE)
-      tmp <- do.call(linearization_function, linearization_function_arg)
+      tmp <- do.call(statistic_function, statistic_function_arg)
       d$metadata <- c(d$metadata, tmp$metadata)
-      d$linearization_function <- linearization_function
-      d$lin <- tmp$lin
+      d$statistic_function <- statistic_function
+      d$point <- tmp$point
+      d$lin <- if(!is.list(tmp$lin)) list(tmp$lin) else tmp$lin
       d$display_function <- display_function
       d
     })
@@ -266,28 +266,28 @@ define_linearization_wrapper <- function(linearization_function,
     
   }
 
-  # Step III: Finalize the linearization wrapper
+  # Step III: Finalize the statistic wrapper
   
-  # Step III.1: Modify linearization_wrapper formals
-  formals(linearization_wrapper) <- c(
-    formals(linearization_function)[setdiff(names(formals(linearization_function)), arg_type$weight)], 
-    formals(linearization_wrapper)
+  # Step III.1: Modify statistic_wrapper formals
+  formals(statistic_wrapper) <- c(
+    formals(statistic_function)[setdiff(names(formals(statistic_function)), arg_type$weight)], 
+    formals(statistic_wrapper)
   )
 
-  # Step III.2: Include objects in linearization_wrapper enclosing environment
+  # Step III.2: Include objects in statistic_wrapper enclosing environment
   e <- new.env(parent = globalenv())
   assign_all(objects = c("discretize_qualitative_var", "get_through_parent_frame", "replace_variable_name_with_symbol", "is_error"), to = e, from = asNamespace("gustave"))
-  assign_all(objects = c("linearization_function", "arg_type", "arg_domain", "display_function"), to = e, from = environment())
-  linearization_wrapper <- change_enclosing(linearization_wrapper, envir = e)
+  assign_all(objects = c("statistic_function", "arg_type", "arg_domain", "display_function"), to = e, from = environment())
+  statistic_wrapper <- change_enclosing(statistic_wrapper, envir = e)
   
-  structure(linearization_wrapper, class = c("function", "gustave_linearization_wrapper"))
+  structure(statistic_wrapper, class = c("function", "gustave_statistic_wrapper"))
   
 }
 
-standard_display <- function(var, metadata, alpha){
+standard_display <- function(point, var, metadata, alpha){
   d <- as.data.frame(metadata[c("label", "call", "mod", "by")])
   if(!is.null(metadata$n)) d$n <- metadata$n
-  d$est <- metadata$est
+  d$est <- point
   d$variance <- var[[1]]
   d$std <- sqrt(d$variance)
   d$cv <- d$std * 100 / d$est

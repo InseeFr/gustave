@@ -48,8 +48,8 @@ An R function that makes the estimation of variance based on the provided
 variance function easier. Its parameters are:
   \itemize{
    \item \code{data}: the survey data where the interest variables are stored
-   \item \code{...}: one or more calls to a linearization wrapper (see examples
-   and \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}})
+   \item \code{...}: one or more calls to a statistic wrapper (see examples
+   and \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}})
    \item \code{where}: a logical vector indicating a domain on which the variance
    estimation is conducted
    \item \code{by}: a qualitative variable whose levels are used to define domains
@@ -83,7 +83,7 @@ Defining variance estimation wrappers is the \strong{key feature} of
   user-friendly features: \itemize{ \item checks for consistency between the 
   provided dataset and the survey characteristics \item factor discretization
   \item domain estimation \item linearization of complex statistics (see 
-  \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}})}
+  \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}})}
   
   \code{define_variance_wrapper} allows the sampling expert to define a 
   variance estimation wrapper around a given variance estimation function and
@@ -188,9 +188,9 @@ rm(technical_data_ict)
 # Better display of results
 variance_wrapper_ict(ict_survey, speed_quanti)
 
-# Mean linearization
+# Mean statistic
 variance_wrapper_ict(ict_survey, mean(speed_quanti))
-# Ratio linearization
+# Ratio statistic
 variance_wrapper_ict(ict_survey, ratio(turnover, employees))
 
 # Discretization of qualitative variables
@@ -220,7 +220,7 @@ variance_wrapper_ict(ict_survey, where = division == "58",
 
 }
 \seealso{
-\code{\link[=linearization_wrapper_standard]{standard linearization wrappers}} \code{\link{varDT}}
+\code{\link[=standard_statistic_wrapper]{standard statistic wrappers}} \code{\link{varDT}}
 }
 \author{
 Martin Chevalier
