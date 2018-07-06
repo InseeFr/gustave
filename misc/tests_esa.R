@@ -15,9 +15,9 @@ racine <- "X:/HAB-EEC-Methodes/Estimation Enquetes Menages/_Commun/Outils/"
 library(gustave)
 
 # Chargement des données
-esa <- data.frame(lapply(haven::read_sas(
+esa <- haven::read_sas(
   data_file = paste(racine, "#archives/everest_180625/DONNEES/everest_esa_eap_2012.sas7bdat", sep = "/")
-), as.vector), stringsAsFactors = FALSE)
+)
 
 tmp <- make_block(esa$r310, by = esa$secteur_calage)
 calvar <- paste0("r310_", attr(tmp, "colby"))
@@ -29,27 +29,27 @@ esa <- cbind(esa, tmp)
 everest_esa <- everest(
   data = esa, 
   id = "siren",
-  diss_dummy = "rep",
-  diss_weight = "poids_apres_calage",
-  samp_weight = "poids_avt_calage", 
+  dissemination_dummy = "rep",
+  dissemination_weight = "poids_apres_calage",
+  sampling_weight = "poids_avt_calage", 
   strata = "strate",
   scope = "champ",
-  resp_dummy = "rep",
+  response_dummy = "rep",
   nrc_weight = "poids_apres_cnr",
-  calib_weight = "poids_apres_calage",
-  calib_dummy = "ind_calage",
-  calib_var = c("secteur_calage", calvar),
+  calibration_weight = "poids_apres_calage",
+  calibration_dummy = "ind_calage",
+  calibration_var = c("secteur_calage", calvar),
   define = TRUE
 )
 
 # Tests sur le fichier complet
-everest_esa(esa, mean(r310))
+everest_esa(esa, mean(r003))
 
 # Tests sur le seul fichier de répondants
 esa_rep <- esa[esa$rep == 1, ]
 
-everest_esa(esa_rep, total("r003"))
-everest_esa(esa_rep, ratio("r217", "r216"))
+everest_esa(esa_rep, mean(r003))
+everest_esa(esa_rep, ratio(r217, r216))
 
 var <- c("r003", "r310")
 everest_esa(esa_rep, mean(var))
