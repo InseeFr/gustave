@@ -197,8 +197,6 @@ define_everest_wrapper <- function(data, id, dissemination_dummy, dissemination_
       "\n  - weights after non-response correction are provided (nrc_weight argument) but no variable indicating responding units (response_dummy argument)" else "", 
     if(inconsistency$resp_or_nrc_dummy_but_no_nrc_weight) 
       "\n  - a variable indicating responding units and/or a variable indicating the units taking part in the non-response correction process are provided (response_dummy and nrc_dummy argument) but no weights after non-response correction (nrc_weight argument)." else "" ,
-    # TODO: better handle the case of a user who has no non-response but 
-    # uses the response_dummy argument with a logical variable with only TRUE values.
     if(inconsistency$calibration_weight_but_no_calibration_var) 
       "\n  - calibrated weights are provided (calibration_weight argument) but no calibration variables (calibration_var argument)" else "" ,
     if(inconsistency$calibration_or_calibration_var_but_no_calibration_weight) 
@@ -504,8 +502,8 @@ define_everest_wrapper <- function(data, id, dissemination_dummy, dissemination_
       lapply(calib$var[calibration_var_quanti], Matrix)
     calib$var[calibration_var_quali] <- 
       lapply(calib$var[calibration_var_quali], discretize_qualitative_var)
-    # TODO: Handle the node stack overflow limitation
     calib$var <- do.call(cbind, calib$var)
+    # TODO: Handle the node stack overflow problem
     calib$precalc <- res_cal(y = NULL, x = calib$var, w = calib$weight)
     calib <- calib[c("id", "precalc")]
   }else calib <- NULL

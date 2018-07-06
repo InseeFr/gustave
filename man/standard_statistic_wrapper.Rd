@@ -5,7 +5,7 @@
 \alias{total}
 \alias{ratio}
 \alias{mean}
-\alias{diff_or_ratio}
+\alias{diff_of_ratio}
 \alias{ratio_of_ratio}
 \alias{total}
 \alias{ratio}

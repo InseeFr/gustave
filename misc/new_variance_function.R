@@ -1,19 +1,4 @@
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#' TODO
 #' @references Wolter, 2008, p. 53
 
 varCollapse <- function(y, group, strata = NULL){
@@ -56,7 +41,6 @@ varCollapse <- function(y, group, strata = NULL){
 #   , times = 10
 # )
 
-#' TODO
 #' @references Wolter, 2007, pp. 298-353, v12
 
 varsys <- function(y, pik){
@@ -98,10 +82,3 @@ varsysst <- function(y, pik, strata=rep(1,nrow(as.matrix(y)))){
 # y <- as.matrix(Y[,paste0("y",1:10),with = F]);strata <- Y$idzae;pik <- Y$piLog
 # strata <- rep(1,nrow(Y))
 #
-
-
-#' TODO
-
-varB <- function(y, pik){
-  return(colSums((1 - pik) * (as.matrix(y)/pik)^2))
-}

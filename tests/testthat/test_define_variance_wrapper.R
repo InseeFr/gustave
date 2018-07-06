@@ -49,7 +49,7 @@ test_that("common error messages do work", {
   expect_error(variance_wrapper(ict_survey), regexp = "The following arguments are missing: id.")
 })
 
-# TODO: add controls about technical_data and technical_param
+# TODO: Add controls about technical_data and technical_param
 
 test_that("variance_wrapper can be defined in another function", {
   expect_error({
@@ -240,4 +240,18 @@ test_that("estimated values do match reference values", {
   expect_equal(variance_wrapper(ict_survey, speed_quali_NA)$variance, c(10, 138, 170, 67, 59), tolerance = 1e0)
   expect_equal(variance_wrapper(ict_survey, big_data_NA, by = speed_quali_NA)$est, c(0, 18.5, 0, 164.8, 146.1), tolerance = 1e0)
   expect_equal(variance_wrapper(ict_survey, big_data_NA, by = speed_quali_NA)$variance, c(0, 1, 0, 15, 14), tolerance = 1e-0)
+})
+
+test_that("the note stack overflow problem is solved", {
+  skip("To be used later")
+  variance_wrapper <- define_variance_wrapper(
+    variance_function = function(y) abs(colSums(y)), 
+    reference_id = ict_survey$firm_id,
+    reference_weight = ict_survey$w_calib,
+    default_id = "firm_id"
+  )
+  expect_error(
+    variance_wrapper(ict_survey, firm_id),
+    regexp = NA
+  )
 })

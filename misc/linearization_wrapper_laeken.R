@@ -28,5 +28,4 @@ gini <- define_linearization_wrapper(
   }, 
   arg_type = list(data = "y", weight = "weight", param = NULL)
 )
-# TODO: test whether there is a permutation in lingini()$lin
 

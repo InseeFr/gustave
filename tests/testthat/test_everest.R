@@ -585,7 +585,7 @@ test_that("methodological validation works as expected", {
   
 })
 
-# TODO: add more tests with out-of-scope units
+# TODO: Add more tests with out-of-scope units
 
 
 test_that("everest works", {

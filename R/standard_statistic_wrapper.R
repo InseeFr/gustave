@@ -42,7 +42,7 @@
 #' @author Martin Chevalier
 #' 
 #' @name standard_statistic_wrapper
-#' @aliases total ratio mean diff_or_ratio ratio_of_ratio
+#' @aliases total ratio mean diff_of_ratio ratio_of_ratio
 
 NULL
 

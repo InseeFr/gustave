@@ -1,4 +1,3 @@
-# TODO: Rebrand precalc > cache
 
 #' Linear Regression Residuals Calculation
 #'
@@ -145,11 +144,12 @@ res_cal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
 #' @aliases varDT var_srs
 #' 
 #' @description \code{varDT} estimates the variance of the estimator of a total
-#'   in the case of a balanced sampling design with equal or unequal probabilities. 
-#'   Without balancing variables, it falls back to Deville's (1993) classical
-#'   approximation. Without balancing variables and with equal probabilities, it
-#'   falls back to the classical Horvitz-Thompson variance estimator for the total in 
-#'   the case of simple random sampling. Stratification is natively supported.
+#'   in the case of a balanced sampling design with equal or unequal probabilities 
+#'   using Deville-Tillé (2005) formula. Without balancing variables, it falls back 
+#'   to Deville's (1993) classical approximation. Without balancing variables and 
+#'   with equal probabilities, it falls back to the classical Horvitz-Thompson 
+#'   variance estimator for the total in the case of simple random sampling. 
+#'   Stratification is natively supported.
 #'   
 #'   \code{var_srs} is a convenience wrapper for the (stratified) simple random
 #'   sampling case.
@@ -482,4 +482,4 @@ varSYG <- function (y = NULL, pikl, precalc = NULL){
   }
 }
 
-# TODO: add a varHT() estimator 
+# TODO: Add a varHT() estimator 

@@ -1,11 +1,20 @@
+###
+# tests_esa.R
+# 
+# 06/07/2018
+###
 
 racine <- "X:/HAB-EEC-Methodes/Estimation Enquetes Menages/_Commun/Outils/"
-reimporter_donnees <- FALSE
 
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-# getwd() 
-devtools::load_all("U://gustave")
+# Si gustave est chargé via git
+# devtools::load_all("U://gustave")
+# system("git config --global user.name \"Martin Chevalier\"")
+# system("git config --global user.email martin.chevalier@insee.fr")
 
+# Si gustave a été installé manuellement
+library(gustave)
+
+# Chargement des données
 esa <- data.frame(lapply(haven::read_sas(
   data_file = paste(racine, "#archives/everest_180625/DONNEES/everest_esa_eap_2012.sas7bdat", sep = "/")
 ), as.vector), stringsAsFactors = FALSE)
@@ -16,12 +25,7 @@ tmp <- as.matrix(tmp)
 colnames(tmp) <- calvar
 esa <- cbind(esa, tmp)
 
-
-system("git config --global user.name \"Martin Chevalier\"")
-system("git config --global user.email martin.chevalier@insee.fr")
-# system("git remote rename origin gitlab")
-
-
+# Création d'un wrapper everest pour l'ESA
 everest_esa <- everest(
   data = esa, 
   id = "siren",
@@ -38,83 +42,14 @@ everest_esa <- everest(
   define = TRUE
 )
 
+# Tests sur le fichier complet
 everest_esa(esa, mean(r310))
 
+# Tests sur le seul fichier de répondants
 esa_rep <- esa[esa$rep == 1, ]
+
 everest_esa(esa_rep, total("r003"))
 everest_esa(esa_rep, ratio("r217", "r216"))
 
 var <- c("r003", "r310")
 everest_esa(esa_rep, mean(var))
-
-system.time(
-  everest_esa(esa_rep, mean("r310"))
-)
-var <- c("r310", "r240")
-system.time(
-  tmp <- everest_esa(esa_rep, mean(var), by = substr(ape_rep, 1, 2))
-)
-
-
-
-str(environment(everest_esa)$technical_data$calib$precalc)
-
-environment(everest_esa)$technical_data$calib$precalc$x
-
-setdiff(
-  environment(everest_esa)$technical_data$calib$id,
-  rownames(spy)
-)
-
-sum(is.na(spy[[1]]$lin[[1]]))
-sum(is.na(spy[[1]]$data$y))
-sum(is.na(spy[[1]]$weight$weight))
-
-sum(is.na(environment(everest_esa)$reference_weight))
-
-setdiff(
-  names(spy[[1]]$weight$weight),
-  names(environment(everest_esa)$reference_weight)
-)
-
-setdiff(
-  esa_rep$siren,
-  names(environment(everest_esa)$reference_weight)
-)
-
-
-sum(!is.na(spy@x))
-
-spy$var[calib_var_quali] <- 
-  lapply(calib$var[calib_var_quali], discretize_qualitative_var)
-
-
-str(spy)
-sum(esa$ind_calage)
-
-
-str(environment(everest_esa)$technical_data$calib)
-
-str(environment(everest_esa)$technical_data$calib$id)
-
-length(unique(esa_rep$secteur_calage))
-
-tmp <- Matrix::sparse.model.matrix(
-  ~ . - 1, 
-  data = stats::model.frame(~ ., data = esa_rep[, c("secteur_calage"), drop = FALSE])
-)
-
-tmp <- gustave:::discretize_qualitative_var(esa_rep$secteur_calage[esa_rep$ind_calage == 1])
-precalc <- rescal(y = NULL, x = tmp, w = esa_rep$poids_apres_calage)
-
-
-
-
-
-rescal(y = )
-
-sum(tapply(esa$poids_avt_calage, esa$strate, sd) > 1e-4, na.rm = TRUE)
-
-sum(is.na(tapply(esa$poids_avt_calage, esa$strate, sd) > 1e-4), na.rm = TRUE)
-
-length(unique(esa$strate))

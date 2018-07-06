@@ -113,9 +113,9 @@ rm(technical_data_ict)
 # Better display of results
 variance_wrapper_ict(ict_survey, speed_quanti)
 
-# Mean linearization
+# Mean statistic
 variance_wrapper_ict(ict_survey, mean(speed_quanti))
-# Ratio linearization
+# Ratio statistic
 variance_wrapper_ict(ict_survey, ratio(turnover, employees))
 
 # Discretization of qualitative variables
@@ -123,24 +123,30 @@ variance_wrapper_ict(ict_survey, speed_quali)
 # On-the-fly recoding
 variance_wrapper_ict(ict_survey, speed_quali == "Between 2 and 10 Mbs")
 
-# 1-domain estimation
-variance_wrapper_ict(ict_survey, speed_quanti, where = division == "58")
-# Multiple domains estimation
-variance_wrapper_ict(ict_survey, speed_quanti, by = division)
-
 # Multiple variables at a time
 variance_wrapper_ict(ict_survey, speed_quanti, big_data)
 variance_wrapper_ict(ict_survey, speed_quanti, mean(big_data))
-# Flexible syntax for where and by arguments
-# (similar to the aes() function in ggplot2)
-variance_wrapper_ict(ict_survey, where = division == "58", 
- mean(speed_quanti), mean(big_data * 100)
+
+# Standard evaluation
+var <- grep("speed", names(ict_survey), value = TRUE)
+variance_wrapper_ict(ict_survey, mean(var))
+
+# 1-domain estimation
+variance_wrapper_ict(ict_survey, speed_quanti, where = division == "58")
+
+# Multiple domains estimation
+variance_wrapper_ict(ict_survey, speed_quanti, by = division)
+
+# Flexible syntax for domain estimation
+variance_wrapper_ict(ict_survey,
+  by = division,
+  mean(speed_quanti),
+  mean(big_data)
 )
-variance_wrapper_ict(ict_survey, where = division == "58", 
- mean(speed_quanti), mean(big_data * 100, where = division == "61")
-)
-variance_wrapper_ict(ict_survey, where = division == "58", 
- mean(speed_quanti), mean(big_data * 100, where = NULL)
+variance_wrapper_ict(ict_survey,
+  by = division,
+  mean(speed_quanti),
+  mean(big_data, by = NULL)
 )
 ```
 

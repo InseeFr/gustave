@@ -44,11 +44,12 @@ useful when \code{precalc} is used in order to assess whether the ordering of th
 }
 \description{
 \code{varDT} estimates the variance of the estimator of a total
-  in the case of a balanced sampling design with equal or unequal probabilities. 
-  Without balancing variables, it falls back to Deville's (1993) classical
-  approximation. Without balancing variables and with equal probabilities, it
-  falls back to the classical Horvitz-Thompson variance estimator for the total in 
-  the case of simple random sampling. Stratification is natively supported.
+  in the case of a balanced sampling design with equal or unequal probabilities 
+  using Deville-Tillé (2005) formula. Without balancing variables, it falls back 
+  to Deville's (1993) classical approximation. Without balancing variables and 
+  with equal probabilities, it falls back to the classical Horvitz-Thompson 
+  variance estimator for the total in the case of simple random sampling. 
+  Stratification is natively supported.
   
   \code{var_srs} is a convenience wrapper for the (stratified) simple random
   sampling case.
