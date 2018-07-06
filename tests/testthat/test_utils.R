@@ -50,7 +50,7 @@ test_that("detect_block works as expected", {
 })
 
 
-# sumby()
+# sum_by()
 
 set.seed(1)
 n <- 10
@@ -66,40 +66,40 @@ w <- rep(2, n)
 by_NA <- by
 by_NA[c(2, 8)] <- NA
 
-test_that("sumby() works", {
+test_that("sum_by() works", {
   
   # Standard behaviour
   r <- sapply(split(v, by), sum, na.rm = TRUE)
-  expect_equal(sumby(v, by), r)
-  expect_equal(sumby(V, by), r)
-  expect_equal(sumby(m, by), matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
-  expect_equal(sumby(M, by), matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
-  expect_equal(sumby(M, by, keep_sparse = TRUE), Matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
-  expect_equal(sumby(df, by), data.frame(variable1 = r, variable2 = r, row.names = names(r)))
-  expect_equal(sumby(v, by, w), r * 2)
+  expect_equal(sum_by(v, by), r)
+  expect_equal(sum_by(V, by), r)
+  expect_equal(sum_by(m, by), matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
+  expect_equal(sum_by(M, by), matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
+  expect_equal(sum_by(M, by, keep_sparse = TRUE), Matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
+  expect_equal(sum_by(df, by), data.frame(variable1 = r, variable2 = r, row.names = names(r)))
+  expect_equal(sum_by(v, by, w), r * 2)
   
   # Standard behaviour without removing the NA values
   r <- sapply(split(v, by), sum)
-  expect_equal(sumby(v, by, na_rm = FALSE), r)
-  expect_equal(sumby(V, by, na_rm = FALSE), r)
-  expect_equal(sumby(m, by, na_rm = FALSE), matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
-  expect_equal(sumby(M, by, na_rm = FALSE), matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
-  expect_equal(sumby(M, by, na_rm = FALSE, keep_sparse = TRUE), Matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
-  expect_equal(sumby(df, by, na_rm = FALSE), data.frame(variable1 = r, variable2 = r, row.names = names(r)))
-  expect_equal(sumby(v, by, w, na_rm = FALSE), r * 2)
+  expect_equal(sum_by(v, by, na_rm = FALSE), r)
+  expect_equal(sum_by(V, by, na_rm = FALSE), r)
+  expect_equal(sum_by(m, by, na_rm = FALSE), matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
+  expect_equal(sum_by(M, by, na_rm = FALSE), matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
+  expect_equal(sum_by(M, by, na_rm = FALSE, keep_sparse = TRUE), Matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
+  expect_equal(sum_by(df, by, na_rm = FALSE), data.frame(variable1 = r, variable2 = r, row.names = names(r)))
+  expect_equal(sum_by(v, by, w, na_rm = FALSE), r * 2)
   
   # Standard behaviour with NA value in the by variable
   r <- sapply(split(v, by_NA), sum, na.rm = TRUE)
-  expect_equal(sumby(v, by_NA), r)
-  expect_equal(sumby(V, by_NA), r)
-  expect_equal(sumby(m, by_NA), matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
-  expect_equal(sumby(M, by_NA), matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
-  expect_equal(sumby(M, by_NA, keep_sparse = TRUE), Matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
-  expect_equal(sumby(df, by_NA), data.frame(variable1 = r, variable2 = r, row.names = names(r)))
-  expect_equal(sumby(v, by_NA, w), r * 2)
+  expect_equal(sum_by(v, by_NA), r)
+  expect_equal(sum_by(V, by_NA), r)
+  expect_equal(sum_by(m, by_NA), matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
+  expect_equal(sum_by(M, by_NA), matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
+  expect_equal(sum_by(M, by_NA, keep_sparse = TRUE), Matrix(c(r, r), ncol = 2, dimnames = list(names(r), colnames(m))))
+  expect_equal(sum_by(df, by_NA), data.frame(variable1 = r, variable2 = r, row.names = names(r)))
+  expect_equal(sum_by(v, by_NA, w), r * 2)
   
   # Error messages
-  expect_error(sumby(letters[seq_along(by)], by), regexp = "y is not")
+  expect_error(sum_by(letters[seq_along(by)], by), regexp = "y is not")
 
 })
 

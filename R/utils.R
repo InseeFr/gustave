@@ -2,7 +2,7 @@
 
 #' Efficient by-group (weighted) summation
 #' 
-#' @description \code{sumby()} performs an efficient and optionally weighted 
+#' @description \code{sum_by} performs an efficient and optionally weighted 
 #' by-group summation by using linear algebra and the Matrix package 
 #' capabilities. The by-group summation is performed through matrix cross-product
 #' of the y parameter (coerced to a matrix if needed) with a (very) sparse
@@ -43,18 +43,18 @@
 #' w[by == "a"] <- 2
 #' 
 #' # Standard use
-#' sumby(y, by)
+#' sum_by(y, by)
 #' 
 #' # Keeping the NAs
-#' sumby(y, by, na_rm = FALSE)
+#' sum_by(y, by, na_rm = FALSE)
 #' 
 #' # With a weight
-#' sumby(y, by, w = w)
+#' sum_by(y, by, w = w)
 #' 
 #' @export
 #' @import Matrix
 
-sumby <- function(y, by, w = NULL, na_rm = TRUE, keep_sparse = FALSE){
+sum_by <- function(y, by, w = NULL, na_rm = TRUE, keep_sparse = FALSE){
 
   # y <- V
   
