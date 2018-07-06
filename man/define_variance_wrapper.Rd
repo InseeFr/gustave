@@ -124,10 +124,10 @@ Defining variance estimation wrappers is the \strong{key feature} of
 variance_function_ict <- function(y, x, w, samp){
   
   # Calibration
-  y <- rescal(y, x = x, w = w)
+  y <- res_cal(y, x = x, w = w)
   
   # Non-response
-  y <- add0(y, rownames = samp$id)
+  y <- add_zero(y, rownames = samp$id)
   var_nr <- var_pois(y, pik = samp$response_prob_est, w = samp$w_sample)
   
   # Sampling

@@ -506,7 +506,7 @@ define_everest_wrapper <- function(data, id, dissemination_dummy, dissemination_
       lapply(calib$var[calibration_var_quali], discretize_qualitative_var)
     # TODO: Handle the node stack overflow limitation
     calib$var <- do.call(cbind, calib$var)
-    calib$precalc <- rescal(y = NULL, x = calib$var, w = calib$weight)
+    calib$precalc <- res_cal(y = NULL, x = calib$var, w = calib$weight)
     calib <- calib[c("id", "precalc")]
   }else calib <- NULL
   
@@ -532,8 +532,8 @@ var_simple <- function(y, samp, nrc, calib){
   
   # Calibration    
   if(!is.null(calib)){
-    y <- add0(y, calib$id, remove = FALSE)
-    y[calib$id, ] <- rescal(y = y[calib$id, ], precalc = calib$precalc)
+    y <- add_zero(y, calib$id, remove = FALSE)
+    y[calib$id, ] <- res_cal(y = y[calib$id, ], precalc = calib$precalc)
   } 
 
   # Non-response
@@ -544,7 +544,7 @@ var_simple <- function(y, samp, nrc, calib){
   }
 
   # Sampling
-  y <- add0(y, rownames = samp$id)
+  y <- add_zero(y, rownames = samp$id)
   var[["sampling"]] <- var_srs(y = y[!samp$exclude, , drop = FALSE], precalc = samp$precalc)
 
   # Final summation

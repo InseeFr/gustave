@@ -104,7 +104,7 @@ test_that("sumby() works", {
 })
 
 
-# add0()
+# add_zero()
 
 set.seed(1)
 n <- 10
@@ -115,21 +115,21 @@ M <- as(m, "TsparseMatrix")
 rownames(M) <- rownames(m)
 df <- as.data.frame(m)
 
-test_that("add0() works", {
+test_that("add_zero() works", {
   
   # Standard behaviour
-  expect_error(add0(m, letters), regexp = NA)
-  expect_error(add0(M, letters), regexp = NA)
-  expect_error(add0(df, letters), regexp = NA)
-  expect_error(add0(m, as.factor(letters)), regexp = NA)
+  expect_error(add_zero(m, letters), regexp = NA)
+  expect_error(add_zero(M, letters), regexp = NA)
+  expect_error(add_zero(df, letters), regexp = NA)
+  expect_error(add_zero(m, as.factor(letters)), regexp = NA)
   
   # Error and warning messages
-  expect_error(add0(m[, 1], letters), regexp = "y must be")
-  expect_error(add0(unname(m), letters), regexp = "y must have")
-  expect_error(add0(matrix(letters[m], ncol = 2, dimnames = list(rownames(m))), letters), regexp = "y is not numeric")
+  expect_error(add_zero(m[, 1], letters), regexp = "y must be")
+  expect_error(add_zero(unname(m), letters), regexp = "y must have")
+  expect_error(add_zero(matrix(letters[m], ncol = 2, dimnames = list(rownames(m))), letters), regexp = "y is not numeric")
   tmp <- m
   rownames(tmp)[1:3] <- toupper(rownames(tmp)[1:3])
-  expect_warning(add0(tmp, letters), regexp = "The name of some rows")
+  expect_warning(add_zero(tmp, letters), regexp = "The name of some rows")
 
 })
 

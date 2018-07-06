@@ -1,18 +1,18 @@
 
 context("variance_function")
 
-# rescal
+# res_cal
 
 
-test_that("rescal works as expected", {
+test_that("res_cal works as expected", {
   y <- ict_sample$employees
   x <- ict_sample$turnover
-  expect_equal(rescal(y, x), unname(lm(y ~ x - 1)$residuals))
+  expect_equal(res_cal(y, x), unname(lm(y ~ x - 1)$residuals))
   x <- make_block(x, ict_sample$division)
-  expect_equal(rescal(y, x), unname(lm(y ~ as.matrix(x) - 1)$residuals))
+  expect_equal(res_cal(y, x), unname(lm(y ~ as.matrix(x) - 1)$residuals))
   x <- x[, c(1:NCOL(x), 1)]
-  expect_message(rescal(y, x), regexp = "Some variables in x were discarded due to collinearity.")
-  expect_equal(suppressWarnings(rescal(y, x)), unname(lm(y ~ as.matrix(x) - 1)$residuals))
+  expect_message(res_cal(y, x), regexp = "Some variables in x were discarded due to collinearity.")
+  expect_equal(suppressWarnings(res_cal(y, x)), unname(lm(y ~ as.matrix(x) - 1)$residuals))
 })
 
 

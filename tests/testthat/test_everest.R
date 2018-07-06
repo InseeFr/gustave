@@ -16,7 +16,7 @@ technical_data_ict <- list(
   ),
   calib = list(
     id = ict_sample$firm_id[ict_sample$calib],
-    precalc = rescal(y = NULL, 
+    precalc = res_cal(y = NULL, 
                      x = as.matrix(ict_sample[
                        ict_sample$calib,
                        c(paste0("N_", 58:63), paste0("turnover_", 58:63))

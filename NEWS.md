@@ -14,6 +14,7 @@
     * New: standard evaluation is now available
     
 - New: TODO define_simple_wrapper 
+- Some normalization in functions name: `add0` becomes `add_zero`, `sumby` becomes `sum_by`, `rescal` becomes `res_cal`
 - Example data: calibration variables in ict_sample instead of ict_survey
 
 

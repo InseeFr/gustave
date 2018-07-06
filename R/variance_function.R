@@ -1,8 +1,8 @@
-
+# TODO: Rebrand precalc > cache
 
 #' Linear Regression Residuals Calculation
 #'
-#' @description \code{rescal} calculates linear regression residuals in an 
+#' @description \code{res_cal} calculates linear regression residuals in an 
 #' efficient way : handling several dependent variables at a time, using 
 #' Matrix::TsparseMatrix capabilities and allowing for pre-calculation of 
 #' the matrix inverse.
@@ -70,29 +70,29 @@
 #' by <- letters[sample(1:H, n, replace = TRUE)]
 #'
 #' # Direct calculation
-#' rescal(y, x)
+#' res_cal(y, x)
 #'
 #' # Calculation with pre-calculated data
-#' precalc <- rescal(y = NULL, x)
-#' rescal(y, precalc = precalc)
-#' identical(rescal(y, x), rescal(y, precalc = precalc))
+#' precalc <- res_cal(y = NULL, x)
+#' res_cal(y, precalc = precalc)
+#' identical(res_cal(y, x), res_cal(y, precalc = precalc))
 #'
 #' # Matrix::TsparseMatrix capability
 #' require(Matrix)
 #' X <- as(x, "TsparseMatrix")
 #' Y <- as(y, "TsparseMatrix")
-#' rescal(Y, X)
+#' res_cal(Y, X)
 #'
 #' # by parameter for within by-groups calculation
-#' rescal(Y, X, by = by)
+#' res_cal(Y, X, by = by)
 #' identical(
-#'  rescal(Y, X, by = by)[by == "a", ]
-#'  , rescal(Y[by == "a", ], X[by == "a", ])
+#'  res_cal(Y, X, by = by)[by == "a", ]
+#'  , res_cal(Y[by == "a", ], X[by == "a", ])
 #' )
 #'
-#' @export rescal
+#' @export
 
-rescal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL){
+res_cal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL){
 
   # by <- NULL; w <- NULL
   
@@ -133,12 +133,12 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL){
 }
 
 # n <- 70000; p <- 10; q <- 150; H <- 6; y <- matrix(rnorm(n*p),ncol=p); x <- Matrix(rnorm(n*q)*(runif(n*q) > 0.98),ncol=q); w <- runif(n); by <- rep(1:H,n %/% H + 1)[1:n][sample.int(n)];
-# precalc <- rescal(y = NULL, x = x, w = w, by = by)
-# microbenchmark(times = 10, rescal(y, precalc = precalc), rescal(y, x = x, w = w, by = by))
+# precalc <- res_cal(y = NULL, x = x, w = w, by = by)
+# microbenchmark(times = 10, res_cal(y, precalc = precalc), res_cal(y, x = x, w = w, by = by))
 # inv <- ginv(as.matrix(t(x * w) %*% x))
-# t2 <- resCalib(y,x,w,inv)
+# t2 <- res_calib(y,x,w,inv)
 # identical(t,t2)
-# microbenchmark(rescal(y,x,w),rescal(y,x,w,inv),times = 10)
+# microbenchmark(res_cal(y,x,w),res_cal(y,x,w,inv),times = 10)
 
 #' Variance approximation with Deville-Tillé (2005) formula
 #' 
@@ -206,7 +206,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL){
 #'   estimation at execution time. } \item \code{varDT} does not natively
 #'   implements the calibration estimator (i.e. the sampling variance estimator
 #'   that takes into account the effect of calibration). In the context of the
-#'   \code{gustave} package, \code{\link{rescal}} could be called before 
+#'   \code{gustave} package, \code{\link{res_cal}} could be called before 
 #'   \code{varDT} in order to achieve the same result.}
 #'   
 #'   

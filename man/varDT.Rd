@@ -94,7 +94,7 @@ useful when \code{precalc} is used in order to assess whether the ordering of th
   estimation at execution time. } \item \code{varDT} does not natively
   implements the calibration estimator (i.e. the sampling variance estimator
   that takes into account the effect of calibration). In the context of the
-  \code{gustave} package, \code{\link{rescal}} could be called before 
+  \code{gustave} package, \code{\link{res_cal}} could be called before 
   \code{varDT} in order to achieve the same result.}
 }
 

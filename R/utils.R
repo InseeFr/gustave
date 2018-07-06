@@ -104,7 +104,7 @@ sumby <- function(y, by, w = NULL, na_rm = TRUE, keep_sparse = FALSE){
 #' Expand a matrix or a data.frame with zeros based on rownames matching
 #'
 #' @description For a given two-dimensional object with rownames and a character
-#'   vector, \code{add0()} produces a corresponding object whose rownames match
+#'   vector, \code{add_zero} produces a corresponding object whose rownames match
 #'   the character vector, with zeros on the additional rows.
 #'
 #'   This function is an easy-to-use and reliable way to reintroduce
@@ -131,18 +131,18 @@ sumby <- function(y, by, w = NULL, na_rm = TRUE, keep_sparse = FALSE){
 #' rownames <- letters
 #'
 #' # Standard use
-#' add0(y, rownames)
+#' add_zero(y, rownames)
 #'
 #' # Use when rownames in y do not match
 #' # any element in the rownames argument
 #' rownames(y)[1:3] <- toupper(rownames(y)[1:3])
-#' add0(y, rownames)
-#' add0(y, rownames, remove = FALSE)
+#' add_zero(y, rownames)
+#' add_zero(y, rownames, remove = FALSE)
 #'
 #' @import Matrix
 #' @export
 #' 
-add0 <- function(y, rownames, remove = TRUE){
+add_zero <- function(y, rownames, remove = TRUE){
   
   # y <- m; rownames <- letters
   
@@ -153,7 +153,7 @@ add0 <- function(y, rownames, remove = TRUE){
   if(is.null(dim(y)))
     stop("y must be a (sparse) matrix or a data.frame.")
   if(is.null(rownames(y)))
-     stop("y must have rownames in order to be used in add0().")
+     stop("y must have rownames in order to be used in add_zero().")
   is_sparse_y <- inherits(y, c("Matrix", "sparseVector"))
   is_numeric_y <- is.numeric(if(!is_sparse_y) y else y@x)
   if(!is_numeric_y) stop("y is not numeric (or not entirely).")
