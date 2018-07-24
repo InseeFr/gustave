@@ -1,5 +1,5 @@
 
-context("define_linearization_wrapper")
+context("define_statistic_wrapper")
 
 variance_wrapper <- define_variance_wrapper(
   variance_function = function(y) abs(colSums(y)), 
