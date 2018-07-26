@@ -6,7 +6,6 @@ Depends:
 Imports:
   methods,
   stats,
-  MASS,
   Matrix
 Suggests:
   testthat,
