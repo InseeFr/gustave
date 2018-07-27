@@ -1,11 +1,15 @@
-package:
-  tags:
-    - maven
+image: git.stable.innovation.insee.eu:50000/innovation/rstudio
+
+R-cmd-check: 
   script:
-    - 'docker build .'
-  artifacts:
-    paths:
-      - DESCRIPTION
+    - R CMD build . --no-build-vignettes --no-manual
   only:
     - master@methodologie-sondage/gustave
     - dev@methodologie-sondage/gustave
+
+
+# package:
+#   tags:
+#   - maven
+#  script:
+#    - 'docker build .'
