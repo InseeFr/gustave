@@ -1,8 +1,9 @@
 package:
-  tags:
-    - maven
   script:
     - 'docker build .'
+  artifacts:
+    paths:
+    - /home/pkg/*.tar.gz  
   only:
     - master@methodologie-sondage/gustave
     - dev@methodologie-sondage/gustave
