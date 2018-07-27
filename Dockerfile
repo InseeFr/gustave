@@ -16,7 +16,7 @@ RUN cd /home/pkg && \
   R -e "devtools::install_deps('.', c('Depends', 'Imports', 'Suggests'))" && \
   R CMD build . --no-build-vignettes --no-manual && \
   PKG_FILE_NAME=$(ls -1t *.tar.gz | head -n 1) && \
-  R CMD check "${PKG_FILE_NAME}" --no-build-vignettes --no-manual --as-cran
+  R CMD check "${PKG_FILE_NAME}" --no-build-vignettes --no-manual
 
 # Error in build if not "Status: OK" on the last line of log
 RUN cd /home/pkg && \
