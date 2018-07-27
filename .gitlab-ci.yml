@@ -5,7 +5,7 @@ package:
     - 'docker build .'
   artifacts:
     paths:
-      - *
+      - /*
   only:
     - master@methodologie-sondage/gustave
     - dev@methodologie-sondage/gustave
