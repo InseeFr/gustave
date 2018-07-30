@@ -11,6 +11,6 @@ PKG_FILE_NAME=$(ls -1t *.tar.gz | head -n 1)
 R CMD check "${PKG_FILE_NAME}"
 
 # Failure if any error, warning or note
-PKG_NAME=$(ls -1t *.tar.gz | head -n 1 | cut -d'_' -f 1)
-LAST_LINE=$(tail -1 ${PKG_NAME}.Rcheck/00check.log)
+RCHECK_DIR=$(ls -1t *.tar.gz | head -n 1 | cut -d'_' -f 1).Rcheck
+LAST_LINE=$(tail -1 ${RCHECK_DIR}/00check.log)
 if [ "${LAST_LINE}" != "Status: OK" ]; then exit 1 ; fi
