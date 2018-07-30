@@ -9,4 +9,4 @@
 ^Dockerfile$
 ^.dockerignore$
 ^.travis.yml$
-
+^.gitlab-ci.script$
