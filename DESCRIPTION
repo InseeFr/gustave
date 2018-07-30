@@ -9,8 +9,8 @@ Imports:
   Matrix
 Suggests:
   testthat,
-  sampling,
-  data.table
+  data.table,
+  tibble
 Version: 0.4.0
 Authors@R: person("Martin", "Chevalier", role = c("aut", "cre", "cph"), email = "martin.chevalier@insee.fr")
 Author: Martin Chevalier [aut, cre, cph]
