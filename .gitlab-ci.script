@@ -1,3 +1,5 @@
+echo $warnings_are_errors
+
 # Install R dependencies
 R -e "devtools::install_deps('.', c('Depends', 'Imports', 'Suggests'))"
 
