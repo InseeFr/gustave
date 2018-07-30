@@ -1,5 +1,6 @@
 variables:
   GIT_SSL_NO_VERIFY: "1"
+  warnings_are_errors: TRUE
 
 R-CMD-check: 
   image: git.stable.innovation.insee.eu:50000/innovation/rstudio
