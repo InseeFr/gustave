@@ -1,10 +1,13 @@
 variables:
-  GIT_SSL_NO_VERIFY: "1"
-  warnings_are_errors: 1
+  GIT_SSL_NO_VERIFY: '1'
+  # Variables to be passed on to R-CMD-check.sh
+  warnings_are_errors: '1'
+  r_build_args: ''
+  r_check_args: ''
 
 R-CMD-check: 
   image: git.stable.innovation.insee.eu:50000/innovation/rstudio
-  script: sh .gitlab-ci.script
+  script: sh R-CMD-check.sh
   artifacts:
     paths: 
       - "*.tar.gz"
