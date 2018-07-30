@@ -9,6 +9,7 @@ Imports:
   Matrix
 Suggests:
   testthat,
+  sampling,
   data.table,
   tibble
 Version: 0.4.0

@@ -205,6 +205,7 @@ make_block <- function(y, by){
   
   # Step 3: Adjust the y and Dim slots in order to obtain the block matrix
   p <- NCOL(res)
+  res@Dimnames[2] <- list(NULL)
   res@j <- as.integer(((as.numeric(by) - 1) * p)[res@i + 1] + res@j)
   res@Dim <- c(res@Dim[1], as.integer(res@Dim[2] * H))
   

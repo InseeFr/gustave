@@ -30,6 +30,9 @@ test_that("make_block works as expected", {
     make_block(pik, strata), 
     make_block(matrix(pik, ncol = 1, dimnames = list(names(pik), NULL)), strata)
   )
+  pik <- matrix(pik, ncol = 1)
+  colnames(pik) <- "pik"
+  expect_error(validObject(make_block(pik, strata)), regexp = NA)
 })
 
 
