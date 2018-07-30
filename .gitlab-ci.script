@@ -1,0 +1,14 @@
+# Install R dependencies
+R -e "devtools::install_deps('.', c('Depends', 'Imports', 'Suggests'))"
+
+# Build package
+R CMD build . --no-build-vignettes --no-manual
+
+# Check package
+PKG_FILE_NAME=$(ls -1t *.tar.gz | head -n 1)
+R CMD check "${PKG_FILE_NAME}" --no-build-vignettes --no-manual
+
+# Failure if any error, warning or note
+PKG_NAME=$(ls -1t *.tar.gz | head -n 1 | cut -d'_' -f 1)
+LAST_LINE=$(tail -1 ${PKG_NAME}.Rcheck/00check.log)
+if [ "${LAST_LINE}" != "Status: OK" ]; then exit 1 ; fi
