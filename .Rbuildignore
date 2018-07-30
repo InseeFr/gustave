@@ -8,4 +8,5 @@
 ^.gitlab-ci.yml$
 ^Dockerfile$
 ^.dockerignore$
+^.gitlab-ci.script$
 

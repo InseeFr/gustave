@@ -1,11 +1,10 @@
-package:
-  tags:
-    - maven
-  script:
-    - 'docker build .'
+variables:
+  GIT_SSL_NO_VERIFY: "1"
+
+R-CMD-check: 
+  image: git.stable.innovation.insee.eu:50000/innovation/rstudio
+  script: sh .gitlab-ci.script
   artifacts:
-    paths:
-      - DESCRIPTION
-  only:
-    - master@methodologie-sondage/gustave
-    - dev@methodologie-sondage/gustave
+    paths: 
+      - "*.tar.gz"
+    
