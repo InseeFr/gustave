@@ -168,6 +168,18 @@ test_that("NULL is handled correctly", {
 })
 
 
+test_that("variance_wrapper cannot work if there is no var slot in variance_function", {
+  expect_error({
+    variance_wrapper <- define_variance_wrapper(
+      variance_function = function(y) list(blabla = abs(colSums(y))), 
+      reference_id = ict_survey$firm_id,
+      reference_weight = ict_survey$w_calib,
+      default_id = "firm_id"
+    )
+    variance_wrapper(ict_survey, speed_quanti)
+  }, regexp = "At least one output of variance_function should be named \"var\".")
+})
+
 
 test_that("variance_wrapper works in common situations", {
   variance_wrapper <- define_variance_wrapper(

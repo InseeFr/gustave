@@ -3,17 +3,17 @@ rm(list = ls(all.names = TRUE))
 variance_function_ict <- function(y, x, w, samp){
   
   # Calibration
-  y <- rescal(y, x = x, w = w)
+  y <- res_cal(y, x = x, w = w)
   
   # Non-response
-  y <- add0(y, rownames = samp$id)
+  y <- add_zero(y, rownames = samp$id)
   var_nr <- var_pois(y, pik = samp$response_prob_est, w = samp$w_sample)
   
   # Sampling
   y <- y / samp$response_prob_est
   var_sampling <- var_srs(y, pik = 1 / samp$w_sample, strata = samp$strata)
   
-  var_sampling + var_nr
+  list(var_sampling + var_nr, samp = samp)
   
 }
 

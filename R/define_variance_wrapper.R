@@ -339,26 +339,29 @@ define_variance_wrapper <- function(variance_function,
     # Step 3: Variance estimation
     
     # Step 3.1: Build up the sparse matrix to be used in the estimation
-    data_as_Matrix <- Matrix::sparseMatrix(
-      i = unlist(lapply(data_as_list, function(slice) rep(slice$metadata$row_number, NCOL(slice$lin))), use.names = FALSE),
-      j = unlist(lapply(1:sum(sapply(lapply(data_as_list, `[[`, "lin"), length)), function(j)
-        rep(j, sapply(data_as_list, function(slice) length(slice$metadata$row_number))[j])
-      ), use.names = FALSE),
-      x = unlist(lapply(data_as_list, function(slice) do.call(base::c, slice$lin)), use.names = FALSE),
-      dims = c(length(reference_id), sum(sapply(lapply(data_as_list, `[[`, "lin"), length))),
-      dimnames = list(reference_id, NULL),
-      giveCsparse = FALSE, check = FALSE
+    data_as_Matrix <- list(
+      lin = Matrix::sparseMatrix(
+        i = unlist(lapply(data_as_list, function(slice) rep(slice$metadata$row_number, NCOL(slice$lin))), use.names = FALSE),
+        j = unlist(lapply(1:sum(sapply(lapply(data_as_list, `[[`, "lin"), length)), function(j)
+          rep(j, sapply(data_as_list, function(slice) length(slice$metadata$row_number))[j])
+        ), use.names = FALSE),
+        x = unlist(lapply(data_as_list, function(slice) do.call(base::c, slice$lin)), use.names = FALSE),
+        dims = c(length(reference_id), sum(sapply(lapply(data_as_list, `[[`, "lin"), length))),
+        dimnames = list(reference_id, NULL),
+        giveCsparse = FALSE, check = FALSE
+      )
     )
 
     # Step 3.2: Call the variance estimation function
     variance_function_args <- c(
-      stats::setNames(list(data_as_Matrix), arg_type$data), 
+      stats::setNames(list(data_as_Matrix$lin), arg_type$data), 
       stats::setNames(lapply(arg_type$tech_param, get, envir = execution_envir), arg_type$tech_param), 
       technical_data
     )
-    result <- suppressMessages(do.call(variance_function, variance_function_args))
-    if(is.data.frame(result)) result <- as.matrix(result)
-    if(!is.list(result)) result <- list(var = result)
+    variance_function_result <- suppressMessages(do.call(variance_function, variance_function_args))
+    if(!is.list(variance_function_result)) variance_function_result <- list(var = variance_function_result) 
+    if(!any(names(variance_function_result) == "var")) stop("At least one output of variance_function should be named \"var\".")
+    data_as_Matrix <- c(data_as_Matrix, variance_function_result)
 
     # Step 4: Results
     
@@ -367,7 +370,7 @@ define_variance_wrapper <- function(variance_function,
     data_as_list <- lapply(seq_along(data_as_list), function(i) c(
       data_as_list[[i]], 
       list(var = lapply(data_as_list[[i]]$lin, function(j){
-        tmp <- result[[1]][(k + 1):(k + NCOL(j))]
+        tmp <- data_as_Matrix$var[(k + 1):(k + NCOL(j))]
         assign("k", (k + NCOL(j)), envir = execution_envir)
         return(tmp)
       }))
