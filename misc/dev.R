@@ -3,17 +3,17 @@ rm(list = ls(all.names = TRUE))
 variance_function_ict <- function(y, x, w, samp){
   
   # Calibration
-  y <- rescal(y, x = x, w = w)
+  y <- res_cal(y, x = x, w = w)
   
   # Non-response
-  y <- add0(y, rownames = samp$id)
+  y <- add_zero(y, rownames = samp$id)
   var_nr <- var_pois(y, pik = samp$response_prob_est, w = samp$w_sample)
   
   # Sampling
   y <- y / samp$response_prob_est
   var_sampling <- var_srs(y, pik = 1 / samp$w_sample, strata = samp$strata)
   
-  var_sampling + var_nr
+  list(var = var_sampling + var_nr, samp = samp)
   
 }
 
@@ -45,7 +45,7 @@ with(technical_data_ict, variance_function_ict(y, samp = samp, x = x, w = w))
 
 # Step 2 : Definition of a variance wrapper
 
-variance_wrapper <- define_variance_wrapper(
+variance_wrapper_ict <- define_variance_wrapper(
   variance_function = variance_function_ict,
   reference_id = ict_survey$firm_id, 
   reference_weight = ict_survey$w_calib, 
@@ -53,8 +53,26 @@ variance_wrapper <- define_variance_wrapper(
   technical_data = technical_data_ict
 )
 
+total3 <- define_statistic_wrapper(
+  statistic_function = function(y, w){
+    na <- is.na(y)
+    y[na] <- 0
+    point <- sum(y * w)
+    list(point = point, lin = list(y, y), metadata = list(n = sum(!na)))
+  }, 
+  arg_type = list(data = "y" , weight = "w")
+)
+
+
+ict_survey <- ict_survey[sample.int(NROW(ict_survey)), ]
+
+variance_wrapper_ict(ict_survey, 
+                     total(speed_quanti, where = division == "59"), 
+                     total3(speed_quanti, where = division == "60")
+)
+
 var <- c("speed_quanti", "speed_quali")
-variance_wrapper(
+variance_wrapper_ict(
   ict_survey, 
   "blabla" = mean(speed_quanti), 
   "blibli" = mean(speed_quali)
@@ -62,7 +80,7 @@ variance_wrapper(
 )
 
 speed_quanti2 <- ict_survey$speed_quanti
-variance_wrapper(ict_survey, speed_quanti2)
+variance_wrapper_ict(ict_survey, speed_quanti2)
 
 
 

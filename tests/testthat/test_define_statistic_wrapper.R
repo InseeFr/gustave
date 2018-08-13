@@ -74,9 +74,7 @@ test_that("standard and non-standard evaluation yields the same results", {
 })
 
 
-
-
-# define a new linearization_wrapper and include it in the variance_wrapper
+# Define a new statistic_wrapper and include it in the variance_wrapper
 
 total2 <- define_statistic_wrapper(
   statistic_function = function(y, w, w2){
@@ -103,4 +101,26 @@ test_that("a new linearization wrapper can be defined", {
     variance_wrapper(ict_survey, total2(speed_quanti)),
     regexp = NA
   )
+})
+
+
+# Define a statistic_wrapper that produces two linearized variables
+total3 <- define_statistic_wrapper(
+  statistic_function = function(y, w){
+    na <- is.na(y)
+    y[na] <- 0
+    point <- sum(y * w)
+    list(point = point, lin = list(y, y), metadata = list(n = sum(!na)))
+  }, 
+  arg_type = list(data = "y" , weight = "w")
+)
+variance_wrapper <- define_variance_wrapper(
+  variance_function = function(y) abs(colSums(y)), 
+  reference_id = ict_survey$firm_id,
+  reference_weight = ict_survey$w_calib,
+  default_id = "firm_id",
+  objects_to_include = "total3"
+)
+test_that("a statistical wrapper producing more than one linearized variables is handled correctly", {
+  expect_error(variance_wrapper(ict_survey, total3(speed_quanti)), regexp = NA)
 })

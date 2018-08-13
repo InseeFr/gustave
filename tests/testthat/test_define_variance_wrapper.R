@@ -168,6 +168,36 @@ test_that("NULL is handled correctly", {
 })
 
 
+test_that("variance_wrapper cannot work if the output of variance_function is not properly specified", {
+  expect_error({
+    variance_wrapper <- define_variance_wrapper(
+      variance_function = function(y) list(blabla = abs(colSums(y))), 
+      reference_id = ict_survey$firm_id,
+      reference_weight = ict_survey$w_calib,
+      default_id = "firm_id"
+    )
+    variance_wrapper(ict_survey, speed_quanti)
+  }, regexp = "At least one output of variance_function should be named \"var\".")
+  expect_error({
+    variance_wrapper <- define_variance_wrapper(
+      variance_function = function(y) matrix(abs(colSums(y)), nrow = 1), 
+      reference_id = ict_survey$firm_id,
+      reference_weight = ict_survey$w_calib,
+      default_id = "firm_id"
+    )
+    variance_wrapper(ict_survey, speed_quanti)
+  }, regexp = "The output of variance_function should be a vector.")
+  expect_error({
+    variance_wrapper <- define_variance_wrapper(
+      variance_function = function(y) list(var = matrix(abs(colSums(y)), nrow = 1)), 
+      reference_id = ict_survey$firm_id,
+      reference_weight = ict_survey$w_calib,
+      default_id = "firm_id"
+    )
+    variance_wrapper(ict_survey, speed_quanti)
+  }, regexp = "The \"var\" output of variance_function should be a vector.")
+})
+
 
 test_that("variance_wrapper works in common situations", {
   variance_wrapper <- define_variance_wrapper(
@@ -242,16 +272,3 @@ test_that("estimated values do match reference values", {
   expect_equal(variance_wrapper(ict_survey, big_data_NA, by = speed_quali_NA)$variance, c(0, 1, 0, 15, 14), tolerance = 1e-0)
 })
 
-test_that("the note stack overflow problem is solved", {
-  skip("To be used later")
-  variance_wrapper <- define_variance_wrapper(
-    variance_function = function(y) abs(colSums(y)), 
-    reference_id = ict_survey$firm_id,
-    reference_weight = ict_survey$w_calib,
-    default_id = "firm_id"
-  )
-  expect_error(
-    variance_wrapper(ict_survey, firm_id),
-    regexp = NA
-  )
-})
