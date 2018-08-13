@@ -45,7 +45,7 @@ with(technical_data_ict, variance_function_ict(y, samp = samp, x = x, w = w))
 
 # Step 2 : Definition of a variance wrapper
 
-variance_wrapper <- define_variance_wrapper(
+variance_wrapper_ict <- define_variance_wrapper(
   variance_function = variance_function_ict,
   reference_id = ict_survey$firm_id, 
   reference_weight = ict_survey$w_calib, 
@@ -53,8 +53,12 @@ variance_wrapper <- define_variance_wrapper(
   technical_data = technical_data_ict
 )
 
+ict_survey <- ict_survey[sample.int(NROW(ict_survey)), ]
+
+variance_wrapper_ict(ict_survey, speed_quanti, by = division)
+
 var <- c("speed_quanti", "speed_quali")
-variance_wrapper(
+variance_wrapper_ict(
   ict_survey, 
   "blabla" = mean(speed_quanti), 
   "blibli" = mean(speed_quali)
@@ -62,7 +66,7 @@ variance_wrapper(
 )
 
 speed_quanti2 <- ict_survey$speed_quanti
-variance_wrapper(ict_survey, speed_quanti2)
+variance_wrapper_ict(ict_survey, speed_quanti2)
 
 
 

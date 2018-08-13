@@ -328,33 +328,27 @@ define_variance_wrapper <- function(variance_function,
       if(is.null(d)) return(d)
 
       # Add labels
-      lapply(d, function(dd){
-        dd$metadata$label <- statistic_wrapper_label[i]
-        dd
+      lapply(d, function(slice){
+        slice$metadata$label <- statistic_wrapper_label[i]
+        slice
       })
 
     }), recursive = FALSE)
     if(is.null(data_as_list)) stop("No variable to estimate variance on.")
-    
+        
     # Step 3: Variance estimation
     
     # Step 3.1: Build up the sparse matrix to be used in the estimation
-    data_as_Matrix <- {
-      data <- lapply(data_as_list, function(k){
-        t <- do.call(cbind, k$lin)
-        Matrix::sparseMatrix(
-          i = rep(k$metadata$row_number, NCOL(t))
-          , j = rep(1:NCOL(t), each = NROW(t)), giveCsparse = FALSE
-          , x = c(t), dims = c(length(id), NCOL(t)), check = FALSE
-        )
-      })
-      data <- methods::as(Matrix::drop0(do.call(cbind, data)), "TsparseMatrix")
-      data@i <- as.integer(match(id, reference_id)[data@i + 1] - 1)
-      data@Dim <- c(length(reference_id), NCOL(data))
-      data@Dimnames <- list(as.character(reference_id), NULL)
-      data
-    }
-    # TODO: Handle the node stack overflow problem
+    data_as_Matrix <- Matrix::sparseMatrix(
+      i = unlist(lapply(data_as_list, function(slice) rep(slice$metadata$row_number, NCOL(slice$lin))), use.names = FALSE),
+      j = unlist(lapply(1:sum(sapply(lapply(data_as_list, `[[`, "lin"), length)), function(j)
+        rep(j, sapply(data_as_list, function(slice) length(slice$metadata$row_number))[j])
+      ), use.names = FALSE),
+      x = unlist(lapply(data_as_list, function(slice) do.call(base::c, slice$lin)), use.names = FALSE),
+      dims = c(length(reference_id), sum(sapply(lapply(data_as_list, `[[`, "lin"), length))),
+      dimnames = list(reference_id, NULL),
+      giveCsparse = FALSE, check = FALSE
+    )
 
     # Step 3.2: Call the variance estimation function
     variance_function_args <- c(
