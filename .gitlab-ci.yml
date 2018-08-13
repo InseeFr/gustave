@@ -11,4 +11,7 @@ R-CMD-check:
   artifacts:
     paths: 
       - "*.tar.gz"
+  only:
+    - master
+    - dev
     
