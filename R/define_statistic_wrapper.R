@@ -287,12 +287,12 @@ define_statistic_wrapper <- function(statistic_function,
 standard_display <- function(point, var, metadata, alpha){
   d <- as.data.frame(metadata[c("label", "call", "mod", "by")])
   if(!is.null(metadata$n)) d$n <- metadata$n
-  d$est <- point
+  d$point <- point
   d$variance <- var[[1]]
   d$std <- sqrt(d$variance)
-  d$cv <- d$std * 100 / d$est
-  d$lower <- d$est - stats::qnorm(1-alpha/2)*d$std
-  d$upper <- d$est + stats::qnorm(1-alpha/2)*d$std
+  d$cv <- d$std * 100 / d$point
+  d$lower <- d$point - stats::qnorm(1-alpha/2)*d$std
+  d$upper <- d$point + stats::qnorm(1-alpha/2)*d$std
   d
 }
 standard_display <- change_enclosing(standard_display, globalenv())
