@@ -359,8 +359,12 @@ define_variance_wrapper <- function(variance_function,
       technical_data
     )
     variance_function_result <- suppressMessages(do.call(variance_function, variance_function_args))
-    if(!is.list(variance_function_result)) variance_function_result <- list(var = variance_function_result) 
-    if(!any(names(variance_function_result) == "var")) stop("At least one output of variance_function should be named \"var\".")
+    is_list_variance_function_result <- is.list(variance_function_result)
+    if(!is_list_variance_function_result) variance_function_result <- list(var = variance_function_result) 
+    if(!any(names(variance_function_result) == "var")) 
+      stop("At least one output of variance_function should be named \"var\".")
+    if(!is.vector(variance_function_result$var))
+      stop("The ", if(is_list_variance_function_result) "\"var\" " else NULL,"output of variance_function should be a vector.")
     data_as_Matrix <- c(data_as_Matrix, variance_function_result)
 
     # Step 4: Results
