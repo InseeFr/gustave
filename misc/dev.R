@@ -13,7 +13,7 @@ variance_function_ict <- function(y, x, w, samp){
   y <- y / samp$response_prob_est
   var_sampling <- var_srs(y, pik = 1 / samp$w_sample, strata = samp$strata)
   
-  list(var_sampling + var_nr, samp = samp)
+  list(var = var_sampling + var_nr, samp = samp)
   
 }
 

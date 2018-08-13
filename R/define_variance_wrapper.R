@@ -312,6 +312,7 @@ define_variance_wrapper <- function(variance_function,
       data <- data[match_id, ]  
     }
 
+    
     # Step 2: Handling domains, qualitative variables and linearization
     statistic_wrapper_list <- eval(substitute(alist(...)))
     statistic_wrapper_label <- names_else_NA(statistic_wrapper_list)
@@ -335,20 +336,24 @@ define_variance_wrapper <- function(variance_function,
 
     }), recursive = FALSE)
     if(is.null(data_as_list)) stop("No variable to estimate variance on.")
-        
+    
+    
     # Step 3: Variance estimation
     
     # Step 3.1: Build up the sparse matrix to be used in the estimation
     data_as_Matrix <- list(
+      slice_number = unlist(sapply(seq_along(data_as_list), function(i)
+        rep(i, sapply(lapply(data_as_list, `[[`, "lin"), length)[i])
+      ), use.names = FALSE),
       lin = Matrix::sparseMatrix(
-        i = unlist(lapply(data_as_list, function(slice) rep(slice$metadata$row_number, NCOL(slice$lin))), use.names = FALSE),
-        j = unlist(lapply(1:sum(sapply(lapply(data_as_list, `[[`, "lin"), length)), function(j)
-          rep(j, sapply(data_as_list, function(slice) length(slice$metadata$row_number))[j])
-        ), use.names = FALSE),
+        i = unlist(lapply(data_as_list, function(slice) rep(slice$metadata$row_number, length(slice$lin))), use.names = FALSE),
+        p = c(0, cumsum(unlist(lapply(data_as_list, function(slice) 
+          rep(length(slice$metadata$row_number), length(slice$lin))
+        ), use.names = FALSE))),
         x = unlist(lapply(data_as_list, function(slice) do.call(base::c, slice$lin)), use.names = FALSE),
         dims = c(length(reference_id), sum(sapply(lapply(data_as_list, `[[`, "lin"), length))),
-        dimnames = list(reference_id, NULL),
-        giveCsparse = FALSE, check = FALSE
+        dimnames = list(reference_id, NULL), 
+        check = FALSE
       )
     )
 
@@ -359,6 +364,8 @@ define_variance_wrapper <- function(variance_function,
       technical_data
     )
     variance_function_result <- suppressMessages(do.call(variance_function, variance_function_args))
+    
+    # Step 3.3: Test and reorganize variance_function results
     is_list_variance_function_result <- is.list(variance_function_result)
     if(!is_list_variance_function_result) variance_function_result <- list(var = variance_function_result) 
     if(!any(names(variance_function_result) == "var")) 
@@ -367,20 +374,15 @@ define_variance_wrapper <- function(variance_function,
       stop("The ", if(is_list_variance_function_result) "\"var\" " else NULL,"output of variance_function should be a vector.")
     data_as_Matrix <- c(data_as_Matrix, variance_function_result)
 
-    # Step 4: Results
+    # Step 3.4: Reintroduce the "var" output of variance_function within data_as_list
+    data_as_list <- lapply(seq_along(data_as_list), function(i){
+      slice <- data_as_list[[i]]
+      slice$var <- data_as_Matrix$var[data_as_Matrix$slice_number == i]
+      slice
+    })
     
-    # Step 4.1: Reorganize the results of the estimation
-    k <- 0;
-    data_as_list <- lapply(seq_along(data_as_list), function(i) c(
-      data_as_list[[i]], 
-      list(var = lapply(data_as_list[[i]]$lin, function(j){
-        tmp <- data_as_Matrix$var[(k + 1):(k + NCOL(j))]
-        assign("k", (k + NCOL(j)), envir = execution_envir)
-        return(tmp)
-      }))
-    ))
-
-    # Step 4.2: Display the results if requested (the default)
+      
+    # Step 4: Display the results (if requested)
     if(display){
       data_as_list <- lapply(data_as_list, function(i) with(i, 
         display_function(point = point, var = var, metadata = metadata, alpha = alpha)
@@ -393,7 +395,7 @@ define_variance_wrapper <- function(variance_function,
       data_as_list <- data_as_list[, sapply(data_as_list, function(i) !all(is.na(i)))]
       rownames(data_as_list) <- NULL
       data_as_list
-    }else invisible(data_as_list)
+    }else invisible(list(data_as_list = data_as_list, data_as_Matrix = data_as_Matrix))
 
   }
 
