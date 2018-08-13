@@ -236,23 +236,23 @@ test_that("point estimates do match by-hand estimators", {
     reference_weight = ict_survey$w_calib,
     default_id = "firm_id"
   )
-  variance_wrapper(ict_survey, total(speed_quali_NA))$point
+  variance_wrapper(ict_survey, total(speed_quali_NA))$est
   expect_equal(
-    variance_wrapper(ict_survey, total(speed_quanti_NA))$point,
+    variance_wrapper(ict_survey, total(speed_quanti_NA))$est,
     sum(ict_survey$speed_quanti_NA * ict_survey$w_calib, na.rm = TRUE)
   )
   expect_equal(
-    variance_wrapper(ict_survey, mean(speed_quanti_NA))$point,
+    variance_wrapper(ict_survey, mean(speed_quanti_NA))$est,
     weighted.mean(ict_survey$speed_quanti_NA, ict_survey$w_calib, na.rm = TRUE)
   )
   expect_equal(
-    variance_wrapper(ict_survey, mean(speed_quanti_NA), by = division)$point,
+    variance_wrapper(ict_survey, mean(speed_quanti_NA), by = division)$est,
     as.vector(sapply(split(ict_survey, ict_survey$division), function(x)
       weighted.mean(x$speed_quanti_NA, x$w_calib, na.rm = TRUE)
     ))
   )
   expect_equal(
-    variance_wrapper(ict_survey, total(speed_quali))$point,
+    variance_wrapper(ict_survey, total(speed_quali))$est,
     as.vector(tapply(ict_survey$w_calib, ict_survey$speed_quali, sum))
   )
 })
@@ -264,11 +264,11 @@ test_that("estimated values do match reference values", {
     reference_weight = ict_survey$w_calib,
     default_id = "firm_id"
   )
-  expect_equal(variance_wrapper(ict_survey, speed_quanti_NA)$point, 178409.7, tolerance = 1e-0)
+  expect_equal(variance_wrapper(ict_survey, speed_quanti_NA)$est, 178409.7, tolerance = 1e-0)
   expect_equal(variance_wrapper(ict_survey, speed_quanti_NA)$variance, 15817, tolerance = 1e-0)
-  expect_equal(variance_wrapper(ict_survey, speed_quali_NA)$point, c(154, 1748, 2163, 734, 640), tolerance = 1e0)
+  expect_equal(variance_wrapper(ict_survey, speed_quali_NA)$est, c(154, 1748, 2163, 734, 640), tolerance = 1e0)
   expect_equal(variance_wrapper(ict_survey, speed_quali_NA)$variance, c(10, 138, 170, 67, 59), tolerance = 1e0)
-  expect_equal(variance_wrapper(ict_survey, big_data_NA, by = speed_quali_NA)$point, c(0, 18.5, 0, 164.8, 146.1), tolerance = 1e0)
+  expect_equal(variance_wrapper(ict_survey, big_data_NA, by = speed_quali_NA)$est, c(0, 18.5, 0, 164.8, 146.1), tolerance = 1e0)
   expect_equal(variance_wrapper(ict_survey, big_data_NA, by = speed_quali_NA)$variance, c(0, 1, 0, 15, 14), tolerance = 1e-0)
 })
 
