@@ -53,9 +53,23 @@ variance_wrapper_ict <- define_variance_wrapper(
   technical_data = technical_data_ict
 )
 
+total3 <- define_statistic_wrapper(
+  statistic_function = function(y, w){
+    na <- is.na(y)
+    y[na] <- 0
+    point <- sum(y * w)
+    list(point = point, lin = list(y, y), metadata = list(n = sum(!na)))
+  }, 
+  arg_type = list(data = "y" , weight = "w")
+)
+
+
 ict_survey <- ict_survey[sample.int(NROW(ict_survey)), ]
 
-variance_wrapper_ict(ict_survey, speed_quanti, by = division)
+variance_wrapper_ict(ict_survey, 
+                     total(speed_quanti, where = division == "59"), 
+                     total3(speed_quanti, where = division == "60")
+)
 
 var <- c("speed_quanti", "speed_quali")
 variance_wrapper_ict(

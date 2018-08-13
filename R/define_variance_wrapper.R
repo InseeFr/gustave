@@ -342,7 +342,7 @@ define_variance_wrapper <- function(variance_function,
     
     # Step 3.1: Build up the sparse matrix to be used in the estimation
     data_as_Matrix <- list(
-      slice_number = unlist(sapply(seq_along(data_as_list), function(i)
+      slice_number = unlist(lapply(seq_along(data_as_list), function(i)
         rep(i, sapply(lapply(data_as_list, `[[`, "lin"), length)[i])
       ), use.names = FALSE),
       lin = Matrix::sparseMatrix(
