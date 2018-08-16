@@ -12,7 +12,7 @@ Suggests:
   sampling,
   data.table,
   tibble
-Version: 0.4.0
+Version: 0.3.1.9100
 Authors@R: person("Martin", "Chevalier", role = c("aut", "cre", "cph"), email = "martin.chevalier@insee.fr")
 Author: Martin Chevalier [aut, cre, cph]
 Maintainer: Martin Chevalier <martin.chevalier@insee.fr>  
