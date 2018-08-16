@@ -225,6 +225,8 @@ define_variance_wrapper <- function(variance_function,
 ){
 
   # TODO: Add some sort of startup message on first run of the function (check what Matrix does)
+  sys_time <- Sys.time()
+  session_info <- utils::sessionInfo()
 
   # Step I: Controls 
 
@@ -410,7 +412,10 @@ define_variance_wrapper <- function(variance_function,
   e1 <- new.env(parent = globalenv())
   assign_all(objects = ls(asNamespace("gustave")), to = e1, from = asNamespace("gustave"))
   e2 <- new.env(parent = e1)
-  assign_all(objects = c("variance_function", "reference_id", "reference_weight", "technical_data", "arg_type"), to = e2, from = environment())
+  assign_all(objects = c(
+    "sys_time", "session_info",
+    "variance_function", "reference_id", "reference_weight", "technical_data", "arg_type"
+  ), to = e2, from = environment())
   assign_all(objects = objects_to_include, to = e2, from = parent.frame())
   variance_wrapper <- change_enclosing(variance_wrapper, envir = e2)
 

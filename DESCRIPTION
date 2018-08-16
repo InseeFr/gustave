@@ -5,6 +5,7 @@ Depends:
   R(>= 3.2.5)
 Imports:
   methods,
+  utils,
   stats,
   Matrix
 Suggests:
