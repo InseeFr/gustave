@@ -122,5 +122,8 @@ variance_wrapper <- define_variance_wrapper(
   objects_to_include = "total3"
 )
 test_that("a statistical wrapper producing more than one linearized variables is handled correctly", {
-  expect_error(variance_wrapper(ict_survey, total3(speed_quanti)), regexp = NA)
+  expect_warning(
+    variance_wrapper(ict_survey, total3(speed_quanti)), 
+    regexp = "The standard display function is adapted for."
+  )
 })

@@ -384,17 +384,10 @@ define_variance_wrapper <- function(variance_function,
       
     # Step 4: Display the results (if requested)
     if(display){
-      data_as_list <- lapply(data_as_list, function(i) with(i, 
-        display_function(point = point, var = var, metadata = metadata, alpha = alpha)
-      ))
-      names <- unique(do.call(base::c, lapply(data_as_list, names)))
-      data_as_list <- do.call(rbind, lapply(data_as_list, function(i){
-        i[, setdiff(names, names(i))] <- NA
-        i[, names]
-      }))
-      data_as_list <- data_as_list[, sapply(data_as_list, function(i) !all(is.na(i)))]
-      rownames(data_as_list) <- NULL
-      data_as_list
+      list_output_df <- lapply(data_as_list, function(i) with(i, display_function(
+        point = point, var = var, metadata = metadata[c("label", "call", "mod", "by", "n")], alpha = alpha
+      )))
+      rbind_output_df(list_output_df)
     }else invisible(list(data_as_list = data_as_list, data_as_Matrix = data_as_Matrix))
 
   }

@@ -308,7 +308,6 @@ names_else_NA <- function(x){
   }
 }
 
-
 discretize_qualitative_var <- function(var, logical  = FALSE){
   var <- droplevels(as.factor(var))
   result <- Matrix(nrow = length(var), ncol = length(levels(var)))
@@ -352,16 +351,13 @@ display_only_n_first <- function(x,
   }
 }
 
-# 
-# add_names_to_list <- function(l){
-#   if(!is.language(l)) stop("l must be an unevaluated evaluation (you may want to use substitute() in the function call.)")
-#   l <- as.list(l)
-#   names_l <- if(!is.null(names(l)[-1])) names(l) else rep(NA, length(l))
-#   symbol_l <- sapply(unname(l), function(x) if(is.symbol(x)) deparse(x) else "")
-#   names_l[names_l == ""] <- symbol_l[names_l == ""]
-#   as.call(stats::setNames(l, names_l))
-# }
-# identical(
-#   add_names_to_list(substitute(list(reference_id = fsndf, bsfsdf))),
-#   substitute(list(reference_id = fsndf, bsfsdf = bsfsdf))
-# )
+rbind_output_df <- function(list_output_df){
+  names <- unique(do.call(base::c, lapply(list_output_df, names)))
+  output_df <- do.call(rbind, lapply(list_output_df, function(i){
+    i[, setdiff(names, names(i))] <- NA
+    i[, names]
+  }))
+  output_df <- output_df[, sapply(output_df, function(i) !all(is.na(i)))]
+  rownames(output_df) <- NULL
+  output_df
+}

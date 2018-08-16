@@ -285,15 +285,22 @@ define_statistic_wrapper <- function(statistic_function,
 }
 
 standard_display <- function(point, var, metadata, alpha){
-  d <- as.data.frame(metadata[c("label", "call", "mod", "by")])
-  if(!is.null(metadata$n)) d$n <- metadata$n
-  d$est <- point
-  d$variance <- var[[1]]
-  d$std <- sqrt(d$variance)
-  d$cv <- d$std * 100 / d$est
-  d$lower <- d$est - stats::qnorm(1-alpha/2)*d$std
-  d$upper <- d$est + stats::qnorm(1-alpha/2)*d$std
-  d
+  output_df <- as.data.frame(metadata[!sapply(metadata, is.null)], stringsAsFactors = FALSE)
+  output_df$est <- point
+  if(length(var) > 1){
+    warning(
+      "The standard display function is adapted for statistic producing only one estimator of variance. Here there are ", 
+      length(var), ": it could be necessary to define a specific display function.", 
+      "\n", call. = FALSE
+    )
+    var <- var[1]
+  }
+  output_df$variance <- var
+  output_df$std <- sqrt(output_df$variance)
+  output_df$cv <- output_df$std * 100 / output_df$est
+  output_df$lower <- output_df$est - stats::qnorm(1 - alpha / 2) * output_df$std
+  output_df$upper <- output_df$est + stats::qnorm(1 - alpha / 2) * output_df$std
+  output_df
 }
 standard_display <- change_enclosing(standard_display, globalenv())
 
