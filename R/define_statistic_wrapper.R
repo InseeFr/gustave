@@ -285,6 +285,7 @@ define_statistic_wrapper <- function(statistic_function,
 }
 
 standard_display <- function(point, var, metadata, alpha){
+  # TODO: If installed, use tibble to add more explicit column labels
   output_df <- as.data.frame(metadata[!sapply(metadata, is.null)], stringsAsFactors = FALSE)
   output_df$est <- point
   if(length(var) > 1){

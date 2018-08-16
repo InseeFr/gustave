@@ -383,13 +383,13 @@ define_variance_wrapper <- function(variance_function,
     
       
     # Step 4: Display the results (if requested)
-    if(display){
-      list_output_df <- lapply(data_as_list, function(i) with(i, display_function(
-        point = point, var = var, metadata = metadata[c("label", "call", "mod", "by", "n")], alpha = alpha
-      )))
-      rbind_output_df(list_output_df)
-    }else invisible(list(data_as_list = data_as_list, data_as_Matrix = data_as_Matrix))
-
+    if(!display) 
+      return(invisible(list(data_as_list = data_as_list, data_as_Matrix = data_as_Matrix)))
+    list_output_df <- lapply(data_as_list, function(i) with(i, display_function(
+      point = point, var = var, metadata = metadata[c("label", "call", "mod", "by", "n")], alpha = alpha
+    )))
+    rbind_output_df(list_output_df)
+  
   }
 
   # Step III: Finalize the variance wrapper
