@@ -274,12 +274,28 @@ assign_all <- function(objects, to, from = parent.frame(), not_closure = c(list(
 is_error <- function(expr) 
   inherits(try(expr, silent = TRUE), "try-error")
 
+is_variable_name <- function(param, data = NULL, max_length = 1)
+  is.character(param) && 
+  (is.null(data) || length(setdiff(param, names(data))) == 0) && 
+  length(param) > 0 && length(param) <= max_length
+
+variable_not_in_data <- function(var, data){
+  if(is.null(var)) return(NULL)
+  tmp <- var[!(var %in% names(data))]
+  if(length(tmp) == 0) return(NULL)
+  tmp
+} 
+
 replace_variable_name_with_symbol <- function(arg_list, envir, single = TRUE){
+  # spy <<- arg_list; stop()
+  # arg_list <- spy; data <- ict_survey; single <- FALSE
   tmp <- lapply(arg_list, function(a){
+    # spy <<- list(a, envir); stop()
+    # a <- spy[[1]]; envir <- spy[[2]]; enclos <- globalenv(); single <- TRUE
     if(is_error(a_eval <- eval(a, envir = envir))){
       a_out <- list(a)
-    }else if(is_variable_name(a_eval, Inf)){
-      if(single && !is_variable_name(a_eval, 1)) 
+    }else if(is_variable_name(a_eval, data = envir, max_length = Inf)){
+      if(single && !is_variable_name(a_eval, data = envir, max_length = 1))
         stop("Only single variable names are allowed for the by argument.")
       a_out <- lapply(a_eval, as.symbol)
     }else a_out <- list(a)
@@ -328,16 +344,6 @@ get_through_parent_frame <- function(x){
   }
   found
 }
-
-is_variable_name <- function(param, max_length = 1)
-  is.character(param) && length(param) > 0 && length(param) <= max_length
-
-variable_not_in_data <- function(var, data){
-  if(is.null(var)) return(NULL)
-  tmp <- var[!(var %in% names(data))]
-  if(length(tmp) == 0) return(NULL)
-  tmp
-} 
 
 display_only_n_first <- function(x, 
                                  n = 10, 

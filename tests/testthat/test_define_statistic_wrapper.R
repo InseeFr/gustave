@@ -18,12 +18,14 @@ test_that("standard and non-standard evaluation yields the same results", {
     variance_wrapper(ict_survey, mean(speed_quanti)),
     variance_wrapper(ict_survey, mean("speed_quanti"))
   )
-  var <- "speed_quanti"
+
+  assign(x = "var", value = "speed_quanti", envir = globalenv())
   expect_identical(
     variance_wrapper(ict_survey, mean(speed_quanti)),
     variance_wrapper(ict_survey, mean(var))
   )
-  var <- c("speed_quanti", "speed_quali")
+
+  assign(x = "var", value = c("speed_quanti", "speed_quali"), envir = globalenv())
   expect_identical(
     variance_wrapper(ict_survey, mean(speed_quanti), mean(speed_quali)),
     variance_wrapper(ict_survey, mean(var))
@@ -34,14 +36,14 @@ test_that("standard and non-standard evaluation yields the same results", {
     variance_wrapper(ict_survey, mean(speed_quanti2))[ - 1]
   )
 
-  num <- c("turnover")
-  denom <- c("employees")
+  assign(x = "num", value = "turnover", envir = globalenv())
+  assign(x = "denom", value = "employees", envir = globalenv())
   expect_identical(
     variance_wrapper(ict_survey, ratio(turnover, employees)),
     variance_wrapper(ict_survey, ratio(num, denom))
   )
-  num <- c("turnover", "employees")
-  denom <- c("employees", "turnover")
+  assign(x = "num", value = c("turnover", "employees"), envir = globalenv())
+  assign(x = "denom", value = c("employees", "turnover"), envir = globalenv())
   expect_identical(
     variance_wrapper(ict_survey, ratio(turnover, employees), ratio(employees, turnover)),
     variance_wrapper(ict_survey, ratio(num, denom))
@@ -73,6 +75,16 @@ test_that("standard and non-standard evaluation yields the same results", {
 
 })
 
+test_that("non-standard evaluation works when a character vector with same name exists outside of data", {
+  speed_quanti <- "blabla"
+  expect_error(
+    variance_wrapper(ict_survey, speed_quanti),
+    regexp = NA
+  )
+})
+
+
+
 
 # Define a new statistic_wrapper and include it in the variance_wrapper
 
@@ -96,12 +108,6 @@ variance_wrapper <- define_variance_wrapper(
 )
 rm(total2)
 
-test_that("a new linearization wrapper can be defined", {
-  expect_error(
-    variance_wrapper(ict_survey, total2(speed_quanti)),
-    regexp = NA
-  )
-})
 
 
 # Define a statistic_wrapper that produces two linearized variables

@@ -163,12 +163,13 @@ define_statistic_wrapper <- function(statistic_function,
     if(!("where" %in% names(call_list))) call_list$where <- substitute(where, execution_envir)
 
     # Step 2: Rewrite the call to take standard evaluation into account
+    data <- eval(substitute(data), execution_envir)
     if(!is.null(call_list$by)) call_list["by"] <- 
-      replace_variable_name_with_symbol(call_list["by"], envir = evaluation_envir)
+      replace_variable_name_with_symbol(call_list["by"], envir = data)
     if(!is.null(call_list$where)) call_list["where"] <- 
-      replace_variable_name_with_symbol(call_list["where"], envir = evaluation_envir)
+      replace_variable_name_with_symbol(call_list["where"], envir = data)
     data_arg <- replace_variable_name_with_symbol(
-      call_list[arg_type$data], envir = evaluation_envir, single = FALSE
+      call_list[arg_type$data], envir = data, single = FALSE
     )
     call_list <- lapply(seq_along(data_arg[[1]]), function(c){
       call_list[names(data_arg)] <- lapply(data_arg, `[[`, c)
@@ -185,7 +186,6 @@ define_statistic_wrapper <- function(statistic_function,
     ))
     
     # Step 4: Evaluate the arguments and create the data, weight and param slots
-    data <- eval(substitute(data), execution_envir)
     data_as_list <- lapply(data_as_list, function(d){
       d$data <- lapply(
         as.list(d$call)[arg_type$data], 
@@ -207,7 +207,7 @@ define_statistic_wrapper <- function(statistic_function,
     # Step 5: Where 
     data_as_list <- lapply(data_as_list, function(d){
       if(is.null(d$call$where)) return(d)
-      where <- as.logical(eval(d$call$where, data))
+      where <- as.logical(eval(d$call$where, envir = data, enclos = evaluation_envir))
       if(!any(where)) stop("where argument excludes all observations.")
       d$metadata$row_number <- d$metadata$row_number[where]
       d$data[arg_domain$data] <- lapply(d$data[arg_domain$data], `[`, where)
@@ -218,7 +218,7 @@ define_statistic_wrapper <- function(statistic_function,
     # Step 6: By
     data_as_list <- unlist(lapply(data_as_list, function(d){
       if(is.null(d$call$by)) return(list(d))
-      by <- droplevels(as.factor(eval(d$call$by, data)))
+      by <- droplevels(as.factor(eval(d$call$by, envir = data, enclos = evaluation_envir)))
       by_split <- split(seq_along(by), by)
       tmp <- lapply(levels(by), function(by_group){
         d_by <- d
@@ -276,7 +276,7 @@ define_statistic_wrapper <- function(statistic_function,
 
   # Step III.2: Include objects in statistic_wrapper enclosing environment
   e <- new.env(parent = globalenv())
-  assign_all(objects = c("discretize_qualitative_var", "get_through_parent_frame", "replace_variable_name_with_symbol", "is_error"), to = e, from = asNamespace("gustave"))
+  assign_all(objects = c("discretize_qualitative_var", "get_through_parent_frame", "replace_variable_name_with_symbol", "is_error", "is_variable_name"), to = e, from = asNamespace("gustave"))
   assign_all(objects = c("statistic_function", "arg_type", "arg_domain", "display_function"), to = e, from = environment())
   statistic_wrapper <- change_enclosing(statistic_wrapper, envir = e)
   
