@@ -287,15 +287,11 @@ define_statistic_wrapper <- function(statistic_function,
 standard_display <- function(point, var, metadata, alpha){
   # TODO: If installed, use tibble to add more explicit column labels
   output_df <- as.data.frame(metadata[!sapply(metadata, is.null)], stringsAsFactors = FALSE)
+  if(length(var) != length(point)) stop(
+    "The number of estimated variances does not match the number of point estimates. A specific display function could be needed.", 
+    "\n", call. = FALSE
+  )
   output_df$est <- point
-  if(length(var) > 1){
-    warning(
-      "The standard display function is adapted for statistic producing only one estimator of variance. Here there are ", 
-      length(var), ": it could be necessary to define a specific display function.", 
-      "\n", call. = FALSE
-    )
-    var <- var[1]
-  }
   output_df$variance <- var
   output_df$std <- sqrt(output_df$variance)
   output_df$cv <- output_df$std * 100 / output_df$est
