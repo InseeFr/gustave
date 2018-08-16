@@ -165,11 +165,11 @@ define_statistic_wrapper <- function(statistic_function,
     # Step 2: Rewrite the call to take standard evaluation into account
     data <- eval(substitute(data), execution_envir)
     if(!is.null(call_list$by)) call_list["by"] <- 
-      replace_variable_name_with_symbol(call_list["by"], envir = data)
+      replace_variable_name_with_symbol(call_list["by"], data = data)
     if(!is.null(call_list$where)) call_list["where"] <- 
-      replace_variable_name_with_symbol(call_list["where"], envir = data)
+      replace_variable_name_with_symbol(call_list["where"], data = data)
     data_arg <- replace_variable_name_with_symbol(
-      call_list[arg_type$data], envir = data, single = FALSE
+      call_list[arg_type$data], data = data, single = FALSE
     )
     call_list <- lapply(seq_along(data_arg[[1]]), function(c){
       call_list[names(data_arg)] <- lapply(data_arg, `[[`, c)

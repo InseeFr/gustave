@@ -286,16 +286,14 @@ variable_not_in_data <- function(var, data){
   tmp
 } 
 
-replace_variable_name_with_symbol <- function(arg_list, envir, single = TRUE){
-  # spy <<- arg_list; stop()
-  # arg_list <- spy; data <- ict_survey; single <- FALSE
+replace_variable_name_with_symbol <- function(arg_list, data, single = TRUE){
+  # TODO: Allow evaluation through parent frames (see tests for details)
+  # TODO: Handle the case of apparent name without match in data variable names
   tmp <- lapply(arg_list, function(a){
-    # spy <<- list(a, envir); stop()
-    # a <- spy[[1]]; envir <- spy[[2]]; enclos <- globalenv(); single <- TRUE
-    if(is_error(a_eval <- eval(a, envir = envir))){
+    if(is_error(a_eval <- eval(a, envir = data))){
       a_out <- list(a)
-    }else if(is_variable_name(a_eval, data = envir, max_length = Inf)){
-      if(single && !is_variable_name(a_eval, data = envir, max_length = 1))
+    }else if(is_variable_name(a_eval, data = data, max_length = Inf)){
+      if(single && !is_variable_name(a_eval, data = data, max_length = 1))
         stop("Only single variable names are allowed for the by argument.")
       a_out <- lapply(a_eval, as.symbol)
     }else a_out <- list(a)
