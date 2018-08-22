@@ -1,17 +1,18 @@
 
 
 
-#' Perform a variance estimation for one-stage stratified surveys 
-#' taking out-of-scope units, non-response and calibration into acount
+#' Quickly perform a variance estimation in common cases
 #' 
-#' @description \code{qvar} is a function performing analytical 
-#' variance estimation in most common cases, that is: \itemize{\item stratified 
-#' simple random sampling \item correct handling of out-of-scope units \item 
-#' non-response correction (if any) through reweighting \item calibration (if any)}
+#' @description \code{qvar} (for "quick variance estimation") is a function 
+#' performing analytical variance estimation in most common cases, that is: 
+#' \itemize{\item stratified simple random sampling \item correct handling of 
+#' out-of-scope units \item non-response correction (if any) through reweighting 
+#' \item calibration (if any)}
 #' 
 #' Used with \code{define = TRUE}, it defines a so-called variance wrapper, that 
 #' is a standalone ready-to-use function that can be applied to the survey dataset 
-#' without having to specify the methodological characteristics of the survey.
+#' without having to specify the methodological characteristics of the survey
+#' (see \code{\link{define_variance_wrapper}}).
 #'
 #' @param data The \code{data.frame} containing all the technical information
 #'   required to prepare the variance estimation process (see other arguments 
@@ -105,7 +106,7 @@
 #'   additional reweighting steps to correct non-response bias
 #'   or reduce variance through calibration.
 #'   
-#'   It performs not only tehnical but also methodological checks
+#'   It performs not only technical but also methodological checks
 #'   in order to ensure that the variance estimation methodology 
 #'   do apply (e.g. equal probability of inclusion within strata, 
 #'   number of units per stratum). 
@@ -114,8 +115,10 @@
 #'   a specific variance estimation wrapper may be defined using
 #'   the \code{\link{define_variance_wrapper}} function.
 #'   
-#'   "qvar" strands for (in French) "Variance estimation
-#'   for stratified simple random sampling surveys with reweighting".
+#'   \code{qvar} is analogous to the \code{qplot} function in the ggplot2
+#'   package, as it is an easier-to-use function for common cases. More 
+#'   complex cases are to be handled by using the core functions of 
+#'   the gustave package, e.g. \code{\link{define_variance_wrapper}}.
 #'   
 #' @seealso \code{\link{define_variance_wrapper}} \code{\link{standard_statistic_wrapper}}
 #' 
