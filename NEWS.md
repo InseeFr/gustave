@@ -11,7 +11,7 @@
 
 - Breaking: Rebranding and heavy remanufacturing of `define_statistic_wrapper` (previously known as `define_linearization_wrapper`), added support for standard evaluation (see `define_variance_wrapper` examples).
     
-- New: the `everest` function allows for a straigthforward variance estimation in common cases (stratified simple random sampling with non-response through reweighting and calibration) and performs both technical and methodological checks.
+- New: the `qvar` function allows for a straigthforward variance estimation in common cases (stratified simple random sampling with non-response through reweighting and calibration) and performs both technical and methodological checks.
 
 - Some normalization in function names: `add0` becomes `add_zero`, `sumby` becomes `sum_by`, `rescal` becomes `res_cal`
 

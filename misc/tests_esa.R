@@ -16,7 +16,7 @@ library(gustave)
 
 # Chargement des données
 esa <- haven::read_sas(
-  data_file = paste(racine, "#archives/everest_180625/DONNEES/everest_esa_eap_2012.sas7bdat", sep = "/")
+  data_file = paste(racine, "#archives/qvar_180625/DONNEES/qvar_esa_eap_2012.sas7bdat", sep = "/")
 )
 
 tmp <- make_block(esa$r310, by = esa$secteur_calage)
@@ -25,8 +25,8 @@ tmp <- as.matrix(tmp)
 colnames(tmp) <- calvar
 esa <- cbind(esa, tmp)
 
-# Création d'un wrapper everest pour l'ESA
-everest_esa <- everest(
+# Création d'un wrapper qvar pour l'ESA
+qvar_esa <- qvar(
   data = esa, 
   id = "siren",
   dissemination_dummy = "rep",
@@ -43,13 +43,13 @@ everest_esa <- everest(
 )
 
 # Tests sur le fichier complet
-everest_esa(esa, mean(r003))
+qvar_esa(esa, mean(r003))
 
 # Tests sur le seul fichier de répondants
 esa_rep <- esa[esa$rep == 1, ]
 
-everest_esa(esa_rep, mean(r003))
-everest_esa(esa_rep, ratio(r217, r216))
+qvar_esa(esa_rep, mean(r003))
+qvar_esa(esa_rep, ratio(r217, r216))
 
 var <- c("r003", "r310")
-everest_esa(esa_rep, mean(var))
+qvar_esa(esa_rep, mean(var))

@@ -3,7 +3,7 @@
 export(add_zero)
 export(define_statistic_wrapper)
 export(define_variance_wrapper)
-export(everest)
+export(qvar)
 export(res_cal)
 export(sum_by)
 export(varDT)

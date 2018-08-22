@@ -4,7 +4,7 @@
 #' Perform a variance estimation for one-stage stratified surveys 
 #' taking out-of-scope units, non-response and calibration into acount
 #' 
-#' @description \code{everest} is a function performing analytical 
+#' @description \code{qvar} is a function performing analytical 
 #' variance estimation in most common cases, that is: \itemize{\item stratified 
 #' simple random sampling \item correct handling of out-of-scope units \item 
 #' non-response correction (if any) through reweighting \item calibration (if any)}
@@ -99,7 +99,7 @@
 #'   be defined instead of performing a variance estimation?
 #' @param envir An environment containing a binding to \code{data}.
 #' 
-#' @details \code{everest} aims at being a straightforward variance
+#' @details \code{qvar} aims at being a straightforward variance
 #'   estimation tool in the most common cases in social or business
 #'   surveys, that is a stratified simple random sampling with 
 #'   additional reweighting steps to correct non-response bias
@@ -114,13 +114,14 @@
 #'   a specific variance estimation wrapper may be defined using
 #'   the \code{\link{define_variance_wrapper}} function.
 #'   
-#'   "everest" strands for (in French) "Variance estimation
+#'   "qvar" strands for (in French) "Variance estimation
 #'   for stratified simple random sampling surveys with reweighting".
 #'   
 #' @seealso \code{\link{define_variance_wrapper}} \code{\link{standard_statistic_wrapper}}
 #' 
 #' @export
-everest <- function(data, ..., by = NULL, where = NULL, 
+
+qvar <- function(data, ..., by = NULL, where = NULL, 
                     alpha = 0.05, display = TRUE, 
                     id, dissemination_dummy, dissemination_weight,
                     sampling_weight, strata = NULL,
@@ -133,9 +134,9 @@ everest <- function(data, ..., by = NULL, where = NULL,
   # Step 1: Define the variance wrapper
   call <- as.list(match.call())[-1]
   call$envir <- envir
-  everest_wrapper <- do.call(
-    define_everest_wrapper, 
-    call[names(call) %in% names(formals(define_everest_wrapper))]
+  qvar_wrapper <- do.call(
+    define_qvar_wrapper, 
+    call[names(call) %in% names(formals(define_qvar_wrapper))]
   )
   
   # Step 2: Export the variance wrapper
@@ -145,16 +146,16 @@ everest <- function(data, ..., by = NULL, where = NULL,
     }else{
       note("No variable to perform variance estimation on are specified. A ready-to-use variance wrapper is (invisibly) returned instead.")
     }
-    return(invisible(everest_wrapper))
+    return(invisible(qvar_wrapper))
   }
   
   # Step 3: Estimate variance
-  everest_data <- data[data[, id] %in% environment(everest_wrapper)$reference_id, ]  
-  call$data <- substitute(everest_data)
+  qvar_data <- data[data[, id] %in% environment(qvar_wrapper)$reference_id, ]  
+  call$data <- substitute(qvar_data)
   call$envir <- environment()
   do.call(
-    everest_wrapper,
-    call[names(call) == "" | names(call) %in% names(formals(everest_wrapper))]
+    qvar_wrapper,
+    call[names(call) == "" | names(call) %in% names(formals(qvar_wrapper))]
   )
 
 }
@@ -163,7 +164,7 @@ everest <- function(data, ..., by = NULL, where = NULL,
 
 # Unexported (and undocumented) functions
 
-define_everest_wrapper <- function(data, id, dissemination_dummy, dissemination_weight,
+define_qvar_wrapper <- function(data, id, dissemination_dummy, dissemination_weight,
                                   sampling_weight, strata = NULL,
                                   scope_dummy = NULL, 
                                   nrc_weight = NULL, response_dummy = NULL, nrc_dummy = NULL,
@@ -511,7 +512,7 @@ define_everest_wrapper <- function(data, id, dissemination_dummy, dissemination_
   
   
   # Step 5: Define the variance wrapper ----
-  everest_wrapper <- define_variance_wrapper(
+  qvar_wrapper <- define_variance_wrapper(
     variance_function = var_simple,
     reference_id = reference_id,
     reference_weight = reference_weight,
@@ -519,7 +520,7 @@ define_everest_wrapper <- function(data, id, dissemination_dummy, dissemination_
     technical_data = list(samp = samp, nrc = nrc, calib = calib)
   )
   
-  everest_wrapper
+  qvar_wrapper
 
 }
 

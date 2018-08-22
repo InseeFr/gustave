@@ -4,7 +4,8 @@
 \alias{res_cal}
 \title{Linear Regression Residuals Calculation}
 \usage{
-res_cal(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
+res_cal(y = NULL, x, w = NULL, by = NULL, precalc = NULL,
+  id = NULL)
 }
 \arguments{
 \item{y}{A numerical matrix of dependent variable(s). May be a 

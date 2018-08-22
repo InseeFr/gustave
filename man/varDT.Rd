@@ -3,7 +3,6 @@
 \name{varDT}
 \alias{varDT}
 \alias{var_srs}
-\alias{var_srs}
 \title{Variance approximation with Deville-Tillé (2005) formula}
 \usage{
 varDT(y = NULL, pik, x = NULL, strata = NULL, w = NULL,

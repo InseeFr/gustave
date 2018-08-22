@@ -7,11 +7,6 @@
 \alias{mean}
 \alias{diff_of_ratio}
 \alias{ratio_of_ratio}
-\alias{total}
-\alias{ratio}
-\alias{mean}
-\alias{diff_of_ratio}
-\alias{ratio_of_ratio}
 \title{Standard statistic wrappers}
 \usage{
 total(y, by = NULL, where = NULL)

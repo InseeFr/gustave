@@ -5,7 +5,8 @@
 \title{Define a statistic wrapper}
 \usage{
 define_statistic_wrapper(statistic_function, arg_type,
-  arg_not_affected_by_domain = NULL, display_function = standard_display)
+  arg_not_affected_by_domain = NULL,
+  display_function = standard_display)
 }
 \arguments{
 \item{statistic_function}{An R function specific to the statistic to
