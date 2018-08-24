@@ -53,7 +53,7 @@ test_that("a variance wrapper can be manually defined on top of var_simple", {
   )
 })
 
-test_that("inconsitency detection works as expected", {
+test_that("Step 1.1: Arguments consistency", {
   expect_error(
     qvar(), 
     regexp = "The following arguments are missing: data, id, dissemination_dummy, dissemination_weight, sampling_weight."
@@ -88,7 +88,7 @@ test_that("inconsitency detection works as expected", {
   )
 })
 
-test_that("welcome message works as expected", {
+test_that("Step 1.2: Welcome message", {
   skip("skip")
   welcome <- "Variance wrapper definition using the dataset : blabla\n\nThe following features are taken into account:"
   expect_message(
@@ -129,7 +129,7 @@ test_that("welcome message works as expected", {
   )
 })
 
-test_that("argument validity controls work as expected", {
+test_that("Step 2: Control that arguments do exist and retrive their value", {
   expect_error(
     qvar(
       data = blabla, 
@@ -147,11 +147,11 @@ test_that("argument validity controls work as expected", {
     regexp = "data argument must refer to a data.frame"
   )
   expect_error(
-    suppressWarnings(qvar(
+    qvar(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample", 
       sampling_weight = "w_sample", strata = "strata"
-    )),
+    ),
     regexp = NA
   )
   expect_error(
@@ -198,7 +198,7 @@ test_that("argument validity controls work as expected", {
   )
 })
 
-test_that("argument value controls work as expected", {
+test_that("Step 3: Control arguments value", {
   
   # id
   ict_sample$firm_id[1] <- NA
@@ -527,7 +527,7 @@ test_that("argument value controls work as expected", {
 
 })
 
-test_that("methodological validation works as expected", {
+test_that("Step 4: Define methodological quantities", {
   
   expect_error({
     variance_wrapper <- qvar(

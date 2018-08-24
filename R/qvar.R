@@ -216,7 +216,7 @@ define_qvar_wrapper <- function(data, id, dissemination_dummy, dissemination_wei
     "\n"
   )
   
-  # Step 2: Control that arguments do exist and retrive their value ----
+  # Step 2: Control that arguments do exist and retrieve their value ----
 
   # Step 2.1: Evaluation of all arguments
   deparse_data <- deparse(substitute(data))
@@ -224,7 +224,7 @@ define_qvar_wrapper <- function(data, id, dissemination_dummy, dissemination_wei
   if(!is.data.frame(data)) stop("data argument must refer to a data.frame")
   arg <- lapply(as.list(match.call())[-1], eval)
 
-  # Step 2.2: Expected types
+  # Step 2.2: Expected length
   should_be_single_variable_name <- intersect(c(
     "id", "dissemination_dummy", "dissemination_weight",
     "sampling_weight", "strata", "scope_dummy", 
@@ -234,7 +234,8 @@ define_qvar_wrapper <- function(data, id, dissemination_dummy, dissemination_wei
   should_be_variable_name_vector <- intersect(c("calibration_var"), names(arg))
   should_be_variable_name <- c(should_be_single_variable_name, should_be_variable_name_vector)
 
-  # Step 2.2: Types
+  # Step 2.3: Check whether arguments are character vectors and 
+  # have the expected length
   is_single_variable_name <- sapply(
     arg[should_be_single_variable_name], 
     function(arg) is.null(arg) || is_variable_name(arg, max_length = 1)
@@ -252,7 +253,7 @@ define_qvar_wrapper <- function(data, id, dissemination_dummy, dissemination_wei
     names(is_variable_name_vector)[!is_variable_name_vector]
   )
 
-  # Step 2.3: variables in data
+  # Step 2.4: Check the presence of the variables in data
   is_not_in_data <- lapply(should_be_variable_name, function(param){
     tmp <- variable_not_in_data(var = arg[[param]], data = data)
     if(is.null(tmp)) return(NULL)
@@ -263,7 +264,7 @@ define_qvar_wrapper <- function(data, id, dissemination_dummy, dissemination_wei
     unlist(is_not_in_data[!is.null(is_not_in_data)])
   )
   
-  # Step 2.4: Retrieve the value of the arguments
+  # Step 2.5: Retrieve the value of the arguments
   data <- data[order(data[[arg$id]]), ]
   list2env(c(
     lapply(
@@ -289,6 +290,7 @@ define_qvar_wrapper <- function(data, id, dissemination_dummy, dissemination_wei
   # dissemination_dummy
   if(is.numeric(dissemination_dummy)){
     note("The dissemination dummy variable (", arg$dissemination_dummy, ") is of type numeric. It is automatically coerced to logical.")
+    # TODO: Check whether there is only 1/0 values and do it for all dummies (check_dummy() function)
     dissemination_dummy <- as.logical(dissemination_dummy)
   }
   if(!is.logical(dissemination_dummy))
