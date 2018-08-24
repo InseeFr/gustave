@@ -539,6 +539,8 @@ var_simple <- function(y, samp, nrc, calib){
 
   # Non-response
   if(!is.null(nrc)){
+    # TODO: Check if there is no problem with the following line
+    # (it could affect the estimated sampling variance)
     y <- y[nrc$id, , drop = FALSE]
     var[["nr"]] <- var_pois(y = y, pik = nrc$response_prob, w = nrc$sampling_weight)
     y <- y / nrc$response_prob
