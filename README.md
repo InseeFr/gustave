@@ -1,7 +1,11 @@
 gustave
 =======
 
-Gustave (Gustave: a User-oriented Statistical Toolkit for Analytical Variance Estimation) is an R package that provides a **toolkit for analytical variance estimation in survey sampling**. Apart from the implementation of standard variance estimators (Sen-Yates-Grundy, Deville-Tillé), its main feature is to help the methodologist produce easy-to-use variance estimation "wrappers", where systematic operations (linearization, domain estimation) are handled in a consistent and transparent way for the end user.
+Gustave (Gustave: a User-oriented Statistical Toolkit for Analytical Variance Estimation) is an R package that provides a **toolkit for analytical variance estimation in survey sampling**. 
+
+Apart from the implementation of standard variance estimators (Sen-Yates-Grundy, Deville-Tillé), its main feature is to **help he methodologist produce easy-to-use variance estimation *wrappers***, where systematic operations (statistic linearization, domain estimation) are handled in a consistent and transparent way. 
+
+The **ready-to-use variance estimation wrapper `qvar()`**, adapted for common cases (e.g. stratified simple random sampling, non-response correction through reweighting in homogeneous response groups, calibration), is also included. The core functions of the package (e.g. `define_variance_wrapper()`) are to be used for more complex cases.
 
 ## Install
 
@@ -11,7 +15,7 @@ gustave is available on CRAN and can therefore be installed with the `install.pa
 install.packages("gustave")
 ```
 
-However, if you wish to install the latest version of gustave, you can use `devtools::install_github()` to install it directly from this repository:
+However, if you wish to install the latest version of gustave, you can use `devtools::install_github()` to install it directly from the [github.com repository](https://github.com/martinchevalier/gustave):
 
 ```
 install.packages("devtools")
@@ -20,13 +24,13 @@ devtools::install_github("martinchevalier/gustave")
 
 ## Example
 
-In this example, we define a variance estimation wrapper adapted to the example data inspired by the Information and communication technology (ICT) survey. The subset of the (simulated) ICT survey has the following features:
+In this example, we aim at estimating the variance of estimators computed using simulated data inspired from the Information and communication technology (ICT) survey. This survey has the following characteristics:
 
-- stratified one-stage sampling design of 650 firms;
-- 612 responding firms, non-response correction through reweighting in homogeneous response groups based on economic sub-sector and turnover;
+- stratified one-stage sampling design;
+- non-response correction through reweighting in homogeneous response groups based on economic sub-sector and turnover;
 - calibration on margins (number of firms and turnover broken down by economic sub-sector).
 
-The ICT data files are shipped with the gustave package:
+The ICT simulated data files are shipped with the gustave package:
 
 ```
 library(gustave)
@@ -34,121 +38,128 @@ data(package = "gustave")
 ? ict_survey
 ```
 
-### Step 1: Define the variance *function*
+### Methodological description of the survey
 
-In this context, the variance estimation *function* specific to the ICT survey can be defined as follows:
-
+A variance estimation can be perform in a single call of `qvar()`:
 ```
-# Definition of the variance function
-variance_function_ict <- function(y, x, w, samp){
+qvar(
+
+  # Sample file
+  data = ict_sample,
+  
+  # Dissemination and identification information
+  dissemination_dummy = "dissemination",
+  dissemination_weight = "w_calib",
+  id = "firm_id",
+  
+  # Scope
+  scope_dummy = "scope",
+  
+  # Sampling design
+  sampling_weight = "w_sample", 
+  strata = "strata",
+  
+  # Non-response correction
+  nrc_weight = "w_nrc", 
+  response_dummy = "resp", 
+  hrg = "hrg",
   
   # Calibration
-  y <- res_cal(y, x = x, w = w)
+  calibration_weight = "w_calib",
+  calibration_var = c(paste0("N_", 58:63), paste0("turnover_", 58:63)),
   
-  # Non-response
-  y <- add_zero(y, rownames = samp$firm_id)
-  var_nr <- var_pois(y, pik = samp$response_prob_est, w = samp$w_sample)
-
-  # Sampling
-  y <- y / samp$response_prob_est
-  var_sampling <- var_srs(y, pik = 1 / samp$w_sample, strata = samp$division)
-
-  var_sampling + var_nr
-  
-}
-
-# y is the matrix of variables of interest, x, w, and samp are some technical data:
-technical_data_ict <- list(
-  
-  # x: calibration variables matrix
-  x = as.matrix(ict_sample[
-    ict_survey$firm_id,
-    c(paste0("N_", 58:63), paste0("turnover_", 58:63))
-  ]),
-
-  # w: calibrated weights
-  w = ict_survey$w_calib[order(ict_survey$firm_id)],
-  
-  # samp: sample file
-  samp = ict_sample
-  
-)
-
-# Test of the variance function
-y <- matrix(ict_survey$speed_quanti, dimnames = list(ict_survey$firm_id))
-with(technical_data_ict, variance_function_ict(y, samp = samp, x = x, w = w))
-```
-
-
-### Step 2: Define the variance *wrapper*
-
-The next step is the definition of a variance *wrapper*, which is easier to use than the variance function: 
-
-```
-# Definition of the variance wrapper
-variance_wrapper_ict <- define_variance_wrapper(
-  variance_function = variance_function_ict,
-  reference_id = ict_survey$firm_id, 
-  reference_weight = ict_survey$w_calib, 
-  technical_data = technical_data_ict,
-  default_id = "firm_id"
+  # Statistic(s) and variable(s) of interest
+  mean(employees)
+ 
 )
 ```
 
-**Note** The object `technical_data_ict` is embedded within the function `variance_wrapper_ict()` (`variance_wrapper_ict()` is a [closure](http://adv-r.had.co.nz/Functional-programming.html#closures)).
+The survey methodology description is however cumbersome when several variance estimations are to be conducted. As it does not change from one estimation to another, it could be defined once and for all and then re-used for all variance estimations. `qvar()` allows for this by defining a so-called variance *wrapper*, that is an easy-to-use function where the variance estimation methodology for the given survey is implemented and all the technical data used to do so included.
 
 ```
-ls(environment(variance_wrapper_ict))
-```
+# Definition of the variance estimation wrapper precision_ict
+precision_ict <- qvar(
 
-As a consequence, the variance wrapper will work even if `technical_data_ict` is removed from `globalenv()`
-
-```
-rm(technical_data_ict)
-```
-
-### Step 3: Features of the variance wrapper
-
-```
-# Better display of results
-variance_wrapper_ict(ict_survey, speed_quanti)
-
-# Mean statistic
-variance_wrapper_ict(ict_survey, mean(speed_quanti))
-# Ratio statistic
-variance_wrapper_ict(ict_survey, ratio(turnover, employees))
-
-# Discretization of qualitative variables
-variance_wrapper_ict(ict_survey, speed_quali)
-# On-the-fly recoding
-variance_wrapper_ict(ict_survey, speed_quali == "Between 2 and 10 Mbs")
-
-# Multiple variables at a time
-variance_wrapper_ict(ict_survey, speed_quanti, big_data)
-variance_wrapper_ict(ict_survey, speed_quanti, mean(big_data))
-
-# Standard evaluation
-var <- grep("speed", names(ict_survey), value = TRUE)
-variance_wrapper_ict(ict_survey, mean(var))
-
-# 1-domain estimation
-variance_wrapper_ict(ict_survey, speed_quanti, where = division == "58")
-
-# Multiple domains estimation
-variance_wrapper_ict(ict_survey, speed_quanti, by = division)
-
-# Flexible syntax for domain estimation
-variance_wrapper_ict(ict_survey,
-  by = division,
-  mean(speed_quanti),
-  mean(big_data)
+  # As before
+  data = ict_sample,
+  dissemination_dummy = "dissemination",
+  dissemination_weight = "w_calib",
+  id = "firm_id",
+  scope_dummy = "scope",
+  sampling_weight = "w_sample", 
+  strata = "strata",
+  nrc_weight = "w_nrc", 
+  response_dummy = "resp", 
+  hrg = "hrg",
+  calibration_weight = "w_calib",
+  calibration_var = c(paste0("N_", 58:63), paste0("turnover_", 58:63)),
+  
+  # Replacing the variables of interest by define = TRUE
+  define = TRUE
+  
 )
-variance_wrapper_ict(ict_survey,
-  by = division,
-  mean(speed_quanti),
-  mean(big_data, by = NULL)
-)
+
+# Use of the variance estimation wrapper
+precision_ict(ict_sample, mean(employees))
+
+# The variance estimation wrapper can also be used on the survey file
+precision_ict(ict_survey, mean(speed_quanti))
 ```
+
+### Features of the variance estimation wrapper
+
+The variance estimation *wrapper* is much easier-to-use than a standard variance estimation function: 
+
+- several statistics in one call (with optional labels): 
+
+    ```
+    precision_ict(ict_survey, 
+      "Mean internet speed in Mbps" = mean(speed_quanti), 
+      "Turnover per employee" = ratio(turnover, employees)
+    )
+    ```
+    
+- domain estimation with where and by arguments
+
+    ```
+    precision_ict(ict_survey, 
+      mean(speed_quanti), 
+      where = employees >= 50
+    )
+    precision_ict(ict_survey, 
+      mean(speed_quanti), 
+      by = division
+    )
+    
+    # Domain may differ from one estimator to another
+    precision_ict(ict_survey, 
+      "Mean turnover, firms with 50 employees or more" = mean(turnover, where = employees >= 50),
+      "Mean turnover, firms with 100 employees or more" = mean(turnover, where = employees >= 100)
+    )
+    ```
+
+- handy variable evaluation
+
+    ```
+    # On-the-fly evaluation (e.g. discretization)
+    precision_ict(ict_survey, mean(speed_quanti > 100))
+    
+    # Automatic discretization for qualitative (character or factor) variables
+    precision_ict(ict_survey, mean(speed_quali))
+    
+    # Standard evaluation capabilities
+    variables_of_interest <- c("speed_quanti", "speed_quali")
+    precision_ict(ict_survey, mean(variables_of_interest))
+    ```
+    
+- Integration with %>% and dplyr
+
+    ```
+    library(dplyr)
+    ict_survey %>% 
+      precision_ict("Internet speed above 100 Mbps" = mean(speed_quanti > 100)) %>% 
+      select(label, est, lower, upper)
+    ```
 
 ## Colophon
 
