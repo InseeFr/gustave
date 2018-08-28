@@ -120,8 +120,6 @@
 #' 
 #' @examples ### Example from the Information and communication technologies (ICT) survey
 #' 
-#' ## Methodological description of the survey
-#' 
 #' # The Information and communication technologies (ICT) survey has the following characteristics: 
 #' # - stratified one-stage sampling design;
 #' # - non-response correction through reweighting in homogeneous response groups 
@@ -138,59 +136,61 @@
 #' # technical information necessary to estimate a variance with
 #' # the qvar() function.
 #' 
+#' ## Methodological description of the survey
+#' 
 #' # Direct call of qvar()
 #' qvar(
 #' 
-#'  # Sample file
-#'  data = ict_sample,
+#'   # Sample file
+#'   data = ict_sample,
+#'   
+#'   # Dissemination and identification information
+#'   dissemination_dummy = "dissemination",
+#'   dissemination_weight = "w_calib",
+#'   id = "firm_id",
+#'   
+#'   # Scope
+#'   scope_dummy = "scope",
+#'   
+#'   # Sampling design
+#'   sampling_weight = "w_sample", 
+#'   strata = "strata",
+#'   
+#'   # Non-response correction
+#'   nrc_weight = "w_nrc", 
+#'   response_dummy = "resp", 
+#'   hrg = "hrg",
+#'   
+#'   # Calibration
+#'   calibration_weight = "w_calib",
+#'   calibration_var = c(paste0("N_", 58:63), paste0("turnover_", 58:63)),
+#'   
+#'   # Statistic(s) and variable(s) of interest
+#'   mean(employees)
 #'  
-#'  # Dissemination and identification information
-#'  dissemination_dummy = "dissemination",
-#'  dissemination_weight = "w_calib",
-#'  id = "firm_id",
-#'  
-#'  # Scope
-#'  scope_dummy = "scope",
-#'  
-#'  # Sampling design
-#'  sampling_weight = "w_sample", 
-#'  strata = "strata",
-#'  
-#'  # Non-response correction
-#'  nrc_weight = "w_nrc", 
-#'  response_dummy = "resp", 
-#'  hrg = "hrg",
-#'  
-#'  # Calibration
-#'  calibration_weight = "w_calib",
-#'  calibration_var = c(paste0("N_", 58:63), paste0("turnover_", 58:63)),
-#'  
-#'  # Statistic(s) and variable(s) of interest
-#'  mean(employees)
-#'  
-#')
+#' )
 #' 
 #' # Definition of a variance estimation wrapper
 #' precision_ict <- qvar(
 #' 
-#'  # As before
-#'  data = ict_sample,
-#'  dissemination_dummy = "dissemination",
-#'  dissemination_weight = "w_calib",
-#'  id = "firm_id",
-#'  scope_dummy = "scope",
-#'  sampling_weight = "w_sample", 
-#'  strata = "strata",
-#'  nrc_weight = "w_nrc", 
-#'  response_dummy = "resp", 
-#'  hrg = "hrg",
-#'  calibration_weight = "w_calib",
-#'  calibration_var = c(paste0("N_", 58:63), paste0("turnover_", 58:63)),
-#'  
-#'  # Replacing the variables of interest by define = TRUE
-#'  define = TRUE
-#'  
-#')
+#'   # As before
+#'   data = ict_sample,
+#'   dissemination_dummy = "dissemination",
+#'   dissemination_weight = "w_calib",
+#'   id = "firm_id",
+#'   scope_dummy = "scope",
+#'   sampling_weight = "w_sample", 
+#'   strata = "strata",
+#'   nrc_weight = "w_nrc", 
+#'   response_dummy = "resp", 
+#'   hrg = "hrg",
+#'   calibration_weight = "w_calib",
+#'   calibration_var = c(paste0("N_", 58:63), paste0("turnover_", 58:63)),
+#'   
+#'   # Replacing the variables of interest by define = TRUE
+#'   define = TRUE
+#'   
+#' )
 #'
 #' # Use of the variance estimation wrapper
 #' precision_ict(ict_sample, mean(employees))
@@ -200,13 +200,13 @@
 #' 
 #' ## Features of the variance estimation wrapper
 #' 
-#' # Several statistics in one call (with an optional label)
+#' # Several statistics in one call (with optional labels)
 #' precision_ict(ict_survey, 
 #'   "Mean internet speed in Mbps" = mean(speed_quanti), 
 #'   "Turnover per employee" = ratio(turnover, employees)
 #' )
 #' 
-#' # Domain estimation with where and by argument
+#' # Domain estimation with where and by arguments
 #' precision_ict(ict_survey, 
 #'   mean(speed_quanti), 
 #'   where = employees >= 50
