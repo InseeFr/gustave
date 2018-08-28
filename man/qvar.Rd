@@ -107,7 +107,8 @@ provided. All units taking part in the calibration process should have
 only non-missing values for all variables in \code{calibration_var}.}
 
 \item{define}{Logical vector of lentgh 1. Should a variance wrapper
-be defined instead of performing a variance estimation?}
+be defined instead of performing a variance estimation (see details
+and examples)?}
 
 \item{envir}{An environment containing a binding to \code{data}.}
 }
@@ -124,25 +125,142 @@ without having to specify the methodological characteristics of the survey
 (see \code{\link{define_variance_wrapper}}).
 }
 \details{
-\code{qvar} aims at being a straightforward variance
-  estimation tool in the most common cases in social or business
-  surveys, that is a stratified simple random sampling with 
-  additional reweighting steps to correct non-response bias
-  or reduce variance through calibration.
+\code{qvar} performs not only technical but also 
+  methodological checks in order to ensure that the standard variance 
+  estimation methodology does apply (e.g. equal probability of 
+  inclusion within strata, number of units per stratum).
   
-  It performs not only technical but also methodological checks
-  in order to ensure that the variance estimation methodology 
-  do apply (e.g. equal probability of inclusion within strata, 
-  number of units per stratum). 
-  
-  When the sampling design or reweighting schemes are more complex,
-  a specific variance estimation wrapper may be defined using
-  the \code{\link{define_variance_wrapper}} function.
+  Used with \code{define = TRUE}, the function returns a variance
+  estimation \emph{wrapper}, that is a ready-to-use function that
+  implements the described variance estimation methodology and
+  contains all necessary data to do so (see examples).
   
   \code{qvar} is analogous to the \code{qplot} function in the ggplot2
   package, as it is an easier-to-use function for common cases. More 
   complex cases are to be handled by using the core functions of 
   the gustave package, e.g. \code{\link{define_variance_wrapper}}.
+}
+\examples{
+### Example from the Information and communication technologies (ICT) survey
+
+## Methodological description of the survey
+
+# The Information and communication technologies (ICT) survey has the following characteristics: 
+# - stratified one-stage sampling design;
+# - non-response correction through reweighting in homogeneous response groups 
+# based on economic sub-sector and turnover;
+# - calibration on margins (number of firms and turnover broken down
+# by economic sub-sector).
+
+# The ict_survey data.frame is a (simulated) subset of the ICT 
+# survey file containing the variables of interest for the 612
+# responding firms.
+
+# The ict_sample data.frame is the (simulated) sample of 650
+# firms corresponding to the ict_survey file. It contains all
+# technical information necessary to estimate a variance with
+# the qvar() function.
+
+# Direct call of qvar()
+qvar(
+
+ # Sample file
+ data = ict_sample,
+ 
+ # Dissemination and identification information
+ dissemination_dummy = "dissemination",
+ dissemination_weight = "w_calib",
+ id = "firm_id",
+ 
+ # Scope
+ scope_dummy = "scope",
+ 
+ # Sampling design
+ sampling_weight = "w_sample", 
+ strata = "strata",
+ 
+ # Non-response correction
+ nrc_weight = "w_nrc", 
+ response_dummy = "resp", 
+ hrg = "hrg",
+ 
+ # Calibration
+ calibration_weight = "w_calib",
+ calibration_var = c(paste0("N_", 58:63), paste0("turnover_", 58:63)),
+ 
+ # Statistic(s) and variable(s) of interest
+ mean(employees)
+ 
+)
+
+# Definition of a variance estimation wrapper
+precision_ict <- qvar(
+
+ # As before
+ data = ict_sample,
+ dissemination_dummy = "dissemination",
+ dissemination_weight = "w_calib",
+ id = "firm_id",
+ scope_dummy = "scope",
+ sampling_weight = "w_sample", 
+ strata = "strata",
+ nrc_weight = "w_nrc", 
+ response_dummy = "resp", 
+ hrg = "hrg",
+ calibration_weight = "w_calib",
+ calibration_var = c(paste0("N_", 58:63), paste0("turnover_", 58:63)),
+ 
+ # Replacing the variables of interest by define = TRUE
+ define = TRUE
+ 
+)
+
+# Use of the variance estimation wrapper
+precision_ict(ict_sample, mean(employees))
+
+# The variance estimation wrapper can also be used on the survey file
+precision_ict(ict_survey, mean(speed_quanti))
+
+## Features of the variance estimation wrapper
+
+# Several statistics in one call (with an optional label)
+precision_ict(ict_survey, 
+  "Mean internet speed in Mbps" = mean(speed_quanti), 
+  "Turnover per employee" = ratio(turnover, employees)
+)
+
+# Domain estimation with where and by argument
+precision_ict(ict_survey, 
+  mean(speed_quanti), 
+  where = employees >= 50
+)
+precision_ict(ict_survey, 
+  mean(speed_quanti), 
+  by = division
+)
+
+# Domain may differ from one estimator to another
+precision_ict(ict_survey, 
+  "Mean turnover, firms with 50 employees or more" = mean(turnover, where = employees >= 50),
+  "Mean turnover, firms with 100 employees or more" = mean(turnover, where = employees >= 100)
+)
+
+# On-the-fly evaluation (e.g. discretization)
+precision_ict(ict_survey, mean(speed_quanti > 100))
+
+# Automatic discretization for qualitative (character or factor) variables
+precision_ict(ict_survey, mean(speed_quali))
+
+# Standard evaluation capabilities
+variables_of_interest <- c("speed_quanti", "speed_quali")
+precision_ict(ict_survey, mean(variables_of_interest))
+
+# Integration with \%>\% and dplyr
+library(dplyr)
+ict_survey \%>\% 
+  precision_ict("Internet speed above 100 Mbps" = mean(speed_quanti > 100)) \%>\% 
+  select(label, est, lower, upper)
+
 }
 \seealso{
 \code{\link{define_variance_wrapper}} \code{\link{standard_statistic_wrapper}}
