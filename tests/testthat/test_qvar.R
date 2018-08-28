@@ -31,17 +31,17 @@ technical_data_ict <- list(
 y <- matrix(ict_survey$speed_quanti, dimnames = list(ict_survey$firm_id))
 
 
-test_that("var_simple works", {
+test_that("qvar_variance_function works", {
   expect_error(
-    with(technical_data_ict, var_simple(y, samp = samp, nrc = nrc, calib = calib)), 
+    with(technical_data_ict, qvar_variance_function(y, samp = samp, nrc = nrc, calib = calib)), 
     regexp = NA
   )
 })
 
-test_that("a variance wrapper can be manually defined on top of var_simple", {
+test_that("a variance wrapper can be manually defined on top of qvar_variance_function", {
   expect_error({
     variance_wrapper_ict <- define_variance_wrapper(
-      variance_function = var_simple,
+      variance_function = qvar_variance_function,
       reference_id = ict_survey$firm_id,
       reference_weight = ict_survey$w_calib,
       technical_data = technical_data_ict,
@@ -134,7 +134,8 @@ test_that("Step 2: Control that arguments do exist and retrive their value", {
     qvar(
       data = blabla, 
       id = "blabla", dissemination_dummy = "blabla", dissemination_weight = "blabla", 
-      sampling_weight = "blabla"
+      sampling_weight = "blabla",
+      define = TRUE
     ), 
     regexp = "obj"
   )
@@ -142,7 +143,8 @@ test_that("Step 2: Control that arguments do exist and retrive their value", {
     qvar(
       data = matrix(1:10), 
       id = "blabla", dissemination_dummy = "blabla", dissemination_weight = "blabla",
-      sampling_weight = "blabla"
+      sampling_weight = "blabla",
+      define = TRUE
     ), 
     regexp = "data argument must refer to a data.frame"
   )
@@ -150,7 +152,8 @@ test_that("Step 2: Control that arguments do exist and retrive their value", {
     qvar(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample", 
-      sampling_weight = "w_sample", strata = "strata"
+      sampling_weight = "w_sample", strata = "strata",
+      define = TRUE
     ),
     regexp = NA
   )
@@ -158,23 +161,25 @@ test_that("Step 2: Control that arguments do exist and retrive their value", {
     suppressWarnings(qvar(
       data = tibble::as.tibble(ict_sample), 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample", 
-      sampling_weight = "w_sample", strata = "strata"
+      sampling_weight = "w_sample", strata = "strata",
+      define = TRUE
     )),
     regexp = NA
   )
-  expect_error(
-    suppressWarnings(qvar(
-      data = data.table::as.data.table(ict_sample), 
-      id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      sampling_weight = "w_sample", strata = "strata"
-    )),
-    regexp = NA
-  )
+  # expect_error(
+  #   suppressWarnings(qvar(
+  #     data = data.table::as.data.table(ict_sample),
+  #     id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
+  #     sampling_weight = "w_sample", strata = "strata"
+  #   )),
+  #   regexp = NA
+  # )
   expect_error(
     qvar(
       data = ict_sample, 
       id = "blabla", dissemination_dummy = "dissemination", dissemination_weight = "w_calib", 
-      sampling_weight = c("blabla", "bloblo")
+      sampling_weight = c("blabla", "bloblo"),
+      define = TRUE
     ),
     regexp = "The following arguments do not refer to a variable name"
   )
@@ -183,7 +188,8 @@ test_that("Step 2: Control that arguments do exist and retrive their value", {
       data = ict_sample, 
       id = "blabla", dissemination_dummy = "dissemination", dissemination_weight = "w_calib", 
       sampling_weight = "blabla", 
-      calibration_weight = "blabla", calibration_var = 2
+      calibration_weight = "blabla", calibration_var = 2,
+      define = TRUE
     ), 
     regexp = "The following arguments do not refer to a vector of variable names"
   )
@@ -192,7 +198,8 @@ test_that("Step 2: Control that arguments do exist and retrive their value", {
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
       sampling_weight = "w_sample", strata = "strata",
-      nrc_weight = "w_nrc", response_dummy = "blabla"
+      nrc_weight = "w_nrc", response_dummy = "blabla",
+      define = TRUE
     ),
     regexp = "Some variables do not exist in ict_sample: \n  - response_dummy argument: blabla"
   )
@@ -206,7 +213,8 @@ test_that("Step 3: Control arguments value", {
     qvar(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      sampling_weight = "w_sample"
+      sampling_weight = "w_sample",
+      define = TRUE
     )
   }, regexp = "contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -215,7 +223,8 @@ test_that("Step 3: Control arguments value", {
     qvar(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      sampling_weight = "w_sample"
+      sampling_weight = "w_sample",
+      define = TRUE
     )
   }, regexp = "contain any duplicated values.")
   rm(ict_sample)
@@ -225,14 +234,16 @@ test_that("Step 3: Control arguments value", {
     qvar(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "division", dissemination_weight = "w_sample",
-      sampling_weight = "w_sample"
+      sampling_weight = "w_sample",
+      define = TRUE
     )
   }, regexp = "should be of type logical or numeric.")
   expect_error({
     suppressWarnings(qvar(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      sampling_weight = "w_sample"
+      sampling_weight = "w_sample",
+      define = TRUE
     ))
   }, regexp = NA)
   ict_sample$dissemination[1] <- NA
@@ -240,7 +251,8 @@ test_that("Step 3: Control arguments value", {
     qvar(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      sampling_weight = "w_sample"
+      sampling_weight = "w_sample",
+      define = TRUE
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -251,7 +263,8 @@ test_that("Step 3: Control arguments value", {
     qvar(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      sampling_weight = "w_sample"
+      sampling_weight = "w_sample",
+      define = TRUE
     )
   }, regexp = "should be numeric.")
   rm(ict_sample)
@@ -260,7 +273,8 @@ test_that("Step 3: Control arguments value", {
     qvar(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      sampling_weight = "w_sample"
+      sampling_weight = "w_sample",
+      define = TRUE
     )
   }, regexp = "contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -272,7 +286,8 @@ test_that("Step 3: Control arguments value", {
     qvar(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      sampling_weight = "w_sample"
+      sampling_weight = "w_sample",
+      define = TRUE
     )
   }, regexp = "should be numeric.")
   rm(ict_sample)
@@ -281,7 +296,8 @@ test_that("Step 3: Control arguments value", {
     qvar(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      sampling_weight = "w_sample"
+      sampling_weight = "w_sample",
+      define = TRUE
     )
   }, regexp = "contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -292,7 +308,8 @@ test_that("Step 3: Control arguments value", {
     qvar(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      sampling_weight = "w_sample", strata = "strata"
+      sampling_weight = "w_sample", strata = "strata",
+      define = TRUE
     )
   }, regexp = " should be of type factor or character.")
   rm(ict_sample)
@@ -300,7 +317,8 @@ test_that("Step 3: Control arguments value", {
     suppressWarnings(qvar(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      sampling_weight = "w_sample", strata = "strata"
+      sampling_weight = "w_sample", strata = "strata",
+      define = TRUE
     ))
   }, regexp = NA)
   ict_sample$strata[1] <- NA
@@ -308,7 +326,8 @@ test_that("Step 3: Control arguments value", {
     suppressWarnings(qvar(
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-      sampling_weight = "w_sample", strata = "strata"
+      sampling_weight = "w_sample", strata = "strata",
+      define = TRUE
     ))
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -319,7 +338,8 @@ test_that("Step 3: Control arguments value", {
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
       sampling_weight = "w_sample", strata = "strata", 
-      scope_dummy = "division"
+      scope_dummy = "division",
+      define = TRUE
     )
   }, regexp = "should be of type logical or numeric.")
   expect_error({
@@ -327,7 +347,8 @@ test_that("Step 3: Control arguments value", {
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
       sampling_weight = "w_sample", strata = "strata", 
-      scope_dummy = "scope"
+      scope_dummy = "scope",
+      define = TRUE
     ))
   }, regexp = NA)
   ict_sample$scope[1] <- NA
@@ -336,7 +357,8 @@ test_that("Step 3: Control arguments value", {
       data = ict_sample, 
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
       sampling_weight = "w_sample", strata = "strata", 
-      scope_dummy = "scope"
+      scope_dummy = "scope",
+      define = TRUE
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -347,7 +369,8 @@ test_that("Step 3: Control arguments value", {
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      define = TRUE
     )
   }, regexp =  "The following units are out-of-scope")
   rm(ict_sample)
@@ -359,7 +382,8 @@ test_that("Step 3: Control arguments value", {
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "division"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "division",
+      define = TRUE
     )
   }, regexp = "should be of type logical or numeric.")
   expect_error({
@@ -368,7 +392,8 @@ test_that("Step 3: Control arguments value", {
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      define = TRUE
     )
   }, regexp = NA)
   ict_sample$nrc[1] <- NA
@@ -378,7 +403,8 @@ test_that("Step 3: Control arguments value", {
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      define = TRUE
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -390,7 +416,8 @@ test_that("Step 3: Control arguments value", {
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", response_dummy = "division", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "division", nrc_dummy = "nrc",
+      define = TRUE
     )
   }, regexp = "should be of type logical or numeric.")
   expect_error({
@@ -399,7 +426,8 @@ test_that("Step 3: Control arguments value", {
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      define = TRUE
     ))
   }, regexp = NA)
   ict_sample$resp[1] <- NA
@@ -409,7 +437,8 @@ test_that("Step 3: Control arguments value", {
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      define = TRUE
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -422,7 +451,8 @@ test_that("Step 3: Control arguments value", {
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      define = TRUE
     )
   }, regexp = "should be numeric.")
   rm(ict_sample)
@@ -434,7 +464,8 @@ test_that("Step 3: Control arguments value", {
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc2", response_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc2", response_dummy = "resp", nrc_dummy = "nrc",
+      define = TRUE
     )
   }, regexp = "should not contain any missing \\(NA\\) values for responding units.")
   rm(ict_sample)
@@ -445,7 +476,8 @@ test_that("Step 3: Control arguments value", {
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_nrc",
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      define = TRUE
     ))
   }, regexp = NA)
   rm(ict_sample)
@@ -458,7 +490,8 @@ test_that("Step 3: Control arguments value", {
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
       nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
-      calibration_weight = "w_calib", calibration_dummy = "division", calibration_var =  c("N_58", "N_59")
+      calibration_weight = "w_calib", calibration_dummy = "division", calibration_var =  c("N_58", "N_59"),
+      define = TRUE
     )
   }, regexp = "should be of type logical or numeric.")
   ict_sample$calib <- NA
@@ -469,7 +502,8 @@ test_that("Step 3: Control arguments value", {
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
       nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
-      calibration_weight = "w_calib", calibration_dummy = "calib", calibration_var =  c("N_58", "N_59")
+      calibration_weight = "w_calib", calibration_dummy = "calib", calibration_var =  c("N_58", "N_59"),
+      define = TRUE
     )
   }, regexp = "should not contain any missing \\(NA\\) values.")
   rm(ict_sample)
@@ -483,7 +517,8 @@ test_that("Step 3: Control arguments value", {
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
       nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
-      calibration_weight = "w_calib", calibration_dummy = "calib", calibration_var =  c("N_58", "N_59")
+      calibration_weight = "w_calib", calibration_dummy = "calib", calibration_var =  c("N_58", "N_59"),
+      define = TRUE
     )
   }, regexp = "should be numeric.")
   rm(ict_sample)
@@ -497,7 +532,8 @@ test_that("Step 3: Control arguments value", {
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
       nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
-      calibration_weight = "w_calib", calibration_var =  "complex"
+      calibration_weight = "w_calib", calibration_var =  "complex",
+      define = TRUE
     )
   }, regexp = "The following calibration variables are neither quantitative")
   rm(ict_sample)
@@ -509,7 +545,8 @@ test_that("Step 3: Control arguments value", {
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
       nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
-      calibration_weight = "w_calib", calibration_var =  c("N_58", "N_59")
+      calibration_weight = "w_calib", calibration_var =  c("N_58", "N_59"),
+      define = TRUE
     )
   }, regexp = "contain missing \\(NA\\) values for units used in the calibration process:")
   rm(ict_sample)
@@ -520,7 +557,8 @@ test_that("Step 3: Control arguments value", {
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
       nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
-      calibration_weight = "w_calib", calibration_var =  "division"
+      calibration_weight = "w_calib", calibration_var =  "division",
+      define = TRUE
     ))
     variance_wrapper(ict_survey, turnover)
   }, regexp = NA)
@@ -536,7 +574,8 @@ test_that("Step 4: Define methodological quantities", {
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
       nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
-      calibration_weight = "w_calib", calibration_var =  c("N_58", "N_59")
+      calibration_weight = "w_calib", calibration_var =  c("N_58", "N_59"),
+      define = TRUE
     )
     
   }, regexp =  "The following units have a disseminated weight")
@@ -549,7 +588,8 @@ test_that("Step 4: Define methodological quantities", {
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_calib",
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
-      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc"
+      nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
+      define = TRUE
     )
     
   }, regexp =  "the following units are classified both as out-of-scope units")
@@ -563,7 +603,8 @@ test_that("Step 4: Define methodological quantities", {
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
       nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
-      calibration_weight = "w_calib", calibration_var =  c("N_58", "N_59")
+      calibration_weight = "w_calib", calibration_var =  c("N_58", "N_59"),
+      define = TRUE
     )
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = "The following strata contain less than two sampled units.")
@@ -577,7 +618,8 @@ test_that("Step 4: Define methodological quantities", {
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
       nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
-      calibration_weight = "w_calib", calibration_var =  c("N_58", "N_59")
+      calibration_weight = "w_calib", calibration_var =  c("N_58", "N_59"),
+      define = TRUE
     )
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = "The following strata contain units whose sampling weights")
@@ -596,18 +638,20 @@ test_that("qvar works", {
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
       nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
-      calibration_weight = "w_calib", calibration_var =  c("division", "turnover_58", "turnover_59")
+      calibration_weight = "w_calib", calibration_var =  c("division", "turnover_58", "turnover_59"),
+      define = TRUE
     ), 
     regexp = NA
   )
   expect_error({
     qvar_wrapper <- suppressWarnings(qvar(
-      ict_sample, define = TRUE,
+      ict_sample,
       id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_calib",
       sampling_weight = "w_sample", strata = "strata", 
       scope_dummy = "scope",
       nrc_weight = "w_nrc", response_dummy = "resp", nrc_dummy = "nrc",
-      calibration_weight = "w_calib", calibration_var =  c("division", "turnover_58", "turnover_59")
+      calibration_weight = "w_calib", calibration_var =  c("division", "turnover_58", "turnover_59"),
+      define = TRUE
     ))
     qvar_wrapper(ict_survey, mean(turnover))
   }, regexp = NA)

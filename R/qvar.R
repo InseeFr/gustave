@@ -137,28 +137,24 @@ qvar <- function(data, ..., by = NULL, where = NULL,
   # Step 1: Define the variance wrapper
   call <- as.list(match.call())[-1]
   call$envir <- envir
-  qvar_wrapper <- do.call(
-    define_qvar_wrapper, 
-    call[names(call) %in% names(formals(define_qvar_wrapper))]
+  qvar_variance_wrapper <- do.call(
+    define_qvar_variance_wrapper, 
+    call[names(call) %in% names(formals(define_qvar_variance_wrapper))]
   )
   
   # Step 2: Export the variance wrapper
-  if(define || missing(...)){
-    if(define){
-      note("As define = TRUE, a ready-to-use variance wrapper is (invisibly) returned.")  
-    }else{
-      note("No variable to perform variance estimation on are specified. A ready-to-use variance wrapper is (invisibly) returned instead.")
-    }
-    return(invisible(qvar_wrapper))
+  if(define){
+    note("As define = TRUE, a ready-to-use variance wrapper is (invisibly) returned.")
+    return(invisible(qvar_variance_wrapper))
   }
   
   # Step 3: Estimate variance
-  qvar_data <- data[data[, id] %in% environment(qvar_wrapper)$reference_id, ]  
+  qvar_data <- data[data[, id] %in% environment(qvar_variance_wrapper)$reference_id, ]  
   call$data <- substitute(qvar_data)
   call$envir <- environment()
   do.call(
-    qvar_wrapper,
-    call[names(call) == "" | names(call) %in% names(formals(qvar_wrapper))]
+    qvar_variance_wrapper,
+    call[names(call) == "" | names(call) %in% names(formals(qvar_variance_wrapper))]
   )
 
 }
@@ -167,7 +163,7 @@ qvar <- function(data, ..., by = NULL, where = NULL,
 
 # Unexported (and undocumented) functions
 
-define_qvar_wrapper <- function(data, id, dissemination_dummy, dissemination_weight,
+define_qvar_variance_wrapper <- function(data, id, dissemination_dummy, dissemination_weight,
                                   sampling_weight, strata = NULL,
                                   scope_dummy = NULL, 
                                   nrc_weight = NULL, response_dummy = NULL, nrc_dummy = NULL,
@@ -517,20 +513,20 @@ define_qvar_wrapper <- function(data, id, dissemination_dummy, dissemination_wei
   
   
   # Step 5: Define the variance wrapper ----
-  qvar_wrapper <- define_variance_wrapper(
-    variance_function = var_simple,
+  qvar_variance_wrapper <- define_variance_wrapper(
+    variance_function = qvar_variance_function,
     reference_id = reference_id,
     reference_weight = reference_weight,
     default_id = arg$id,
     technical_data = list(samp = samp, nrc = nrc, calib = calib)
   )
   
-  qvar_wrapper
+  qvar_variance_wrapper
 
 }
 
 
-var_simple <- function(y, samp, nrc, calib){
+qvar_variance_function <- function(y, samp, nrc, calib){
   
   var <- list()
   
