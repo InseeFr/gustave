@@ -291,7 +291,7 @@ define_variance_wrapper <- function(variance_function,
       eval(substitute(id), envir = execution_envir),
       error = function(e) substitute(id, execution_envir)
     )
-    id <- if(is.character(id)) data[, id] else eval(id, data)
+    id <- if(is.character(id)) data[[id]] else eval(id, data)
     reference_weight <- eval(reference_weight)
     
     # Step 1.3: Controls
@@ -385,8 +385,9 @@ define_variance_wrapper <- function(variance_function,
     
       
     # Step 4: Display the results (if requested)
-    if(!display) 
-      return(invisible(list(data_as_list = data_as_list, data_as_Matrix = data_as_Matrix)))
+    if(!display) return(invisible(list(
+      data_as_list = data_as_list, data_as_Matrix = data_as_Matrix
+    )))
     list_output_df <- lapply(data_as_list, function(i) with(i, display_function(
       point = point, var = var, metadata = metadata[c("label", "call", "mod", "by", "n")], alpha = alpha
     )))

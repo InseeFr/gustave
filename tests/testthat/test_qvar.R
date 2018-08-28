@@ -158,23 +158,6 @@ test_that("Step 2: Control that arguments do exist and retrive their value", {
     regexp = NA
   )
   expect_error(
-    suppressWarnings(qvar(
-      data = tibble::as.tibble(ict_sample), 
-      id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample", 
-      sampling_weight = "w_sample", strata = "strata",
-      define = TRUE
-    )),
-    regexp = NA
-  )
-  # expect_error(
-  #   suppressWarnings(qvar(
-  #     data = data.table::as.data.table(ict_sample),
-  #     id = "firm_id", dissemination_dummy = "dissemination", dissemination_weight = "w_sample",
-  #     sampling_weight = "w_sample", strata = "strata"
-  #   )),
-  #   regexp = NA
-  # )
-  expect_error(
     qvar(
       data = ict_sample, 
       id = "blabla", dissemination_dummy = "dissemination", dissemination_weight = "w_calib", 

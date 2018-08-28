@@ -34,7 +34,7 @@ test_that("variance_wrapper can be defined in globalenv()", {
 
 test_that("common error messages do work", {
   variance_wrapper <- define_variance_wrapper(
-    variance_function = function(y) abs(colSums(y)), 
+    variance_function = function(y) abs(col.tableSums(y)), 
     reference_id = ict_survey$firm_id,
     reference_weight = ict_survey$w_calib,
     default_id = "firm_id"
@@ -196,6 +196,17 @@ test_that("variance_wrapper cannot work if the output of variance_function is no
     )
     variance_wrapper(ict_survey, speed_quanti)
   }, regexp = "The \"var\" output of variance_function should be a vector.")
+})
+
+test_that("variance_wrapper works when used on a data.table or a tibble", {
+  variance_wrapper <- define_variance_wrapper(
+    variance_function = function(y) abs(colSums(y)), 
+    reference_id = ict_survey$firm_id,
+    reference_weight = ict_survey$w_calib,
+    default_id = "firm_id"
+  )
+  expect_error(variance_wrapper(data.table::as.data.table(ict_survey), speed_quanti), regexp = NA)
+  expect_error(variance_wrapper(tibble::as.tibble(ict_survey), speed_quanti_NA), regexp = NA)
 })
 
 
