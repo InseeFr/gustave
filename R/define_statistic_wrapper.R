@@ -255,6 +255,7 @@ define_statistic_wrapper <- function(statistic_function,
         unlist(unname(d[c("data", "weight", "param")]), recursive = FALSE)
       tmp <- do.call(statistic_function, statistic_function_arg)
       d$metadata <- c(d$metadata, tmp$metadata)
+      # TODO: Do not use a specific slot for metadata: any slot that does not match point or lin is metadata
       d$statistic_function <- statistic_function
       d$point <- tmp$point
       d$lin <- if(!is.list(tmp$lin)) list(tmp$lin) else tmp$lin
