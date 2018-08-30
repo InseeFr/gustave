@@ -287,7 +287,7 @@ variable_not_in_data <- function(var, data){
 } 
 
 replace_variable_name_with_symbol <- function(arg_list, data, single = TRUE){
-  # TODO: Allow evaluation through parent frames (see tests for details)
+  # TODO: Allow consistent evaluation through parent frames
   # TODO: Handle the case of apparent name without match in data variable names
   tmp <- lapply(arg_list, function(a){
     if(is_error(a_eval <- eval(a, envir = data))){
