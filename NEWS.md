@@ -15,7 +15,10 @@
 
 - Some normalization in function names: `add0` becomes `add_zero`, `sumby` becomes `sum_by`, `rescal` becomes `res_cal`
 
-- Example data: calibration variables in ict_sample instead of ict_survey
+- Example data: calibration variables in ict_sample instead of ict_survey, new LFS example data
+
+- Significant increase of unit tests
+
 
 
 # 0.3.1
