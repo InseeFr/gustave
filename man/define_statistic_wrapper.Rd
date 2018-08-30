@@ -58,14 +58,14 @@ When the statistic to estimate is not a total, the application of
   estimator and the linearized variable associated with the statistic. These
   operations are implemented by the \code{statistic_function}, which can have
   any needed input (for example \code{num} and \code{denom} for a ratio
-  estimator) and should output a list with three named elements: \itemize{
+  estimator) and should output a list with at least two named elements: \itemize{
   \item \code{point}: the point estimator of the statistic
   \item \code{lin}: the linearized variable to be passed on to the variance
   estimation formula. If several variables are to be associated with
   the statistics, \code{lin} can be a list itself.
-  \item \code{metadata}: optional metadata to be used when displaying
-  the results of the variance estimation.
   }
+  All other named elements in the output of \code{define_statistic_wrapper} are 
+  treated as metadata (that may be used later on by \code{display_function}).
   
   \code{arg_type} is a named list of three elements that describes the nature 
   of the argument of \code{statistic_function}: \itemize{

@@ -39,14 +39,14 @@
 #'   estimator and the linearized variable associated with the statistic. These
 #'   operations are implemented by the \code{statistic_function}, which can have
 #'   any needed input (for example \code{num} and \code{denom} for a ratio
-#'   estimator) and should output a list with three named elements: \itemize{
+#'   estimator) and should output a list with at least two named elements: \itemize{
 #'   \item \code{point}: the point estimator of the statistic
 #'   \item \code{lin}: the linearized variable to be passed on to the variance
 #'   estimation formula. If several variables are to be associated with
 #'   the statistics, \code{lin} can be a list itself.
-#'   \item \code{metadata}: optional metadata to be used when displaying
-#'   the results of the variance estimation.
 #'   }
+#'   All other named elements in the output of \code{define_statistic_wrapper} are 
+#'   treated as metadata (that may be used later on by \code{display_function}).
 #'   
 #'   \code{arg_type} is a named list of three elements that describes the nature 
 #'   of the argument of \code{statistic_function}: \itemize{
@@ -253,12 +253,11 @@ define_statistic_wrapper <- function(statistic_function,
       statistic_function_arg <- 
         unlist(unname(d[c("data", "weight", "param")]), recursive = FALSE)
       tmp <- do.call(statistic_function, statistic_function_arg)
-      d$metadata <- c(d$metadata, tmp$metadata)
-      # TODO: Do not use a specific slot for metadata: any slot that does not match point or lin is metadata
       d$statistic_function <- statistic_function
       d$point <- tmp$point
       d$lin <- if(!is.list(tmp$lin)) list(tmp$lin) else tmp$lin
       d$display_function <- display_function
+      d$metadata <- c(d$metadata, tmp[setdiff(names(tmp), c("point", "lin", ""))])
       d
     })
     

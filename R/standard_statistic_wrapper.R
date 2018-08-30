@@ -53,7 +53,7 @@ total <- define_statistic_wrapper(
     na <- is.na(y)
     y[na] <- 0
     point <- sum(y * weight)
-    list(point = point, lin = y, metadata = list(n = sum(!na)))
+    list(point = point, lin = y, n = sum(!na))
   }, 
   arg_type = list(data = "y" , weight = "weight")
 )
@@ -68,9 +68,7 @@ ratio <- define_statistic_wrapper(
     est_denom <- sum(denom * weight)
     point <- est_num / est_denom
     lin <- (num - point * denom ) / est_denom
-    list(point = point, lin = lin, metadata = list(
-      n = sum(!na), est_num = est_num, est_denom = est_denom
-    ))
+    list(point = point, lin = lin, n = sum(!na), est_num = est_num, est_denom = est_denom)
   }, 
   arg_type = list(data = c("num", "denom") , weight = "weight")
 )
@@ -95,7 +93,7 @@ diff_of_ratio <- define_statistic_wrapper(
     ratio2 <- environment(ratio)$statistic_function(num = num2, denom = denom2, weight = weight)
     point <- ratio1$point - ratio2$point
     lin <- ratio1$lin - ratio2$lin
-    list(point = point, lin = lin, metadata = list(n = sum(!na)))
+    list(point = point, lin = lin, n = sum(!na))
   }, 
   arg_type = list(data = c("num1", "denom1", "num2", "denom2") , weight = "weight")
 )
@@ -117,7 +115,7 @@ ratio_of_ratio <- define_statistic_wrapper(
       (num1 / est_num1) - (num2 / est_num2) - 
       (denom1 / est_denom1) + (denom2 / est_denom2)
     )
-    list(point = point, lin = lin, metadata = list(n = sum(!na)))
+    list(point = point, lin = lin, n = sum(!na))
   }, 
   arg_type = list(data = c("num1", "denom1", "num2", "denom2") , weight = "weight")
 )
