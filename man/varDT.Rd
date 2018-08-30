@@ -11,13 +11,12 @@ varDT(y = NULL, pik, x = NULL, strata = NULL, w = NULL,
 var_srs(y, pik, strata = NULL, w = NULL, precalc = NULL)
 }
 \arguments{
-\item{y}{A numerical matrix of the variable(s) whose variance of their total
-is to be estimated. May be a Matrix::TsparseMatrix.}
+\item{y}{A (sparse) numerical matrix of the variable(s) whose variance of their total
+is to be estimated.}
 
 \item{pik}{A numerical vector of first-order inclusion probabilities.}
 
-\item{x}{An optional numerical matrix of balancing variable(s). May be a
-Matrix::TsparseMatrix.}
+\item{x}{An optional (sparse) numerical matrix of balancing variable(s).}
 
 \item{strata}{An optional categorical vector (factor or character) when
 variance estimation is to be conducted within strata.}
@@ -26,20 +25,15 @@ variance estimation is to be conducted within strata.}
 
 \item{precalc}{A list of pre-calculated results (see Details).}
 
-\item{id}{A vector of identifiers of the units used in the calculation. Especially 
-useful when \code{precalc} is used in order to assess whether the ordering of the
-\code{y} data matrix matches the one used at the precalculation step.}
+\item{id}{A vector of identifiers of the units used in the calculation.
+Useful when \code{precalc = TRUE} in order to assess whether the ordering of the
+\code{y} data matrix matches the one used at the pre-calculation step.}
 }
 \value{
 \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : 
   the estimated variances as a numerical vector of size the number of 
   columns of y. \item if \code{y} is \code{NULL} (pre-calculation step) : a list 
-  containing pre-calculated data: \itemize{ \item \code{pik}: the numerical vector 
-  of first-order inclusion probabilities. \item \code{A}: the numerical matrix 
-  denoted A in (Deville, Tillé, 2005). \item \code{ck}: the numerical vector denoted 
-  ck2 in (Deville, Tillé, 2005). \item \code{inv}: the inverse of \code{A \%*\%
-  Matrix::Diagonal(x = ck) \%*\% t(A)} \item \code{diago}: the diagonal term
-  of the variance estimator } }
+  containing pre-calculated data.}
 }
 \description{
 \code{varDT} estimates the variance of the estimator of a total
@@ -84,7 +78,7 @@ useful when \code{precalc} is used in order to assess whether the ordering of th
   encompasses balanced sampling. \item Even in its reduced
   form (without balancing variables), the formula implemented in \code{varDT}
   slightly differs from the one implemented in \code{sampling::varest}.
-  Caron, Deville and Sautory (1998, pp. 7-8) compares the two estimators
+  Caron (1998, pp. 178-179) compares the two estimators
   (\code{sampling::varest} implements V_2, \code{varDT} implements V_1). 
   \item \code{varDT} introduces several optimizations: \itemize{ \item
   matrixwise operations allow to estimate variance on several interest
@@ -94,7 +88,7 @@ useful when \code{precalc} is used in order to assess whether the ordering of th
   estimation at execution time. } \item \code{varDT} does not natively
   implements the calibration estimator (i.e. the sampling variance estimator
   that takes into account the effect of calibration). In the context of the
-  \code{gustave} package, \code{\link{res_cal}} could be called before 
+  \code{gustave} package, \code{\link{res_cal}} should be called before 
   \code{varDT} in order to achieve the same result.}
 }
 
@@ -120,7 +114,7 @@ y <- rnorm(N)[s]
 pik <- pik[s]
 varDT(y, pik)
 varest(y, pik = pik)
-# The small difference is expected (see above).
+# The small difference is expected (see Details).
 
 # Balanced sampling case
 N <- 1000
@@ -154,8 +148,8 @@ pik <- runif(n)
 y <- rnorm(n)
 strata <- letters[sample.int(H, n, replace = TRUE)]
 all.equal(
- varDT(y, pik, strata = strata)
- , varDT(y[strata == "a"], pik[strata == "a"]) + varDT(y[strata == "b"], pik[strata == "b"])
+ varDT(y, pik, strata = strata),
+ varDT(y[strata == "a"], pik[strata == "a"]) + varDT(y[strata == "b"], pik[strata == "b"])
 )
 
 # precalc argument
@@ -166,16 +160,14 @@ y <- rnorm(n)
 strata <- sample.int(H, n, replace = TRUE)
 precalc <- varDT(y = NULL, pik, strata = strata)
 identical(
- varDT(y, precalc = precalc)
- , varDT(y, pik, strata = strata)
+ varDT(y, precalc = precalc),
+ varDT(y, pik, strata = strata)
 )
 
 }
 \references{
-Caron N., Deville J.-C., Sautory O. (1998), \emph{Estimation de
-  précision de données issues d'enquêtes : document méthodologique sur le
-  logiciel POULPE}, Insee working paper, n°9806
-  
+Caron N. (1998), "Le logiciel Poulpe : aspects méthodologiques", \emph{Actes 
+  des Journées de méthodologie statistique} \url{http://jms-insee.fr/jms1998s03_1/}
   Deville, J.-C. (1993), \emph{Estimation de la variance pour les enquêtes en
   deux phases}, Manuscript, INSEE, Paris.
   
@@ -185,6 +177,9 @@ Caron N., Deville J.-C., Sautory O. (1998), \emph{Estimation de
   
   Rao, J.N.K (1975), "Unbiased variance estimation for multistage designs",
   \emph{Sankhya}, C n°37
+}
+\seealso{
+\code{\link{res_cal}}
 }
 \author{
 Martin Chevalier

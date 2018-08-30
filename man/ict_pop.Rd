@@ -4,8 +4,8 @@
 \name{ict_pop}
 \alias{ict_pop}
 \title{Sampling frame of the Information and communication technologies (ICT)
-survey in the information and communication sector (NACE rev 2 J section)}
-\format{A data frame with 7670 observations and 4 variables:
+survey}
+\format{A data frame with 7670 observations and 5 variables:
 \describe{
   \item{firm_id}{identifier of the firm}
   \item{division}{identifier of the economic sub-sector}

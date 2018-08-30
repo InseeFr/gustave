@@ -133,7 +133,7 @@ ict_survey$speed_quanti_NA <- ict_survey$speed_quanti
 ict_survey$speed_quanti_NA[runif(NROW(ict_survey)) < 0.30] <- NA
 ict_survey$speed_quali <- cut(
   ict_survey$speed_quanti, c(-Inf, 2, 10, 30, 100, Inf),
-  c("Less than 2 Mbs", "Between 2 and 10 Mbs", "Between 10 and 30 Mbs", "Between 30 and 100 Mbs", "Above 100 Mbs")
+  c("Less than 2 Mbps", "Between 2 and 10 Mbps", "Between 10 and 30 Mbps", "Between 30 and 100 Mbps", "Above 100 Mbps")
 )
 ict_survey$speed_quali_NA <- ict_survey$speed_quali
 ict_survey$speed_quali_NA[is.na(ict_survey$speed_quanti_NA)] <- NA
@@ -146,13 +146,14 @@ ict_survey$big_data_NA <- ict_survey$big_data
 ict_survey$big_data_NA[runif(NROW(ict_survey)) < big_data_NA_prob] <- NA
 
 # Export
+ict_sample$no_reweighting <- NULL
 rownames(ict_pop) <- ict_pop$firm_id
 rownames(ict_sample) <- ict_sample$firm_id
 rownames(ict_survey) <- ict_survey$firm_id
 ict_pop <- ict_pop[order(ict_pop$firm_id), ]
 ict_sample <- ict_sample[order(ict_sample$firm_id), ]
 ict_survey <- ict_survey[order(ict_survey$firm_id), ]
-save(ict_pop, file = "data/ict_pop.RData")
-save(ict_sample, file = "data/ict_sample.RData")
-save(ict_survey, file = "data/ict_survey.RData")
+save(ict_pop, file = "data/ict_pop.RData", compress = "xz")
+save(ict_sample, file = "data/ict_sample.RData", compress = "xz")
+save(ict_survey, file = "data/ict_survey.RData", compress = "xz")
 rm(list = ls(all.names = TRUE))

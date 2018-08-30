@@ -4,7 +4,7 @@
 \name{ict_sample}
 \alias{ict_sample}
 \title{Sample of the Information and communication technologies (ICT)
-survey in the information and communication sector (NACE rev 2 J section)}
+survey}
 \format{A data frame with 650 observations and 8 variables:
 \describe{
   \item{firm_id}{identifier of the firm}
@@ -15,9 +15,8 @@ survey in the information and communication sector (NACE rev 2 J section)}
   \item{w_sample}{sampling weight}
   \item{scope}{boolean indicating whether the firm did belong to the scope of the survey or not}
   \item{resp}{boolean indicating whether the firm did respond to the survey or not}
-  \item{no_reweighting}{boolean indicating whether the firm did take part in the reweighting process (non-response correction and/or calibration) or not}
   \item{nrc}{boolean indicating whether the firm did take part in the non-response correction process or not}
-  \item{hrg}{homogeneous response group used for the unit non-response correction}
+  \item{hrg}{homogeneous response group used for the non-response correction}
   \item{response_prob_est}{response probability of the unit estimated using homogeneous response groups}
   \item{w_nrc}{weight after unit non-response correction}
   \item{calib}{boolean indicating whether the firm was integrated in the calibration process or not (\code{TRUE} for all responding units)}

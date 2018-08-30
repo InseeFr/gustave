@@ -16,14 +16,14 @@ linearized variable associated with the statistic (see Details).}
 \item{arg_type}{A named list with three character vectors describing 
 the type of each argument of \code{statistic_function} (see Details).}
 
-\item{arg_not_affected_by_domain}{A character vector indicating the (data) 
+\item{arg_not_affected_by_domain}{A character vector indicating the
 arguments which should not be affected by domain-splitting. Such parameters
 may appear in some complex linearization formula, for instance when the 
 At-Risk of Poverty Rate (ARPR) is estimated by region but with a poverty 
 line calculated at the national level.}
 
 \item{display_function}{An R function which produces, for each variance 
-estimation, the data.frame row to be displayed by the variance estimation 
+estimation, the data.frame to be displayed by the variance estimation 
 wrapper. The default display function (\code{standard_display}) uses 
 standard metadata to display usual variance indicator (point estimate, 
 variance, standard  deviation, coefficient of variation, confidence interval) 
@@ -67,59 +67,55 @@ When the statistic to estimate is not a total, the application of
   the results of the variance estimation.
   }
   
-  \code{arg_type} is a named list of three elements that describe the nature 
+  \code{arg_type} is a named list of three elements that describes the nature 
   of the argument of \code{statistic_function}: \itemize{
   \item \code{data}: data argument(s), numerical vector(s) to be used 
   to calculate the point estimate and the linearized variable associated
   with the statistic 
   \item \code{weight}: weight argument, numerical vector to be used 
-  as row weights in the linearization formula 
+  as row weights
   \item \code{param}: parameters, non-data arguments to be used to 
-  control some aspect of the computation of ths statistic}
+  control some aspect of the computation}
   
   Statistic wrappers are quite flexible tools to apply a variance function 
   to an estimator requiring a linearization step (e.g. all estimators except 
   the estimator of a total) with virtually no  additional complexity for the
-  end-user. To some extent, statistic wrappers can be seen as ggplot2
-  \code{geom_} and \code{stat_} functions: they help the end-user in writing 
-  down what he or she wants without having to go too  deep into the details 
-  of the corresponding layers. 
+  end-user. 
   
   \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}} 
   are included within the gustave package and automatically added 
   to the variance estimation wrappers. New statistic wrappers can be defined
   using the \code{define_statistic_wrapper} and then explicitly added to the 
   variance estimation wrappers using the \code{objects_to_include} argument.
+  
+  Note: To some extent, statistic wrappers can be seen as ggplot2
+  \code{geom_} and \code{stat_} functions: they help the end-user in writing 
+  down what he or she wants without having to go too  deep into the details 
+  of the corresponding layers.
 }
 \examples{
 ### Example from the Information and communication technologies (ICT) survey
 
-# The subset of the (simulated) ICT survey has the following features: 
-# - stratified one-stage sampling design of 650 firms;
-# - 612 responding firms, non-response correction through reweighting 
-# in homogeneous response groups based on economic sub-sector and turnover;
-# - calibration on margins (number of firms and turnover broken down
-# by economic sub-sector).
-
-# Step 1 : Dummy variance wrapper
-# Note : see define_variance_wrapper() for a more 
-# realistic variance function and examples.
-variance_wrapper <- define_variance_wrapper(
-  variance_function = function(y) abs(colSums(y)), 
-  reference_id = ict_survey$firm_id, 
-  reference_weight = ict_survey$w_calib, 
-  default_id = "firm_id"
+# Let's define a variance wrapper asfor the ICT survey 
+# as in the examples of the qvar function: 
+precision_ict <- qvar(
+  data = ict_sample,
+  dissemination_dummy = "dissemination",
+  dissemination_weight = "w_calib",
+  id = "firm_id",
+  scope_dummy = "scope",
+  sampling_weight = "w_sample", 
+  strata = "strata",
+  nrc_weight = "w_nrc", 
+  response_dummy = "resp", 
+  hrg = "hrg",
+  calibration_weight = "w_calib",
+  calibration_var = c(paste0("N_", 58:63), paste0("turnover_", 58:63)),
+  define = TRUE
 )
-variance_wrapper(ict_survey, total(speed_quanti))
+precision_ict(ict_survey, mean(speed_quanti))
 
-# Step 2 : Redefine the mean statistic wrapper
-# The mean() statistic wrapper defined in the gustave 
-# package is bulit on top of the ratio() statistic wrapper.
-variance_wrapper(ict_survey, mean(speed_quanti))
-
-# Let's redefine it directly from the formula found for instance
-# in (Caron, Deville, Sautory, 1998) and without handling NA
-# values
+# Let's now redefine the mean statistic wrapper
 mean2 <- define_statistic_wrapper(
   statistic_function = function(y, weight){
     point <- sum(y * weight) / sum(weight)
@@ -128,7 +124,10 @@ mean2 <- define_statistic_wrapper(
   },
   arg_type = list(data = "y", weight = "weight")
 )
-variance_wrapper(ict_survey, mean(speed_quanti), mean2(speed_quanti))
+
+# mean2 can now be used inside precision_ict (and yields
+# the same results as the mean statistic wrapper)
+precision_ict(ict_survey, mean(speed_quanti), mean2(speed_quanti))
 
 }
 \references{

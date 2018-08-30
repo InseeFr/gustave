@@ -3,9 +3,8 @@
 #' @description Functions to be used within variance estimation 
 #'   wrappers in order to specify which statistic is to be estimated.
 #'   
-#' @param y A vector corresponding to the (sole) variable to estimate
-#'   variance on. If not numeric (character or factor), it is 
-#'   automatically discretized.
+#' @param y A vector corresponding to the variable to calculate the statitic on.
+#'   If not numeric (character or factor), it is automatically discretized.
 #' @param num,num1,num2 Numerical vector(s) corresponding to the numerator(s) 
 #'   to be used in the estimation.
 #' @param denom,denom1,denom2 Numerical vector(s) corresponding to the denominator(s) 
@@ -22,10 +21,12 @@
 #'   
 #'   The \code{ratio}, \code{mean}, \code{diff_of_ratio} and \code{ratio_of_ratio} 
 #'   functions produce the point estimate of the statistic and derive the 
-#'   corresponding linearized variable which is passed on to the variance
-#'   estimation function. The \code{total} function does not perform any 
-#'   linearization (as none is needed for the estimator of a total) and 
-#'   solely produces the corresponding point estimator. 
+#'   corresponding linearized variable which is later on passed on to the variance
+#'   estimation function within the variance estimation wrapper. 
+#'   
+#'   Note: The \code{total} function does not perform any linearization
+#'   (as none is needed for the estimator of a total) and solely produces the 
+#'   corresponding point estimator. 
 #' 
 #' @seealso \code{\link{define_variance_wrapper}}
 #' 
@@ -37,7 +38,7 @@
 #'   estimators: linearization and residual techniques", \emph{Survey Methodology}, 
 #'   25:193–203
 #'   
-#' @examples # See define_variance_wrapper examples
+#' @examples # See qvar examples
 #' 
 #' @author Martin Chevalier
 #' 

@@ -6,17 +6,15 @@
 #' Matrix::TsparseMatrix capabilities and allowing for pre-calculation of 
 #' the matrix inverse.
 #'
-#' @param y A numerical matrix of dependent variable(s). May be a 
-#' Matrix::TsparseMatrix.
-#' @param x A numerical matrix of independent variable(s). May be a 
-#' Matrix::TsparseMatrix.
+#' @param y A (sparse) numerical matrix of dependent variable(s).
+#' @param x A (sparse) numerical matrix of independent variable(s).
 #' @param w An optional numerical vector of row weights.
 #' @param by An optional categorical vector (factor or character)
 #' when residuals calculation is to be conducted within by-groups 
 #' (see Details).
 #' @param precalc A list of pre-calculated results (see Details).
-#' @param id A vector of identifiers of the units used in the calculation. Especially 
-#'   useful when \code{precalc} is used in order to assess whether the ordering of the
+#' @param id A vector of identifiers of the units used in the calculation.
+#'   Useful when \code{precalc = TRUE} in order to assess whether the ordering of the
 #'   \code{y} data matrix matches the one used at the precalculation step.
 #'
 #' @details In the context of the \code{gustave} package, linear 
@@ -52,11 +50,7 @@
 #' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
 #'   numerical matrix with same structure (regular base::matrix or
 #'   Matrix::TsparseMatrix) and dimensions as \code{y}. \item if \code{y} is
-#'   \code{NULL} (pre-calculation step) : a list containing pre-calculated data:
-#'   \itemize{ \item \code{x}: the numerical matrix of independent variables. 
-#'   \item \code{w}: the numerical vector of row weights (vector of 1 by
-#'   default). \item \code{inv}: the inverse of \code{t(x) \%*\%
-#'   Matrix::Diagonal(x = w) \%*\% x} } }
+#'   \code{NULL} (pre-calculation step) : a list containing pre-calculated data.}
 #'   
 #' @author Martin Chevalier
 #'
@@ -80,13 +74,13 @@
 #' require(Matrix)
 #' X <- as(x, "TsparseMatrix")
 #' Y <- as(y, "TsparseMatrix")
-#' res_cal(Y, X)
+#' identical(res_cal(y, x), as.matrix(res_cal(Y, X)))
 #'
 #' # by parameter for within by-groups calculation
 #' res_cal(Y, X, by = by)
 #' identical(
-#'  res_cal(Y, X, by = by)[by == "a", ]
-#'  , res_cal(Y[by == "a", ], X[by == "a", ])
+#'  res_cal(Y, X, by = by)[by == "a", ],
+#'   res_cal(Y[by == "a", ], X[by == "a", ])
 #' )
 #'
 #' @export
@@ -154,18 +148,17 @@ res_cal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
 #'   \code{var_srs} is a convenience wrapper for the (stratified) simple random
 #'   sampling case.
 #'   
-#' @param y A numerical matrix of the variable(s) whose variance of their total
-#'   is to be estimated. May be a Matrix::TsparseMatrix.
+#' @param y A (sparse) numerical matrix of the variable(s) whose variance of their total
+#'   is to be estimated. 
 #' @param pik A numerical vector of first-order inclusion probabilities.
-#' @param x An optional numerical matrix of balancing variable(s). May be a
-#'   Matrix::TsparseMatrix.
+#' @param x An optional (sparse) numerical matrix of balancing variable(s).
 #' @param strata An optional categorical vector (factor or character) when
 #'   variance estimation is to be conducted within strata.
 #' @param w An optional numerical vector of row weights (see Details).
 #' @param precalc A list of pre-calculated results (see Details).
-#' @param id A vector of identifiers of the units used in the calculation. Especially 
-#'   useful when \code{precalc} is used in order to assess whether the ordering of the
-#'   \code{y} data matrix matches the one used at the precalculation step.
+#' @param id A vector of identifiers of the units used in the calculation.
+#'   Useful when \code{precalc = TRUE} in order to assess whether the ordering of the
+#'   \code{y} data matrix matches the one used at the pre-calculation step.
 #'   
 #' @details \code{varDT} aims at being the workhorse of most variance estimation conducted
 #'   with the \code{gustave} package. It may be used to estimate the variance
@@ -196,7 +189,7 @@ res_cal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
 #'   encompasses balanced sampling. \item Even in its reduced
 #'   form (without balancing variables), the formula implemented in \code{varDT}
 #'   slightly differs from the one implemented in \code{sampling::varest}.
-#'   Caron, Deville and Sautory (1998, pp. 7-8) compares the two estimators
+#'   Caron (1998, pp. 178-179) compares the two estimators
 #'   (\code{sampling::varest} implements V_2, \code{varDT} implements V_1). 
 #'   \item \code{varDT} introduces several optimizations: \itemize{ \item
 #'   matrixwise operations allow to estimate variance on several interest
@@ -206,26 +199,20 @@ res_cal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
 #'   estimation at execution time. } \item \code{varDT} does not natively
 #'   implements the calibration estimator (i.e. the sampling variance estimator
 #'   that takes into account the effect of calibration). In the context of the
-#'   \code{gustave} package, \code{\link{res_cal}} could be called before 
+#'   \code{gustave} package, \code{\link{res_cal}} should be called before 
 #'   \code{varDT} in order to achieve the same result.}
 #'   
-#'   
+#' @seealso \code{\link{res_cal}}
+#' 
 #' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : 
 #'   the estimated variances as a numerical vector of size the number of 
 #'   columns of y. \item if \code{y} is \code{NULL} (pre-calculation step) : a list 
-#'   containing pre-calculated data: \itemize{ \item \code{pik}: the numerical vector 
-#'   of first-order inclusion probabilities. \item \code{A}: the numerical matrix 
-#'   denoted A in (Deville, Tillé, 2005). \item \code{ck}: the numerical vector denoted 
-#'   ck2 in (Deville, Tillé, 2005). \item \code{inv}: the inverse of \code{A \%*\%
-#'   Matrix::Diagonal(x = ck) \%*\% t(A)} \item \code{diago}: the diagonal term
-#'   of the variance estimator } }
+#'   containing pre-calculated data.}
 #'   
 #' @author Martin Chevalier
 #'   
-#' @references Caron N., Deville J.-C., Sautory O. (1998), \emph{Estimation de
-#'   précision de données issues d'enquêtes : document méthodologique sur le
-#'   logiciel POULPE}, Insee working paper, n°9806
-#'   
+#' @references Caron N. (1998), "Le logiciel Poulpe : aspects méthodologiques", \emph{Actes 
+#'   des Journées de méthodologie statistique} \url{http://jms-insee.fr/jms1998s03_1/}
 #'   Deville, J.-C. (1993), \emph{Estimation de la variance pour les enquêtes en
 #'   deux phases}, Manuscript, INSEE, Paris.
 #'   
@@ -257,7 +244,7 @@ res_cal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
 #' pik <- pik[s]
 #' varDT(y, pik)
 #' varest(y, pik = pik)
-#' # The small difference is expected (see above).
+#' # The small difference is expected (see Details).
 #'
 #' # Balanced sampling case
 #' N <- 1000
@@ -291,8 +278,8 @@ res_cal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
 #' y <- rnorm(n)
 #' strata <- letters[sample.int(H, n, replace = TRUE)]
 #' all.equal(
-#'  varDT(y, pik, strata = strata)
-#'  , varDT(y[strata == "a"], pik[strata == "a"]) + varDT(y[strata == "b"], pik[strata == "b"])
+#'  varDT(y, pik, strata = strata),
+#'  varDT(y[strata == "a"], pik[strata == "a"]) + varDT(y[strata == "b"], pik[strata == "b"])
 #' )
 #'
 #' # precalc argument
@@ -303,8 +290,8 @@ res_cal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
 #' strata <- sample.int(H, n, replace = TRUE)
 #' precalc <- varDT(y = NULL, pik, strata = strata)
 #' identical(
-#'  varDT(y, precalc = precalc)
-#'  , varDT(y, pik, strata = strata)
+#'  varDT(y, precalc = precalc),
+#'  varDT(y, pik, strata = strata)
 #' )
 #'
 #' @export
@@ -391,8 +378,8 @@ var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
 #' @description \code{var_pois} estimates the variance of the estimator 
 #' of a total for a Poisson sampling design.
 #' 
-#' @param y A numerical matrix of the variable(s) whose variance of their total
-#'   is to be estimated. May be a Matrix::TsparseMatrix.
+#' @param y A (sparse) numerical matrix of the variable(s) whose variance of their total
+#'   is to be estimated.
 #' @param pik A numerical vector of first-order inclusion probabilities.
 #' @param w An optional numerical vector of row weights (see Details).
 #' 
@@ -401,7 +388,7 @@ var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
 #'   design applying the Rao (1975) formula.
 #' 
 #' @return The estimated variances as a numerical vector of size the number of 
-#'   columns of y. 
+#'   columns of \code{y}. 
 #'    
 #' @author Martin Chevalier
 #'   
@@ -417,11 +404,10 @@ var_pois <- function(y, pik, w = NULL){
 #' Sen-Yates-Grundy variance estimator
 #' 
 #' @description \code{varSYG} computes the Sen-Yates-Grundy 
-#' variance estimator (valid under the assumption that the sampling
-#' design is of fixed size).
+#' variance estimator.
 #' 
-#' @param y A numerical matrix of the variable(s) whose variance of their total
-#'   is to be estimated. May be a Matrix::TsparseMatrix.
+#' @param y A (sparse) numerical matrix of the variable(s) whose variance of their total
+#'   is to be estimated.
 #' @param pikl A numerical matrix of second-order inclusion probabilities.
 #' @param precalc A list of pre-calculated results (analogous to the one used by 
 #'   \code{\link{varDT}}).
@@ -452,7 +438,7 @@ var_pois <- function(y, pik, w = NULL){
 #'   \code{NULL} (pre-calculation step) : a list containing pre-calculated data 
 #'   (analogous to the one used by \code{\link{varDT}}).}
 #' 
-#' @author Martin Chevalier (Insee, French Statistical Institute)
+#' @author Martin Chevalier
 #' 
 #' @examples library(sampling)
 #' set.seed(1)

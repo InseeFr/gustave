@@ -7,8 +7,8 @@
 varSYG(y = NULL, pikl, precalc = NULL)
 }
 \arguments{
-\item{y}{A numerical matrix of the variable(s) whose variance of their total
-is to be estimated. May be a Matrix::TsparseMatrix.}
+\item{y}{A (sparse) numerical matrix of the variable(s) whose variance of their total
+is to be estimated.}
 
 \item{pikl}{A numerical matrix of second-order inclusion probabilities.}
 
@@ -23,8 +23,7 @@ is to be estimated. May be a Matrix::TsparseMatrix.}
 }
 \description{
 \code{varSYG} computes the Sen-Yates-Grundy 
-variance estimator (valid under the assumption that the sampling
-design is of fixed size).
+variance estimator.
 }
 \details{
 \code{varSYG} aims at being an efficient implementation of the 
@@ -64,5 +63,5 @@ varSYG(y, pikl)
 sampling::varHT(y = y, pikl = pikl, method = 2)
 }
 \author{
-Martin Chevalier (Insee, French Statistical Institute)
+Martin Chevalier
 }

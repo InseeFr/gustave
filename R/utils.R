@@ -5,8 +5,8 @@
 #' @description \code{sum_by} performs an efficient and optionally weighted 
 #' by-group summation by using linear algebra and the Matrix package 
 #' capabilities. The by-group summation is performed through matrix cross-product
-#' of the y parameter (coerced to a matrix if needed) with a (very) sparse
-#' matrix built up using the by and the (optional) w parameters. 
+#' of the \code{y} parameter (coerced to a matrix if needed) with a (very) sparse
+#' matrix built up using the \code{by} and the (optional) \code{w} parameters. 
 #' 
 #' Compared to base R, dplyr or data.table alternatives, this implementation 
 #' aims at being easier to use in a matrix-oriented context and can yield 
@@ -16,17 +16,17 @@
 #' The object to perform by-group summation on. 
 #' @param by The factor variable defining the by-groups. Character variables
 #' are coerced to factors.
-#' @param w The optional weight to be used in the summation. 
-#' @param na_rm Should NA values in y be removed (ie treated as 0 in the summation) ? 
-#' Similar to na.rm argument in \code{\link[base]{sum}}, but TRUE by default. 
-#' If FALSE, NA values in y produce NA values in the result.
-#' @param keep_sparse When y is a sparse vector or a sparse matrix, should the result
-#' also be sparse ? FALSE by default. As \code{\link[Matrix]{sparseVector-class}} does
-#' not have a name attribute, when y is a sparseVector the result does not have any
+#' @param w The optional row weights to be used in the summation. 
+#' @param na_rm Should \code{NA} values in \code{y} be removed (ie treated as 0 in the summation) ? 
+#' Similar to \code{na.rm} argument in \code{\link[base]{sum}}, but \code{TRUE} by default. 
+#' If \code{FALSE}, \code{NA} values in \code{y} produce \code{NA} values in the result.
+#' @param keep_sparse When \code{y} is a sparse vector or a sparse matrix, should the result
+#' also be sparse ? \code{FALSE} by default. As \code{\link[Matrix]{sparseVector-class}} does
+#' not have a name attribute, when \code{y} is a sparseVector the result does not have any
 #' name (and a warning is cast).
 #' 
-#' @return A vector, a matrix or a data.frame depending on the type of y. If y is
-#' sparse and keep_sparse is TRUE, then the result is also sparse (without names
+#' @return A vector, a matrix or a data.frame depending on the type of \code{y}. If \code{y} is
+#' sparse and \code{keep_sparse = TRUE}, then the result is also sparse (without names
 #' when it is a sparse vector, see keep_sparse argument for details).
 #' 
 #' @author Martin Chevalier
@@ -114,11 +114,11 @@ sum_by <- function(y, by, w = NULL, na_rm = TRUE, keep_sparse = FALSE){
 #' @param y A (sparse) matrix or a data.frame. The object to add zeros to.
 #' @param rownames A character vector (other types are coerced to character).
 #'   The character vector giving the rows of the produced object.
-#' @param remove Should rows of y whose name do not appear in the rownames
+#' @param remove Should rows of \code{y} whose name do not appear in the rownames
 #'   argument be removed ? TRUE by default, a warning is shown when rows are
 #'   removed.
 #'
-#' @return A (sparse) matrix or data.frame depending on the type of y.
+#' @return A (sparse) matrix or data.frame depending on the type of \code{y}.
 #'
 #' @author Martin Chevalier
 #'

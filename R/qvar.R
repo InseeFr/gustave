@@ -3,11 +3,10 @@
 
 #' Quickly perform a variance estimation in common cases
 #' 
-#' @description \code{qvar} (for "quick variance estimation") is a function 
-#' performing analytical variance estimation in most common cases, that is: 
-#' \itemize{\item stratified simple random sampling \item correct handling of 
-#' out-of-scope units \item non-response correction (if any) through reweighting 
-#' \item calibration (if any)}
+#' @description \code{qvar} (for "quick variance estimation") is a function
+#'   performing analytical variance estimation in most common cases, that is:
+#'   \itemize{\item stratified simple random sampling \item non-response
+#'   correction (if any) through reweighting \item calibration (if any)}
 #' 
 #' Used with \code{define = TRUE}, it defines a so-called variance wrapper, that 
 #' is a standalone ready-to-use function that can be applied to the survey dataset 
@@ -22,7 +21,7 @@
 #'   it should also contain the variables of interest.
 #' @param ... One or more calls to a statistic wrapper (e.g. \code{total()}, 
 #'   \code{mean()}, \code{ratio()}). See examples and 
-#'   \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}})
+#'   \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}}
 #' @param where A logical vector indicating a domain on which the variance 
 #'   estimation is to be performed.
 #' @param by A qualitative variable whose levels are used to define domains
@@ -38,15 +37,15 @@
 #' @param dissemination_dummy A character vector of length 1, the name
 #'   of the logical variable in \code{data} indicating whether the unit
 #'   does appear in the disseminated file and should be used for point
-#'   estimates.
+#'   estimates. It should not contain any missing values.
 #' @param dissemination_weight A character vector of length 1, the name
 #'   of the numerical variable in \code{data} corresponding to the 
 #'   dissemination weight of the survey. It should not contain any missing 
-#'   (NA) values.
+#'   values.
 #'
 #' @param sampling_weight A character vector of length 1, the name of the 
 #'   numeric variable in \code{data} corresponding to the sampling weights 
-#'   of the survey. It should not contain any missing (NA) values.
+#'   of the survey. It should not contain any missing values.
 #' @param strata A character vector of length 1, the name of the factor 
 #'   variable in \code{data} whose level match the stratification
 #'   used in the survey. Character variables are coerced to factor.
@@ -63,7 +62,7 @@
 #' @param nrc_weight A character vector of length 1, the name of the 
 #'   numerical variable in \code{data} corresponding to the weights
 #'   after non-response correction. If defined, all responding units 
-#'   (see below) should have a non-missing value. If \code{NULL}, all
+#'   should have a non-missing value. If \code{NULL}, all
 #'   units are supposed to be responding and the variance estimation
 #'   process does not include a second phase in order to take non-response
 #'   into account.
@@ -80,7 +79,7 @@
 #'
 #' @param calibration_weight A character vector of length 1, the name of the 
 #'   numerical variable in \code{data} corresponding to the calibrated
-#'   weights. If defined, all responding units (see above) should have 
+#'   weights. If defined, all responding units should have 
 #'   a non-missing value. If \code{NULL}, the variance estimation
 #'   process does not take any calibration step into account.
 #' @param calibration_dummy A character vector of length 1, the name of of the logical 
@@ -111,9 +110,9 @@
 #'   implements the described variance estimation methodology and
 #'   contains all necessary data to do so (see examples).
 #'   
-#'   \code{qvar} is analogous to the \code{qplot} function in the ggplot2
-#'   package, as it is an easier-to-use function for common cases. More 
-#'   complex cases are to be handled by using the core functions of 
+#'   Note: To some extent, \code{qvar} is analogous to the \code{qplot} function
+#'   in the ggplot2 package, as it is an easier-to-use function for common
+#'   cases. More complex cases are to be handled by using the core functions of
 #'   the gustave package, e.g. \code{\link{define_variance_wrapper}}.
 #'   
 #' @seealso \code{\link{define_variance_wrapper}} \code{\link{standard_statistic_wrapper}}
@@ -122,11 +121,9 @@
 #' 
 #' # The (simulated) Information and communication technologies (ICT) survey 
 #' # has the following characteristics: 
-#' # - stratified one-stage sampling design;
-#' # - non-response correction through reweighting in homogeneous response groups 
-#' # based on economic sub-sector and turnover;
-#' # - calibration on margins (number of firms and turnover broken down
-#' # by economic sub-sector).
+#' # - stratified one-stage sampling design
+#' # - non-response correction through reweighting in homogeneous response groups
+#' # - calibration on margins.
 #' 
 #' # The ict_survey data.frame is a (simulated) subset of the ICT 
 #' # survey file containing the variables of interest for the 612
@@ -234,6 +231,7 @@
 #' precision_ict(ict_survey, mean(variables_of_interest))
 #' 
 #' # Integration with %>% and dplyr
+#' library(magrittr)
 #' library(dplyr)
 #' ict_survey %>% 
 #'   precision_ict("Internet speed above 100 Mbps" = mean(speed_quanti > 100)) %>% 
@@ -284,7 +282,7 @@ define_qvar_variance_wrapper <- function(data, id, dissemination_dummy, dissemin
                                   sampling_weight, strata = NULL,
                                   scope_dummy = NULL, 
                                   nrc_weight = NULL, response_dummy = NULL, nrc_dummy = NULL,
-                                  calibration_weight = NULL, calibration_dummy = NULL, calibration_var = NULL,
+                                  calibration_weight = NULL, calibration_var = NULL, calibration_dummy = NULL,
                                   envir = parent.frame()
 ){
   

@@ -11,7 +11,7 @@
   \item{income}{total annual income of the dwelling in thousand euros (from income registry)}
   \item{pik_area}{first-order inclusion probability of the area}
   \item{pik_dwel}{first-order inclusion probability of the dwelling within the area (20 dwelling sampled per area)}
-  \item{pik}{first-order inclusion probability of the dwelling)}
+  \item{pik}{first-order inclusion probability of the dwelling}
 }}
 \usage{
 lfs_samp_dwel

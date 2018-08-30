@@ -12,12 +12,12 @@ add_zero(y, rownames, remove = TRUE)
 \item{rownames}{A character vector (other types are coerced to character).
 The character vector giving the rows of the produced object.}
 
-\item{remove}{Should rows of y whose name do not appear in the rownames
+\item{remove}{Should rows of \code{y} whose name do not appear in the rownames
 argument be removed ? TRUE by default, a warning is shown when rows are
 removed.}
 }
 \value{
-A (sparse) matrix or data.frame depending on the type of y.
+A (sparse) matrix or data.frame depending on the type of \code{y}.
 }
 \description{
 For a given two-dimensional object with rownames and a character

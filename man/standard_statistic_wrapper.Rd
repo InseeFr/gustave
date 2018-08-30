@@ -20,9 +20,8 @@ diff_of_ratio(num1, denom1, num2, denom2, by = NULL, where = NULL)
 ratio_of_ratio(num1, denom1, num2, denom2, by = NULL, where = NULL)
 }
 \arguments{
-\item{y}{A vector corresponding to the (sole) variable to estimate
-variance on. If not numeric (character or factor), it is 
-automatically discretized.}
+\item{y}{A vector corresponding to the variable to calculate the statitic on.
+If not numeric (character or factor), it is automatically discretized.}
 
 \item{by}{Factor vector (character vectors are coerced to factors) whose levels are used
 to break down the estimation by domains.}
@@ -48,13 +47,15 @@ When the estimator is not the estimator of a total, the application of
   
   The \code{ratio}, \code{mean}, \code{diff_of_ratio} and \code{ratio_of_ratio} 
   functions produce the point estimate of the statistic and derive the 
-  corresponding linearized variable which is passed on to the variance
-  estimation function. The \code{total} function does not perform any 
-  linearization (as none is needed for the estimator of a total) and 
-  solely produces the corresponding point estimator.
+  corresponding linearized variable which is later on passed on to the variance
+  estimation function within the variance estimation wrapper. 
+  
+  Note: The \code{total} function does not perform any linearization
+  (as none is needed for the estimator of a total) and solely produces the 
+  corresponding point estimator.
 }
 \examples{
-# See define_variance_wrapper examples
+# See qvar examples
 
 }
 \references{

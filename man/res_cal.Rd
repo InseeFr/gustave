@@ -8,11 +8,9 @@ res_cal(y = NULL, x, w = NULL, by = NULL, precalc = NULL,
   id = NULL)
 }
 \arguments{
-\item{y}{A numerical matrix of dependent variable(s). May be a 
-Matrix::TsparseMatrix.}
+\item{y}{A (sparse) numerical matrix of dependent variable(s).}
 
-\item{x}{A numerical matrix of independent variable(s). May be a 
-Matrix::TsparseMatrix.}
+\item{x}{A (sparse) numerical matrix of independent variable(s).}
 
 \item{w}{An optional numerical vector of row weights.}
 
@@ -22,19 +20,15 @@ when residuals calculation is to be conducted within by-groups
 
 \item{precalc}{A list of pre-calculated results (see Details).}
 
-\item{id}{A vector of identifiers of the units used in the calculation. Especially 
-useful when \code{precalc} is used in order to assess whether the ordering of the
+\item{id}{A vector of identifiers of the units used in the calculation.
+Useful when \code{precalc = TRUE} in order to assess whether the ordering of the
 \code{y} data matrix matches the one used at the precalculation step.}
 }
 \value{
 \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
   numerical matrix with same structure (regular base::matrix or
   Matrix::TsparseMatrix) and dimensions as \code{y}. \item if \code{y} is
-  \code{NULL} (pre-calculation step) : a list containing pre-calculated data:
-  \itemize{ \item \code{x}: the numerical matrix of independent variables. 
-  \item \code{w}: the numerical vector of row weights (vector of 1 by
-  default). \item \code{inv}: the inverse of \code{t(x) \%*\%
-  Matrix::Diagonal(x = w) \%*\% x} } }
+  \code{NULL} (pre-calculation step) : a list containing pre-calculated data.}
 }
 \description{
 \code{res_cal} calculates linear regression residuals in an 
@@ -93,13 +87,13 @@ identical(res_cal(y, x), res_cal(y, precalc = precalc))
 require(Matrix)
 X <- as(x, "TsparseMatrix")
 Y <- as(y, "TsparseMatrix")
-res_cal(Y, X)
+identical(res_cal(y, x), as.matrix(res_cal(Y, X)))
 
 # by parameter for within by-groups calculation
 res_cal(Y, X, by = by)
 identical(
- res_cal(Y, X, by = by)[by == "a", ]
- , res_cal(Y[by == "a", ], X[by == "a", ])
+ res_cal(Y, X, by = by)[by == "a", ],
+  res_cal(Y[by == "a", ], X[by == "a", ])
 )
 
 }

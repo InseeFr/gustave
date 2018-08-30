@@ -77,7 +77,7 @@ lfs_samp_ind <- lfs_samp_ind[order(lfs_samp_ind$id_ind), ]
 row.names(lfs_samp_ind) <- NULL
 
 # Export the final files
-save(lfs_samp_area, file = "data/lfs_samp_area.RData")
-save(lfs_samp_dwel, file = "data/lfs_samp_dwel.RData")
-save(lfs_samp_ind, file = "data/lfs_samp_ind.RData")
+save(lfs_samp_area, file = "data/lfs_samp_area.RData", compress = "xz")
+save(lfs_samp_dwel, file = "data/lfs_samp_dwel.RData", compress = "xz")
+save(lfs_samp_ind, file = "data/lfs_samp_ind.RData", compress = "xz")
 rm(list = ls(all.names = TRUE))

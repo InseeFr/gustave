@@ -4,15 +4,15 @@
 \name{ict_survey}
 \alias{ict_survey}
 \title{Survey data of the Information and communication technologies (ICT)
-survey in the information and communication sector (NACE rev 2 J section)}
-\format{A data frame with 612 observations and 25 variables:
+survey}
+\format{A data frame with 612 observations and 11 variables:
 \describe{
   \item{firm_id}{identifier of the firm}
   \item{division}{identifier of the economic sub-sector}
   \item{employees}{number of employees}
   \item{turnover}{firm turnover, in euros}
   \item{w_calib}{calibrated weight}
-  \item{speed_quanti, speed_quanti_NA}{internet connection speed of the firm in Mbits, without or with missing values}
+  \item{speed_quanti, speed_quanti_NA}{internet connection speed of the firm in Mbps, without or with missing values}
   \item{speed_quali, speed_quali_NA}{internet connection speed of the firm recoded in classes, without or with missing values}
   \item{big_data, big_data_NA}{use of big data analytics within the firm, without or with missing values}
 }}
