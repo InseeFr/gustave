@@ -115,7 +115,7 @@
 #'   cases. More complex cases are to be handled by using the core functions of
 #'   the gustave package, e.g. \code{\link{define_variance_wrapper}}.
 #'   
-#' @seealso \code{\link{define_variance_wrapper}} \code{\link{standard_statistic_wrapper}}
+#' @seealso \code{\link{define_variance_wrapper}}, \code{\link{standard_statistic_wrapper}}
 #' 
 #' @examples ### Example from the Information and communication technologies (ICT) survey
 #' 

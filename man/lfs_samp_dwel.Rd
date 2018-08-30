@@ -22,6 +22,6 @@ sampled for the Labour force survey (in the 4 areas described
 in \code{\link{lfs_samp_area}}).
 }
 \seealso{
-\code{\link{define_variance_wrapper}} \code{\link{lfs_samp_area}} \code{\link{lfs_samp_ind}}
+\code{\link{define_variance_wrapper}}, \code{\link{lfs_samp_area}}, \code{\link{lfs_samp_ind}}
 }
 \keyword{datasets}

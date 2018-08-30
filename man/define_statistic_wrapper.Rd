@@ -136,8 +136,7 @@ Deville J.-C. (1999), "Variance estimation for complex statistics and
   25:193–203
 }
 \seealso{
-\code{\link[=standard_statistic_wrapper]{standard statistic wrappers}} 
-  \code{\link{define_variance_wrapper}}
+\code{\link[=standard_statistic_wrapper]{standard statistic wrappers}}, \code{\link{define_variance_wrapper}}
 }
 \author{
 Martin Chevalier

@@ -28,7 +28,7 @@
 #'   (as none is needed for the estimator of a total) and solely produces the 
 #'   corresponding point estimator. 
 #' 
-#' @seealso \code{\link{define_variance_wrapper}}
+#' @seealso \code{\link{define_statistic_wrapper}}, \code{\link{define_variance_wrapper}}
 #' 
 #' @references 
 #'   Caron N. (1998), "Le logiciel Poulpe : aspects méthodologiques", \emph{Actes 

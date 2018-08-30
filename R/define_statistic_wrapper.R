@@ -81,8 +81,7 @@
 #' 
 #' @author Martin Chevalier
 #'    
-#' @seealso \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}} 
-#'   \code{\link{define_variance_wrapper}}
+#' @seealso \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}}, \code{\link{define_variance_wrapper}}
 #'   
 #' @references 
 #'   Deville J.-C. (1999), "Variance estimation for complex statistics and 

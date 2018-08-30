@@ -262,5 +262,5 @@ ict_survey \%>\%
 
 }
 \seealso{
-\code{\link{define_variance_wrapper}} \code{\link{standard_statistic_wrapper}}
+\code{\link{define_variance_wrapper}}, \code{\link{standard_statistic_wrapper}}
 }

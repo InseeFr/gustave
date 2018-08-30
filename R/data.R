@@ -17,7 +17,7 @@
 #'   \item{strata}{stratification variable}
 #' }
 #' 
-#' @seealso \code{\link{qvar}} \code{\link{ict_sample}} \code{\link{ict_survey}}
+#' @seealso \code{\link{qvar}}, \code{\link{ict_sample}}, \code{\link{ict_survey}}
 
 "ict_pop"
 
@@ -49,7 +49,7 @@
 #'   \item{dissemination}{boolean indicating whether the unit appears in the dissemination file}
 #' }
 #' 
-#' @seealso \code{\link{qvar}} \code{\link{ict_pop}} \code{\link{ict_survey}}
+#' @seealso \code{\link{qvar}}, \code{\link{ict_pop}}, \code{\link{ict_survey}}
 "ict_sample"
 
 #' Survey data of the Information and communication technologies (ICT)
@@ -71,7 +71,7 @@
 #'   \item{big_data, big_data_NA}{use of big data analytics within the firm, without or with missing values}
 #' }
 #' 
-#' @seealso \code{\link{qvar}} \code{\link{ict_pop}} \code{\link{ict_sample}}
+#' @seealso \code{\link{qvar}}, \code{\link{ict_pop}}, \code{\link{ict_sample}}
 
 "ict_survey"
 
@@ -89,7 +89,7 @@
 #'   \item{pik_area}{first-order inclusion probability of the area (proportional to the number of dwellings in the area)}
 #' }
 #' 
-#' @seealso \code{\link{define_variance_wrapper}} \code{\link{lfs_samp_dwel}} \code{\link{lfs_samp_ind}}
+#' @seealso \code{\link{define_variance_wrapper}}, \code{\link{lfs_samp_dwel}}, \code{\link{lfs_samp_ind}}
 
 "lfs_samp_area"
 
@@ -109,7 +109,7 @@
 #'   \item{pik}{first-order inclusion probability of the dwelling}
 #' }
 #' 
-#' @seealso \code{\link{define_variance_wrapper}} \code{\link{lfs_samp_area}} \code{\link{lfs_samp_ind}}
+#' @seealso \code{\link{define_variance_wrapper}}, \code{\link{lfs_samp_area}}, \code{\link{lfs_samp_ind}}
 
 "lfs_samp_dwel"
 
@@ -129,6 +129,6 @@
 #'   \item{sampling_weight}{sampling weight of the individual (inverse of the first-order inclusion probability of the dwelling)}
 #' }
 #' 
-#' @seealso \code{\link{define_variance_wrapper}} \code{\link{lfs_samp_area}} \code{\link{lfs_samp_dwel}}
+#' @seealso \code{\link{define_variance_wrapper}}, \code{\link{lfs_samp_area}}, \code{\link{lfs_samp_dwel}}
 
 "lfs_samp_ind"

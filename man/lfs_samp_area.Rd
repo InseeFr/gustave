@@ -18,6 +18,6 @@ A (simulated) dataset containing information about 4 geographical
 areas (about 120 dwellings each) sampled for the labour force survey.
 }
 \seealso{
-\code{\link{define_variance_wrapper}} \code{\link{lfs_samp_dwel}} \code{\link{lfs_samp_ind}}
+\code{\link{define_variance_wrapper}}, \code{\link{lfs_samp_dwel}}, \code{\link{lfs_samp_ind}}
 }
 \keyword{datasets}

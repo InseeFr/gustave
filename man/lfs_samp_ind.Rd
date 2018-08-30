@@ -22,6 +22,6 @@ described in \code{\link{lfs_samp_dwel}}). It also contains the
 unemployment status extracted from the survey file (no non-response).
 }
 \seealso{
-\code{\link{define_variance_wrapper}} \code{\link{lfs_samp_area}} \code{\link{lfs_samp_dwel}}
+\code{\link{define_variance_wrapper}}, \code{\link{lfs_samp_area}}, \code{\link{lfs_samp_dwel}}
 }
 \keyword{datasets}

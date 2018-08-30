@@ -99,7 +99,7 @@
 #' @references Rao, J.N.K (1975), "Unbiased variance estimation for multistage designs",
 #'   \emph{Sankhya}, C n°37
 #'   
-#' @seealso \code{\link{qvar}} \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}} \code{\link{varDT}}
+#' @seealso \code{\link{qvar}}, \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}}, \code{\link{varDT}}
 #' 
 #' @examples ### Example from the Labour force survey (LFS)
 #' 

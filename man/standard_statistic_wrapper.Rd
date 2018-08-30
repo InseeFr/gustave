@@ -67,7 +67,7 @@ Caron N. (1998), "Le logiciel Poulpe : aspects méthodologiques", \emph{Actes
   25:193–203
 }
 \seealso{
-\code{\link{define_variance_wrapper}}
+\code{\link{define_statistic_wrapper}}, \code{\link{define_variance_wrapper}}
 }
 \author{
 Martin Chevalier

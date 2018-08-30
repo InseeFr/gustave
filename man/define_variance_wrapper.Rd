@@ -201,7 +201,7 @@ Rao, J.N.K (1975), "Unbiased variance estimation for multistage designs",
   \emph{Sankhya}, C n°37
 }
 \seealso{
-\code{\link{qvar}} \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}} \code{\link{varDT}}
+\code{\link{qvar}}, \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}}, \code{\link{varDT}}
 }
 \author{
 Martin Chevalier
