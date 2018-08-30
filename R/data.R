@@ -17,7 +17,7 @@
 #'   \item{strata}{stratification variable}
 #' }
 #' 
-#' @seealso \code{\link{ict_sample}} \code{\link{ict_survey}}
+#' @seealso \code{\link{qvar}} \code{\link{ict_sample}} \code{\link{ict_survey}}
 
 "ict_pop"
 
@@ -50,7 +50,7 @@
 #'   \item{dissemination}{boolean indicating whether the unit appears in the dissemination file}
 #' }
 #' 
-#' @seealso \code{\link{ict_pop}} \code{\link{ict_survey}}
+#' @seealso \code{\link{qvar}} \code{\link{ict_pop}} \code{\link{ict_survey}}
 "ict_sample"
 
 #' Survey data of the Information and communication technologies (ICT)
@@ -72,6 +72,65 @@
 #'   \item{big_data, big_data_NA}{use of big data analytics within the firm, without or with missing values}
 #' }
 #' 
-#' @seealso \code{\link{ict_pop}} \code{\link{ict_sample}}
+#' @seealso \code{\link{qvar}} \code{\link{ict_pop}} \code{\link{ict_sample}}
 
 "ict_survey"
+
+
+
+#' Sample of areas in the Labour force survey
+#'
+#' A (simulated) dataset containing information about 4 geographical 
+#' areas (about 120 dwellings each) sampled for the labour force survey.
+#'
+#' @format A data frame with 4 observations and 4 variables:
+#' \describe{
+#'   \item{id_area}{identifier of the area}
+#'   \item{number_dwelling}{number of dwellings in the area}
+#'   \item{income}{total annual income of the area in thousand euros (from income registry)}
+#'   \item{pik_area}{first-order inclusion probability of the area (proporional to the number of dwellings)}
+#' }
+#' 
+#' @seealso \code{\link{define_variance_wrapper}} \code{\link{lfs_samp_dwel}} \code{\link{lfs_samp_ind}}
+
+"lfs_samp_area"
+
+#' Sample of dwellings in the Labour force survey
+#'
+#' A (simulated) dataset containing information about 80 dwellings
+#' sampled for the Labour force survey (in the 4 areas described
+#' in \code{\link{lfs_samp_area}}).
+#'
+#' @format A data frame with 80 observations and 6 variables:
+#' \describe{
+#'   \item{id_dwel}{identifier of the dwelling}
+#'   \item{id_area}{identifier of the area}
+#'   \item{income}{total annual income of the dwelling in thousand euros (from income registry)}
+#'   \item{pik_area}{first-order inclusion probability of the area (proporional to the number of dwellings)}
+#'   \item{pik_dwel}{first-order inclusion probability of the dwelling within the area (20 dwelling sampled per area)}
+#'   \item{pik}{first-order inclusion probability of the dwelling)}
+#' }
+#' 
+#' @seealso \code{\link{define_variance_wrapper}} \code{\link{lfs_samp_area}} \code{\link{lfs_samp_ind}}
+
+"lfs_samp_dwel"
+
+#' Sample of individuals in the Labour force survey
+#'
+#' A (simulated) dataset containing information about 157 individuals
+#' sampled for the Labour force survey (all members of the 80 dwellings
+#' described in \code{\link{lfs_samp_dwel}}). It also contains the 
+#' unemployment status extracted from the survey file (no non-response).
+#'
+#' @format A data frame with 157 observations and 5 variables:
+#' \describe{
+#'   \item{id_ind}{identifier of the individual}
+#'   \item{id_dwel}{identifier of the dwelling}
+#'   \item{income}{total annual income of the individual in thousand euros (from income registry)}
+#'   \item{unemp}{unemployment status}
+#'   \item{sampling_weight}{sampling weight of the individual (inverse of the first-order inclusion probability of the dwelling)}
+#' }
+#' 
+#' @seealso \code{\link{define_variance_wrapper}} \code{\link{lfs_samp_area}} \code{\link{lfs_samp_dwel}}
+
+"lfs_samp_ind"

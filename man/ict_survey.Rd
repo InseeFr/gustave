@@ -25,6 +25,6 @@ to the Information and communication technologies (ICT)
 survey in the information and communication sector (NACE rev 2 J section)
 }
 \seealso{
-\code{\link{ict_pop}} \code{\link{ict_sample}}
+\code{\link{qvar}} \code{\link{ict_pop}} \code{\link{ict_sample}}
 }
 \keyword{datasets}
