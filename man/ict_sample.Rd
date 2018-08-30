@@ -4,18 +4,25 @@
 \name{ict_sample}
 \alias{ict_sample}
 \title{Sample of the Information and communication technologies (ICT)
-survey in the information and communication sector (NACE rev 2 J section)}
+survey}
 \format{A data frame with 650 observations and 8 variables:
 \describe{
   \item{firm_id}{identifier of the firm}
   \item{division}{identifier of the economic sub-sector}
   \item{employees}{number of employees}
   \item{turnover}{firm turnover, in euros}
+  \item{strata}{stratification variable}
   \item{w_sample}{sampling weight}
+  \item{scope}{boolean indicating whether the firm did belong to the scope of the survey or not}
   \item{resp}{boolean indicating whether the firm did respond to the survey or not}
-  \item{hrg}{homogeneous response group used for the unit non-response correction}
+  \item{nrc}{boolean indicating whether the firm did take part in the non-response correction process or not}
+  \item{hrg}{homogeneous response group used for the non-response correction}
   \item{response_prob_est}{response probability of the unit estimated using homogeneous response groups}
-  \item{w_nr}{weight after unit non-response correction}
+  \item{w_nrc}{weight after unit non-response correction}
+  \item{calib}{boolean indicating whether the firm was integrated in the calibration process or not (\code{TRUE} for all responding units)}
+  \item{N_58, N_59, N_60, N_61, N_62, N_63, turnover_58, turnover_59, turnover_60, turnover_61, turnover_62, turnover_63}{calibration variables (number of firms and turnover broken down by economic sub-sector)}
+  \item{w_calib}{calibrated weight}
+  \item{dissemination}{boolean indicating whether the unit appears in the dissemination file}
 }}
 \usage{
 ict_sample
@@ -26,6 +33,6 @@ of the Information and communication technologies (ICT)
 survey in the information and communication sector (NACE rev 2 J section)
 }
 \seealso{
-\code{\link{ict_pop}} \code{\link{ict_survey}}
+\code{\link{qvar}}, \code{\link{ict_pop}}, \code{\link{ict_survey}}
 }
 \keyword{datasets}

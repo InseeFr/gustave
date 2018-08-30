@@ -1,56 +1,4 @@
-#' Variance function for one-stage stratified simple random sampling
-#' with non-response and calibration
-#' 
-#' @export
-#' 
-var_strata <- function(y = NULL, 
-                       strata,
-                       w_sample,
-                       w_nr = NULL,
-                       x_calib = NULL,
-                       w_calib = NULL,
-                       precalc = NULL
-){
-  
-  # y <- setNames(ict_survey$speed_quanti, ict_survey$firm_id); x_calib <- as.matrix(ict_survey[, c(paste0("N_", 58:63), paste0("turnover_", 58:63))]); rownames(x_calib) <- ict_survey$firm_id; w_calib <- setNames(ict_survey$w_calib, ict_survey$firm_id)
-  
-  if(is.null(precalc)){
-    
-    # Consistency tests
-    y <- as_matrix(y)
-    w_ref <- if(!is.null(w_calib)) w_calib else if(!is.null(w_nr)) w_nr else w_sample
-    if(!setequal(rownames(y), names(w_ref))) stop()
-    
-    precalc_calib <- rescal(y = NULL, x = x_calib, w = w_calib)
-    
-    
-  }else list2env(precalc)
-  
-  if(is.null(y)){
-    return(list())
-  }else{
-    
-    # Calibration    
-    y <- rescal(y, precalc = precalc_calib)
 
-  }
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#' TODO
 #' @references Wolter, 2008, p. 53
 
 varCollapse <- function(y, group, strata = NULL){
@@ -93,7 +41,6 @@ varCollapse <- function(y, group, strata = NULL){
 #   , times = 10
 # )
 
-#' TODO
 #' @references Wolter, 2007, pp. 298-353, v12
 
 varsys <- function(y, pik){
@@ -135,10 +82,3 @@ varsysst <- function(y, pik, strata=rep(1,nrow(as.matrix(y)))){
 # y <- as.matrix(Y[,paste0("y",1:10),with = F]);strata <- Y$idzae;pik <- Y$piLog
 # strata <- rep(1,nrow(Y))
 #
-
-
-#' TODO
-
-varB <- function(y, pik){
-  return(colSums((1 - pik) * (as.matrix(y)/pik)^2))
-}

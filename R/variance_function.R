@@ -1,24 +1,21 @@
 
-
 #' Linear Regression Residuals Calculation
 #'
-#' @description \code{rescal} calculates linear regression residuals in an 
+#' @description \code{res_cal} calculates linear regression residuals in an 
 #' efficient way : handling several dependent variables at a time, using 
 #' Matrix::TsparseMatrix capabilities and allowing for pre-calculation of 
 #' the matrix inverse.
 #'
-#' @param y A numerical matrix of dependent variable(s). May be a 
-#' Matrix::TsparseMatrix.
-#' @param x A numerical matrix of independent variable(s). May be a 
-#' Matrix::TsparseMatrix.
+#' @param y A (sparse) numerical matrix of dependent variable(s).
+#' @param x A (sparse) numerical matrix of independent variable(s).
 #' @param w An optional numerical vector of row weights.
 #' @param by An optional categorical vector (factor or character)
 #' when residuals calculation is to be conducted within by-groups 
 #' (see Details).
-#' @param collinearity.check A boolean (\code{TRUE} or \code{FALSE}) or 
-#' \code{NULL} indicating whether to perform a check for collinearity or 
-#' not (see Details).
 #' @param precalc A list of pre-calculated results (see Details).
+#' @param id A vector of identifiers of the units used in the calculation.
+#'   Useful when \code{precalc = TRUE} in order to assess whether the ordering of the
+#'   \code{y} data matrix matches the one used at the precalculation step.
 #'
 #' @details In the context of the \code{gustave} package, linear 
 #' regression residual calculation is solely used to take into account 
@@ -49,19 +46,11 @@
 #' Matrix::TsparseMatrix capabilities (especially when the matrix inverse is 
 #' pre-calculated).
 #' 
-#' If \code{collinearity.check} is \code{NULL}, a test for collinearity in the 
-#' independent variables (\code{x}) is conducted if and only if \code{det(t(x)
-#' \%*\% x) == 0}.
-#' 
 #'
 #' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
 #'   numerical matrix with same structure (regular base::matrix or
 #'   Matrix::TsparseMatrix) and dimensions as \code{y}. \item if \code{y} is
-#'   \code{NULL} (pre-calculation step) : a list containing pre-calculated data:
-#'   \itemize{ \item \code{x}: the numerical matrix of independent variables. 
-#'   \item \code{w}: the numerical vector of row weights (vector of 1 by
-#'   default). \item \code{inv}: the inverse of \code{t(x) \%*\%
-#'   Matrix::Diagonal(x = w) \%*\% x} } }
+#'   \code{NULL} (pre-calculation step) : a list containing pre-calculated data.}
 #'   
 #' @author Martin Chevalier
 #'
@@ -74,97 +63,102 @@
 #' by <- letters[sample(1:H, n, replace = TRUE)]
 #'
 #' # Direct calculation
-#' rescal(y, x)
+#' res_cal(y, x)
 #'
 #' # Calculation with pre-calculated data
-#' precalc <- rescal(y = NULL, x)
-#' rescal(y, precalc = precalc)
-#' identical(rescal(y, x), rescal(y, precalc = precalc))
-#'
-#' # Collinearity check
-#' rescal(y, cbind(x, x[, 1]), collinearity.check = TRUE)
+#' precalc <- res_cal(y = NULL, x)
+#' res_cal(y, precalc = precalc)
+#' identical(res_cal(y, x), res_cal(y, precalc = precalc))
 #'
 #' # Matrix::TsparseMatrix capability
 #' require(Matrix)
 #' X <- as(x, "TsparseMatrix")
 #' Y <- as(y, "TsparseMatrix")
-#' rescal(Y, X)
+#' identical(res_cal(y, x), as.matrix(res_cal(Y, X)))
 #'
 #' # by parameter for within by-groups calculation
-#' rescal(Y, X, by = by)
+#' res_cal(Y, X, by = by)
 #' identical(
-#'  rescal(Y, X, by = by)[by == "a", ]
-#'  , rescal(Y[by == "a", ], X[by == "a", ])
+#'  res_cal(Y, X, by = by)[by == "a", ],
+#'   res_cal(Y[by == "a", ], X[by == "a", ])
 #' )
 #'
-#' @export rescal
+#' @export
 
-rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, precalc = NULL){
+res_cal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL){
 
+  # by <- NULL; w <- NULL
+  
   if(is.null(precalc)){
 
     if(is.null(w)) w <- rep(1, NROW(x))
 
     # Taking the by into account
-    if(!is.null(by)) x <- block_matrix(x, by)$y
+    x <- coerce_to_TsparseMatrix(x)
+    if(!is.null(by)) x <- detect_block(x, by) %||% make_block(x, by)
 
-    # Checking for collinearity
-    if(isTRUE(collinearity.check) || (is.null(collinearity.check) && det(t(x) %*% x) == 0)){
-      t <- as.vector(is.na(stats::lm(rep(1, NROW(x)) ~ . - 1, data = as.data.frame(as.matrix(x)))$coef))
-      if(any(t)) warning("Some variables in x where discarted due to collinearity.")
-      x <- x[, !t]
+    # Determine the inverse of the t(x) %*% x matrix while removing colinear variables
+    while(TRUE){
+      u <- crossprod(x,  Matrix::Diagonal(x = w) %*% x)
+      if(Matrix::rankMatrix(u, method = "qr") != NROW(u)){
+        is_colinear <- as.vector(is.na(stats::lm.fit(x = as.matrix(u), y = rep(1, NROW(u)))$coef))
+        if(any(is_colinear)) note("Some variables in x were discarded due to collinearity.")
+        x <- x[, !is_colinear, drop = FALSE]
+      }else break
     }
-
-    # Matrix inversion
-    inv <- solve(t(x) %*% Matrix::Diagonal(x = w) %*% x)
+    inv <- solve(u)
 
   }else list2env(precalc, envir = environment())
 
-  if(is.null(y)){
-    return(list(x = x, w = w, inv = inv))
-  }else{
-    e <- y - x %*% ( inv  %*% (t(x) %*% Matrix::Diagonal(x = w) %*% y) )
-    if(class(e) != class(y)) e <- methods::as(e, class(y))
-    dimnames(e) <- dimnames(y)
-    return(e)
+  if(is.null(y)) return(list(x = x, w = w, inv = inv)) else {
+    class_y <- class(y)
+    dimnames_y <- dimnames(y)
+    y <- coerce_to_TsparseMatrix(y)
+    if(!is.null(precalc) && !is.null(id) && !is.null(rownames(y)) && !identical(as.character(id), rownames(y))) stop(
+      "The names of the data matrix (y argument) do not match the reference id (id argument)."
+    )
+    e <- y - x %*% ( inv  %*% crossprod(x,  Matrix::Diagonal(x = w) %*% y) )
+    if(class(e) != class_y) e <- methods::as(e, class_y)
+    dimnames(e) <- dimnames_y
+    e
   }
 
 }
 
 # n <- 70000; p <- 10; q <- 150; H <- 6; y <- matrix(rnorm(n*p),ncol=p); x <- Matrix(rnorm(n*q)*(runif(n*q) > 0.98),ncol=q); w <- runif(n); by <- rep(1:H,n %/% H + 1)[1:n][sample.int(n)];
-# precalc <- rescal(y = NULL, x = x, w = w, by = by)
-# microbenchmark(times = 10, rescal(y, precalc = precalc), rescal(y, x = x, w = w, by = by))
+# precalc <- res_cal(y = NULL, x = x, w = w, by = by)
+# microbenchmark(times = 10, res_cal(y, precalc = precalc), res_cal(y, x = x, w = w, by = by))
 # inv <- ginv(as.matrix(t(x * w) %*% x))
-# t2 <- resCalib(y,x,w,inv)
+# t2 <- res_calib(y,x,w,inv)
 # identical(t,t2)
-# microbenchmark(rescal(y,x,w),rescal(y,x,w,inv),times = 10)
+# microbenchmark(res_cal(y,x,w),res_cal(y,x,w,inv),times = 10)
 
 #' Variance approximation with Deville-Tillé (2005) formula
 #' 
 #' @aliases varDT var_srs
 #' 
 #' @description \code{varDT} estimates the variance of the estimator of a total
-#'   in the case of a balanced sampling design with equal or unequal probabilities. 
-#'   Without balancing variables, it falls back to Deville's (1993) classical
-#'   approximation. Without balancing variables and with equal probabilities, it
-#'   falls back to the classical Horvitz-Thompson variance estimator for the total in 
-#'   the case of simple random sampling. Stratification is natively supported.
+#'   in the case of a balanced sampling design with equal or unequal probabilities 
+#'   using Deville-Tillé (2005) formula. Without balancing variables, it falls back 
+#'   to Deville's (1993) classical approximation. Without balancing variables and 
+#'   with equal probabilities, it falls back to the classical Horvitz-Thompson 
+#'   variance estimator for the total in the case of simple random sampling. 
+#'   Stratification is natively supported.
 #'   
 #'   \code{var_srs} is a convenience wrapper for the (stratified) simple random
 #'   sampling case.
 #'   
-#' @param y A numerical matrix of the variable(s) whose variance of their total
-#'   is to be estimated. May be a Matrix::TsparseMatrix.
+#' @param y A (sparse) numerical matrix of the variable(s) whose variance of their total
+#'   is to be estimated. 
 #' @param pik A numerical vector of first-order inclusion probabilities.
-#' @param x An optional numerical matrix of balancing variable(s). May be a
-#'   Matrix::TsparseMatrix.
+#' @param x An optional (sparse) numerical matrix of balancing variable(s).
 #' @param strata An optional categorical vector (factor or character) when
 #'   variance estimation is to be conducted within strata.
 #' @param w An optional numerical vector of row weights (see Details).
-#' @param collinearity.check A boolean (\code{TRUE} or \code{FALSE}) or
-#'   \code{NULL} indicating whether to perform a check for collinearity or not
-#'   (see Details).
 #' @param precalc A list of pre-calculated results (see Details).
+#' @param id A vector of identifiers of the units used in the calculation.
+#'   Useful when \code{precalc = TRUE} in order to assess whether the ordering of the
+#'   \code{y} data matrix matches the one used at the pre-calculation step.
 #'   
 #' @details \code{varDT} aims at being the workhorse of most variance estimation conducted
 #'   with the \code{gustave} package. It may be used to estimate the variance
@@ -184,10 +178,6 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 #'   \item if \code{y} not \code{NULL} and \code{precalc} not \code{NULL} :
 #'   calculation using the list of pre-calculated data. }
 #'   
-#'   If \code{collinearity.check} is \code{NULL}, a test for collinearity in the
-#'   independent variables (\code{x}) is conducted only if \code{det(t(x) \%*\%
-#'   x) == 0)}.
-#'   
 #'   \code{w} is a row weight used at the final summation step. It is useful
 #'   when \code{varDT} or \code{var_srs} are used on the second stage of a 
 #'   two-stage sampling design applying the Rao (1975) formula.
@@ -199,7 +189,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 #'   encompasses balanced sampling. \item Even in its reduced
 #'   form (without balancing variables), the formula implemented in \code{varDT}
 #'   slightly differs from the one implemented in \code{sampling::varest}.
-#'   Caron, Deville and Sautory (1998, pp. 7-8) compares the two estimators
+#'   Caron (1998, pp. 178-179) compares the two estimators
 #'   (\code{sampling::varest} implements V_2, \code{varDT} implements V_1). 
 #'   \item \code{varDT} introduces several optimizations: \itemize{ \item
 #'   matrixwise operations allow to estimate variance on several interest
@@ -209,26 +199,20 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 #'   estimation at execution time. } \item \code{varDT} does not natively
 #'   implements the calibration estimator (i.e. the sampling variance estimator
 #'   that takes into account the effect of calibration). In the context of the
-#'   \code{gustave} package, \code{\link{rescal}} could be called before 
+#'   \code{gustave} package, \code{\link{res_cal}} should be called before 
 #'   \code{varDT} in order to achieve the same result.}
 #'   
-#'   
+#' @seealso \code{\link{res_cal}}
+#' 
 #' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : 
 #'   the estimated variances as a numerical vector of size the number of 
 #'   columns of y. \item if \code{y} is \code{NULL} (pre-calculation step) : a list 
-#'   containing pre-calculated data: \itemize{ \item \code{pik}: the numerical vector 
-#'   of first-order inclusion probabilities. \item \code{A}: the numerical matrix 
-#'   denoted A in (Deville, Tillé, 2005). \item \code{ck}: the numerical vector denoted 
-#'   ck2 in (Deville, Tillé, 2005). \item \code{inv}: the inverse of \code{A \%*\%
-#'   Matrix::Diagonal(x = ck) \%*\% t(A)} \item \code{diago}: the diagonal term
-#'   of the variance estimator } }
+#'   containing pre-calculated data.}
 #'   
 #' @author Martin Chevalier
 #'   
-#' @references Caron N., Deville J.-C., Sautory O. (1998), \emph{Estimation de
-#'   précision de données issues d'enquêtes : document méthodologique sur le
-#'   logiciel POULPE}, Insee working paper, n°9806
-#'   
+#' @references Caron N. (1998), "Le logiciel Poulpe : aspects méthodologiques", \emph{Actes 
+#'   des Journées de méthodologie statistique} \url{http://jms-insee.fr/jms1998s03_1/}
 #'   Deville, J.-C. (1993), \emph{Estimation de la variance pour les enquêtes en
 #'   deux phases}, Manuscript, INSEE, Paris.
 #'   
@@ -260,7 +244,7 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 #' pik <- pik[s]
 #' varDT(y, pik)
 #' varest(y, pik = pik)
-#' # The small difference is expected (see above).
+#' # The small difference is expected (see Details).
 #'
 #' # Balanced sampling case
 #' N <- 1000
@@ -294,8 +278,8 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 #' y <- rnorm(n)
 #' strata <- letters[sample.int(H, n, replace = TRUE)]
 #' all.equal(
-#'  varDT(y, pik, strata = strata)
-#'  , varDT(y[strata == "a"], pik[strata == "a"]) + varDT(y[strata == "b"], pik[strata == "b"])
+#'  varDT(y, pik, strata = strata),
+#'  varDT(y[strata == "a"], pik[strata == "a"]) + varDT(y[strata == "b"], pik[strata == "b"])
 #' )
 #'
 #' # precalc argument
@@ -306,62 +290,71 @@ rescal <- function(y = NULL, x, w = NULL, by = NULL, collinearity.check = NULL, 
 #' strata <- sample.int(H, n, replace = TRUE)
 #' precalc <- varDT(y = NULL, pik, strata = strata)
 #' identical(
-#'  varDT(y, precalc = precalc)
-#'  , varDT(y, pik, strata = strata)
+#'  varDT(y, precalc = precalc),
+#'  varDT(y, pik, strata = strata)
 #' )
 #'
 #' @export
 
-varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity.check = NULL, precalc = NULL){
-
-  # set.seed(1); n <- 2600; q <- 10; p <- 15; H <- 22; y <- matrix(rnorm(q*n),ncol=q); pik <- runif(n); x <- matrix(rnorm(p*n),ncol=p); x <- cbind(x, x[, 1]); strata <- rep(1:H,n %/% H + 1)[1:n][sample.int(n)]; precalc <- NULL;
-  # y = NULL; pik = bisect$piup; x = up_x; strata = bisect$reg; collinearity.check = TRUE
+varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NULL, id = NULL){
 
   if(is.null(precalc)){
 
-    if(is.null(x)){
-      x <- pik
-      if(is.null(collinearity.check)) collinearity.check <- FALSE
-    }
-    p <- NCOL(x)
+    if(any(pik <= 0 | pik > 1)) stop("All pik must be in ]0;1]")
+    
+    exh <- pik == 1
+    if(any(exh)) note(
+      sum(exh), " units are exhaustive (pik = 1). They are discarded from the variance estimation process."
+    )
+    pik <- pik[!exh]
+    
+    x <- if(!is.null(x)) coerce_to_TsparseMatrix(x)[!exh, , drop = FALSE] else pik
 
     # Stratification
     if(!is.null(strata)){
-      t <- block_matrix(x, strata)
-      x <- t$y
-      bycol <- t$bycol
-      t <- table(strata)
-      n <- as.vector(t[match(strata, names(t))])
+      strata <- droplevels(as.factor(strata[!exh]))
+      if(any(tapply(strata, strata, length) == 1, na.rm = TRUE))
+        stop("Some strata contain less than 2 samples units.")
+      x <- detect_block(x, strata) %||% make_block(x, strata)
+      colby <- attr(x, "colby")
+      rowby <- attr(x, "rowby")
     }else{
-      bycol <- rep(1, p)
-      n <- length(pik)
+      colby <- rep("1", NCOL(x))
+      rowby <- rep("1", NROW(x))
     }
 
-    # Checking for collinearity
-    if(isTRUE(collinearity.check) || (is.null(collinearity.check) && Matrix::det(t(x) %*% x) == 0)){
-      t <- as.vector(is.na(stats::lm(rep(1, NROW(x)) ~ . - 1, data = as.data.frame(as.matrix(x)))$coef))
-      t2 <- sumby(!t, bycol)
-      x <- x[, !t]
-      if(any(t)) warning("Some variables in x where discarted due to collinearity.")
-      p <- as.vector(t2[match(strata, names(t2))])
+    # Determine A, ck and inv terms while removing colinear variables
+    n <- as.vector(tapply(rowby, rowby, length)[rowby])
+    A <- t(x) %*% Diagonal(x = 1 / pik)
+    while(TRUE){
+      p <- as.vector(tapply(colby, colby, length)[rowby])
+      ck <- (1 - pik) * n / pmax(n - p, 1)
+      u <- tcrossprod(A %*% Matrix::Diagonal(x = ck), A)
+      if(Matrix::rankMatrix(u, method = "qr") != NROW(u)){
+        # TODO: See if tol = 1e-12 in rankMatrix does not solve some issues
+        is_colinear <- as.vector(is.na(stats::lm.fit(x = as.matrix(u), y = rep(1, NROW(u)))$coef))
+        if(any(is_colinear)) note("Some variables in x were discarded due to collinearity.")
+        A <- A[!is_colinear, , drop = FALSE]
+        colby <- colby[!is_colinear]
+      }else break
     }
-
-    # A, ck and inv terms
-    A <- t(x / pik)
-    ck <- (1 - pik) * n / pmax(n - p, 1)
-    u <- A %*% Matrix::Diagonal(x = ck) %*% t(A)
-    inv <- methods::as(if(Matrix::det(u) != 0) solve(u) else MASS::ginv(as.matrix(u)),"TsparseMatrix")
+    inv <- solve(u)
 
   }else list2env(precalc, envir = environment())
 
   if(is.null(y)){
     # Diagonal term of the variance estimator
-    diago <- ck * (1 - diag(t(A) %*% inv %*% A) * ck)/pik^2
+    diago <- ck * (1 - colSums(A * (inv %*% A)) * ck)/pik^2
     names(diago) <- names(pik)
-    return(list(pik = pik, A = A, ck = ck, inv = inv, diago = diago))
+    if(!is.null(w)) stop("w is not to be included in the precalculated data.")
+    return(list(id = id, pik = pik, exh = exh, A = A, ck = ck, inv = inv, diago = diago))
   }else{
+    y <- coerce_to_TsparseMatrix(y)
+    if(!is.null(precalc) && !is.null(id) && !is.null(rownames(y)) && !identical(as.character(id), rownames(y))) stop(
+      "The names of the data matrix (y argument) do not match the reference id (id argument)."
+    )
     if(is.null(w)) w <- rep(1, length(pik))
-    z <- y / pik
+    z <- Diagonal(x = 1 / pik) %*% y[!exh, , drop = FALSE]
     zhat <- t(A) %*% inv %*% (A %*% Matrix::Diagonal(x = ck) %*% z)
     return(Matrix::colSums(ck * w * (z - zhat)^2))
   }
@@ -373,12 +366,9 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, collinearity
 #' @rdname varDT
 #' @export
 var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
-  if(any(tapply(pik, strata, stats::sd) > 1e-6))
+  if(is.null(precalc) && !is.null(strata) && any(tapply(pik, strata, stats::sd) > 1e-6, na.rm = TRUE))
     stop("First-order inclusion probabilities are not equal (within strata if any).")
-  varDT(
-    y = y, pik = pik, x = NULL, strata = strata, w = w, 
-    collinearity.check = FALSE, precalc = precalc
-  )
+  varDT(y = y, pik = pik, x = NULL, strata = strata, w = w, precalc = precalc)
 }
 
 
@@ -388,8 +378,8 @@ var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
 #' @description \code{var_pois} estimates the variance of the estimator 
 #' of a total for a Poisson sampling design.
 #' 
-#' @param y A numerical matrix of the variable(s) whose variance of their total
-#'   is to be estimated. May be a Matrix::TsparseMatrix.
+#' @param y A (sparse) numerical matrix of the variable(s) whose variance of their total
+#'   is to be estimated.
 #' @param pik A numerical vector of first-order inclusion probabilities.
 #' @param w An optional numerical vector of row weights (see Details).
 #' 
@@ -398,7 +388,7 @@ var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
 #'   design applying the Rao (1975) formula.
 #' 
 #' @return The estimated variances as a numerical vector of size the number of 
-#'   columns of y. 
+#'   columns of \code{y}. 
 #'    
 #' @author Martin Chevalier
 #'   
@@ -406,7 +396,7 @@ var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
 #'   \emph{Sankhya}, C n°37
 
 #' @export
-var_pois <- function(y, pik, w = NULL){
+var_pois <- function(y, pik, w = rep(1, length(pik))){
   colSums(w * (1 - pik) * (y / pik)^2)
 }
 
@@ -414,11 +404,10 @@ var_pois <- function(y, pik, w = NULL){
 #' Sen-Yates-Grundy variance estimator
 #' 
 #' @description \code{varSYG} computes the Sen-Yates-Grundy 
-#' variance estimator (valid under the assumption that the sampling
-#' design is of fixed size).
+#' variance estimator.
 #' 
-#' @param y A numerical matrix of the variable(s) whose variance of their total
-#'   is to be estimated. May be a Matrix::TsparseMatrix.
+#' @param y A (sparse) numerical matrix of the variable(s) whose variance of their total
+#'   is to be estimated.
 #' @param pikl A numerical matrix of second-order inclusion probabilities.
 #' @param precalc A list of pre-calculated results (analogous to the one used by 
 #'   \code{\link{varDT}}).
@@ -449,7 +438,7 @@ var_pois <- function(y, pik, w = NULL){
 #'   \code{NULL} (pre-calculation step) : a list containing pre-calculated data 
 #'   (analogous to the one used by \code{\link{varDT}}).}
 #' 
-#' @author Martin Chevalier (Insee, French Statistical Institute)
+#' @author Martin Chevalier
 #' 
 #' @examples library(sampling)
 #' set.seed(1)
@@ -480,4 +469,4 @@ varSYG <- function (y = NULL, pikl, precalc = NULL){
   }
 }
 
-# TODO: add a varHT() estimator 
+# TODO: Add a varHT() estimator 

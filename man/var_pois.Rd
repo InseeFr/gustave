@@ -4,11 +4,11 @@
 \alias{var_pois}
 \title{Variance estimator for a Poisson sampling design}
 \usage{
-var_pois(y, pik, w = NULL)
+var_pois(y, pik, w = rep(1, length(pik)))
 }
 \arguments{
-\item{y}{A numerical matrix of the variable(s) whose variance of their total
-is to be estimated. May be a Matrix::TsparseMatrix.}
+\item{y}{A (sparse) numerical matrix of the variable(s) whose variance of their total
+is to be estimated.}
 
 \item{pik}{A numerical vector of first-order inclusion probabilities.}
 
@@ -16,7 +16,7 @@ is to be estimated. May be a Matrix::TsparseMatrix.}
 }
 \value{
 The estimated variances as a numerical vector of size the number of 
-  columns of y.
+  columns of \code{y}.
 }
 \description{
 \code{var_pois} estimates the variance of the estimator 

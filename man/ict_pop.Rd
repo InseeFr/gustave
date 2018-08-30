@@ -4,13 +4,14 @@
 \name{ict_pop}
 \alias{ict_pop}
 \title{Sampling frame of the Information and communication technologies (ICT)
-survey in the information and communication sector (NACE rev 2 J section)}
-\format{A data frame with 7670 observations and 4 variables:
+survey}
+\format{A data frame with 7670 observations and 5 variables:
 \describe{
   \item{firm_id}{identifier of the firm}
   \item{division}{identifier of the economic sub-sector}
   \item{employees}{number of employees}
   \item{turnover}{firm turnover, in thousand euros}
+  \item{strata}{stratification variable}
 }}
 \usage{
 ict_pop
@@ -22,6 +23,6 @@ technologies (ICT) survey in the information and communication sector
 (NACE rev 2 J section).
 }
 \seealso{
-\code{\link{ict_sample}} \code{\link{ict_survey}}
+\code{\link{qvar}}, \code{\link{ict_sample}}, \code{\link{ict_survey}}
 }
 \keyword{datasets}

@@ -1,7 +1,29 @@
+# 0.4.0
+
+- Breaking: Heavy remanufacturing of `define_variance_wrapper`
+
+    * New: `technical_data` argument offers a more consistent way to include technical data within the enclosing environment of the wrapper. `objects_to_include` is kept for non-data objects (such as additional statistic wrappers) or advanced customization.
+    * New: `technical_param` argument offers a more convenient way to specify default values for parameters used by the variance function.
+    * New: `reference_weight` replaces `default$weight`. This means that the reference weight used for point estimation and linearization is set while defining the variance wrapper and not at run-time.
+    * Deprecated: `stat`, which was a remain of an early implementation of linearization functions, is not a parameter of the variance wrappers anymore. Its purpose (to apply a given variance wrapper to several variables without having to type the name of the linearization wrapper) is now covered by the standard evaluation capabilities of statistic wrappers (see below).
+    * Deprecated: `default` is replaced by `default_id`, as `default$weight` and `default$stat` are no longer needed. As for `default$alpha`, its value is set to 0.05 and cannot be changed anymore while defining the variance wrapper (as this can easily be done afterwards using `formals<-`).
+    * Deprecated: `objects_to_include_from`
+
+- Breaking: Rebranding and heavy remanufacturing of `define_statistic_wrapper` (previously known as `define_linearization_wrapper`), added support for standard evaluation (see `define_variance_wrapper` examples).
+    
+- New: the `qvar` function allows for a straigthforward variance estimation in common cases (stratified simple random sampling with non-response through reweighting and calibration) and performs both technical and methodological checks.
+
+- Some normalization in function names: `add0` becomes `add_zero`, `sumby` becomes `sum_by`, `rescal` becomes `res_cal`
+
+- Example data: calibration variables in ict_sample instead of ict_survey, new LFS example data
+
+- Significant increase of unit tests
+
+
+
 # 0.3.1
 
-- Add calibrated weights to `define_variance_wrapper` example.
-
+- Hotfix: Add calibrated weights to `define_variance_wrapper` example.
 
 # 0.3.0
 

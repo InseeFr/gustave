@@ -4,18 +4,15 @@
 \name{ict_survey}
 \alias{ict_survey}
 \title{Survey data of the Information and communication technologies (ICT)
-survey in the information and communication sector (NACE rev 2 J section)}
-\format{A data frame with 612 observations and 25 variables:
+survey}
+\format{A data frame with 612 observations and 11 variables:
 \describe{
   \item{firm_id}{identifier of the firm}
   \item{division}{identifier of the economic sub-sector}
   \item{employees}{number of employees}
   \item{turnover}{firm turnover, in euros}
-  \item{w_sample}{sampling weight}
-  \item{w_nr}{weight after unit non-response correction}
-  \item{N_58, N_59, N_60, N_61, N_62, N_63, turnover_58, turnover_59, turnover_60, turnover_61, turnover_62, turnover_63}{calibration variables (number of firms and turnover broken down by economic sub-sector)}
   \item{w_calib}{calibrated weight}
-  \item{speed_quanti, speed_quanti_NA}{internet connection speed of the firm in Mbits, without or with missing values}
+  \item{speed_quanti, speed_quanti_NA}{internet connection speed of the firm in Mbps, without or with missing values}
   \item{speed_quali, speed_quali_NA}{internet connection speed of the firm recoded in classes, without or with missing values}
   \item{big_data, big_data_NA}{use of big data analytics within the firm, without or with missing values}
 }}
@@ -28,6 +25,6 @@ to the Information and communication technologies (ICT)
 survey in the information and communication sector (NACE rev 2 J section)
 }
 \seealso{
-\code{\link{ict_pop}} \code{\link{ict_sample}}
+\code{\link{qvar}}, \code{\link{ict_pop}}, \code{\link{ict_sample}}
 }
 \keyword{datasets}

@@ -4,65 +4,63 @@
 \alias{define_variance_wrapper}
 \title{Define a variance estimation wrapper}
 \usage{
-define_variance_wrapper(variance_function, reference_id, default = list(stat =
-  "total", alpha = 0.05), objects_to_include = NULL,
-  objects_to_include_from = parent.frame())
+define_variance_wrapper(variance_function, reference_id, reference_weight,
+  default_id = NULL, technical_data = NULL, technical_param = NULL,
+  objects_to_include = NULL)
 }
 \arguments{
-\item{variance_function}{An R function, with input a data matrix and possibly 
-other arguments (e.g. parameters affecting the estimation of variance), 
-and output a numeric vector of estimated variances (or a list whose first 
-element is a numeric vector of estimated variances).}
+\item{variance_function}{An R function. It is the methodological workhorse of 
+the variance estimation: from a set of arguments including the variables 
+of interest (see below), it should return a vector of estimated variances.
+See Details.}
 
-\item{reference_id}{A vector containing the ids of all the responding units 
-of the survey. It is compared with \code{default$id} to check whether some 
-observations are missing in the survey file. Observations are reordered 
-according to \code{reference_id}.}
+\item{reference_id}{A vector containing the ids of all the responding units
+of the survey. It can also be an unevaluated expression (enclosed in 
+\code{quote()}) to be evaluated within the execution environment of the wrapper.
+It is compared with \code{default$id} (see below) to check whether 
+some observations are missing in the survey file. The matrix of variables 
+of interest passed on to \code{variance_function} has \code{reference_id} 
+as rownames and is ordered according to its values.}
 
-\item{default}{a named list specifying the default values for: \itemize{
-  \item \code{id}: the name of the default identifying variable in the survey 
-  file. It can also be an unevaluated expression (enclosed in \code{substitute()}) to be 
-  evaluated within the survey file.
-  \item \code{weight}: the name of the default weight variable in the survey file. 
-  It can also be an unevaluated expression (enclosed in \code{substitute()}) to be 
-  evaluated within the survey file.
-  \item \code{stat}: the name of the default statistic to compute when none is specified. 
-  It is set to \code{"total"} by default.
-  \item \code{alpha}: the default threshold for confidence interval derivation. 
-  It is set to \code{0.05} by default.
-}}
+\item{reference_weight}{A vector containing the reference weight of the survey. 
+It can also be an unevaluated expression (enclosed in \code{quote()}) to 
+be evaluated within the execution environment of the wrapper.}
 
-\item{objects_to_include}{A character vector indicating the name of 
-additional R objects to include within the variance wrapper. These objects 
-are to be used to carry out the variance estimation.}
+\item{default_id}{A character vector of length 1, the name of the default 
+identifying variable in the survey file. It can also be an unevaluated 
+expression (enclosed in \code{quote()}) to be evaluated within the survey file.}
 
-\item{objects_to_include_from}{The environment to which the additional R 
-objects belong.}
+\item{technical_data}{A named list of technical data needed to perform 
+the variance estimation (e.g. sampling strata, first- or second-order 
+probabilities of inclusion, estimated response probabilities, calibration 
+variables). Its names should match the names of the corresponding arguments 
+in \code{variance_function}.}
+
+\item{technical_param}{A named list of technical parameters used to control 
+some aspect of the variance estimation process (e.g. alternative methodology).
+Its names should match the names of the corresponding arguments in \code{variance_function}.}
+
+\item{objects_to_include}{(Advanced use) A character vector indicating the name of 
+additional R objects to include within the variance wrapper.}
 }
 \value{
-An R function that makes the estimation of variance based on the provided 
-variance function easier. Its parameters are:
-  \itemize{
-   \item \code{data}: the survey data where the interest variables are stored
-   \item \code{...}: one or more calls to a linearization wrapper (see examples
-   and \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}})
-   \item \code{where}: a logical vector indicating a domain on which the variance
-   estimation is conducted
-   \item \code{by}: a qualitative variable whose levels are used to define domains
-   on which the variance estimation is conducted
-   \item \code{stat}: a character vector of size 1 indicating the linearization
-   wrapper to use when none is specified. Its default value depends on
-   the value of \code{default_stat} in \code{define_variance_wrapper}
-   \item \code{alpha}: a numeric vector of size 1 indicating the threshold
-   for confidence interval derivation. Its default value depends on
-   the value of \code{default_alpha} in \code{define_variance_wrapper}
-   \item \code{id}: a character vector of size 1 containing the name of
-   the identifying variable in the survey file. It can also be an 
-   unevaluated expression (using \code{substitute()}) to be evaluated within
-   the survey file. Its default value depends on the value of 
-   \code{default_id} in \code{define_variance_wrapper}
-   \item \code{envir}: an environment containing a binding to \code{data}
- }
+An R function that makes the estimation of variance based on the
+  provided variance function easier. Its parameters are: \itemize{ \item
+  \code{data}: one or more calls to a statistic wrapper (e.g. \code{total()},
+  \code{mean()}, \code{ratio()}). See examples and
+  \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}}) and
+  \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}})
+  \item \code{where}: a logical vector indicating a domain on which the
+  variance estimation is to be performed \item \code{by}: q qualitative
+  variable whose levels are used to define domains on which the variance
+  estimation is performed \item \code{alpha}: a numeric vector of length 1
+  indicating the threshold for confidence interval derivation (\code{0.05} by
+  default) \item \code{display}: a logical verctor of length 1 indicating
+  whether the result of the estimation should be displayed or not \item
+  \code{id}: a character vector of size 1 containing the name of the
+  identifying variable in the survey file. Its default value depends on the
+  value of \code{default_id} in \code{define_variance_wrapper} \item
+  \code{envir}: an environment containing a binding to \code{data}}
 }
 \description{
 Given a variance estimation \emph{function} (specific to a 
@@ -72,125 +70,138 @@ Given a variance estimation \emph{function} (specific to a
 }
 \details{
 Defining variance estimation wrappers is the \strong{key feature} of
-  the \code{gustave} package.
+  the \code{gustave} package. It is the workhorse of the ready-to-use 
+  \code{\link{qvar}} function and should be used directly to handle more complex
+  cases (e.g. surveys with several stages or balanced sampling).
   
   Analytical variance estimation is often difficult to carry out by 
   non-specialists owing to the complexity of the underlying sampling 
-  and estimation methodology. This complexity yields complex \emph{variance estimation 
-  functions} which are most often only used by the sampling expert who 
-  actually wrote them. A \emph{variance estimation wrapper} is an 
+  and estimation methodology. This complexity yields complex \emph{variance 
+  estimation functions} which are most often only used by the sampling expert 
+  who actually wrote them. A \emph{variance estimation wrapper} is an 
   intermediate function that is "wrapped around" the (complex) variance 
   estimation function in order to provide the non-specialist with 
-  user-friendly features: \itemize{ \item checks for consistency between the 
-  provided dataset and the survey characteristics \item factor discretization
-  \item domain estimation \item linearization of complex statistics (see 
-  \code{\link[=linearization_wrapper_standard]{standard linearization wrappers}})}
+  user-friendly features (see examples): \itemize{
+  \item calculation of complex statistics (see 
+  \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}})
+  \item domain estimation 
+  \item handy evaluation and factor discretization
+  }
   
   \code{define_variance_wrapper} allows the sampling expert to define a 
   variance estimation wrapper around a given variance estimation function and
-  set its default parameters. The produced variance estimation wrapper will 
-  be stand-alone in the sense that it can contain additional data which would
-  \code{objects_to_include} and \code{objects_to_include_from} parameters).
+  set its default parameters. The produced variance estimation wrapper is 
+  standalone in the sense that it contains all technical data necessary
+  to carry out the estimation (see \code{technical_data}).
+  
+  The arguments of the \code{variance_function} fall into three types: \itemize{
+  \item the data argument (mandatory, only one allowed): the numerical matrix of 
+  variables of interest to apply the variance estimation formula on
+  \item technical data arguments (optional, one or more allowed): technical 
+  and methodological information used by the variance estimation function
+  (e.g. sampling strata, first- or second-order probabilities of inclusion, 
+  estimated response probabilities, calibration variables)
+  \item technical parameters (optional, one or more allowed): non-data arguments 
+  to be used to control some aspect of the variance estimation (e.g. alternative
+  methodology)}
+  
+  \code{technical_data} and \code{technical_param} are used to determine
+  which arguments of \code{variance_function} relate to technical information, 
+  the only remaining argument is considered as the data argument.
 }
 \examples{
-### Example from the Information and communication technologies (ICT) survey
+### Example from the Labour force survey (LFS)
 
-# The subset of the (simulated) ICT survey has the following features: 
-# - stratified one-stage sampling design of 650 firms;
-# - 612 responding firms, non-response correction through reweighting 
-# in homogeneous response groups based on economic sub-sector and turnover;
-# - calibration on margins (number of firms and turnover broken down
-# by economic sub-sector).
+# The (simulated) Labour force survey (LFS) has the following characteristics:
+# - first sampling stage: balanced sampling of 4 areas (each corresponding to 
+#   about 120 dwellings) on first-order probability of inclusion (proportional to 
+#   the number of dwellings in the area) and total annual income in the area.
+# - second sampling stage: in each sampled area, simple random sampling of 20 
+#   dwellings
+# - neither non-response nor calibration
 
-# Step 1 : Definition of a variance function
+# As this is a multi-stage sampling design with balanced sampling at the first
+# stage, the qvar function does not apply. A variance wrapper can nonetheless
+# be defined using the core define_variance_wrapper function.
 
-variance_function <- function(y){
+# Step 1 : Definition of the variance function and the corresponding technical data
+
+# In this context, the variance estimation function specific to the LFS 
+# survey can be defined as follows:
+
+var_lfs <- function(y, ind, dwel, area){
   
-  # Calibration
-  y <- rescal(y, x = x, w = w)
+  variance <- list()
   
-  # Non-response
-  y <- add0(y, rownames = ict_sample$firm_id)
-  var_nr <- var_pois(y, pik = ict_sample$response_prob_est, w = ict_sample$w_sample)
+  # Variance associated with the sampling of the dwellings
+  y <- sum_by(y, ind$id_dwel)
+  variance[["dwel"]] <- var_srs(
+    y = y, pik = dwel$pik_dwel, strata = dwel$id_area, 
+    w = (1 / dwel$pik_area^2 - dwel$q_area)
+  )
   
-  # Sampling
-  y <- y / ict_sample$response_prob_est
-  var_sampling <- var_srs(y, pik = 1 / ict_sample$w_sample, strata = ict_sample$division)
+  # Variance associated with the sampling of the areas
+  y <- sum_by(y = y, by = dwel$id_area, w = 1 / dwel$pik_dwel) 
+  variance[["area"]] <- varDT(y = y, precalc = area)
   
-  var_sampling + var_nr
+  Reduce(`+`, variance)
   
 }
 
-# With x the calibration variables matrix...
-x <- as.matrix(ict_survey[
-  order(ict_survey$firm_id), 
-  c(paste0("N_", 58:63), paste0("turnover_", 58:63))
-])
+# where y is the matrix of variables of interest and ind, dwel and area the technical data:
 
-# ... and w the reference weight (the one after calibration)
-w <- ict_survey$w_calib
+technical_data_lfs <- list()
 
-# Test of the variance function
-y <- as.matrix(ict_survey$speed_quanti)
-rownames(y) <- ict_survey$firm_id
-variance_function(y)
-
-# Step 2 : Definition of a variance wrapper
-
-variance_wrapper <- define_variance_wrapper(
-  variance_function = variance_function,
-  reference_id = ict_survey$firm_id,
-  default = list(id = "firm_id", weight = "w_calib"),
-  objects_to_include = c("x", "w", "ict_sample")
+# Technical data at the area level
+# The varDT function allows for the pre-calculation of 
+# most of the methodological quantities needed.
+technical_data_lfs$area <- varDT(
+  y = NULL, 
+  pik = lfs_samp_area$pik_area, 
+  x = as.matrix(lfs_samp_area[c("pik_area", "income")]),
+  id = lfs_samp_area$id_area
 )
 
-# The objects "x", "w" and "ict_sample" are embedded
-# within the function variance_wrapper
-ls(environment(variance_wrapper))
-# Note : variance_wrapper is a closure
-# (http://adv-r.had.co.nz/Functional-programming.html#closures)
-# As a consequence, the variance wrapper will work even if 
-# these objects are removed from globalenv()
-rm(x, w)
+# Technical data at the dwelling level
+# In order to implement Rao (1975) formula for two-stage samples,
+# we associate each dwelling with the diagonal term corresponding 
+# to its area in the first-stage variance estimator: 
+lfs_samp_dwel$q_area <- with(technical_data_lfs$area, setNames(diago, id))[lfs_samp_dwel$id_area]
+technical_data_lfs$dwel <- lfs_samp_dwel[c("id_dwel", "pik_dwel", "id_area", "pik_area", "q_area")]
 
-# Step 3 : Features of the variance wrapper
+# Technical data at the individual level
+technical_data_lfs$ind <- lfs_samp_ind[c("id_ind", "id_dwel", "sampling_weight")]
 
-# Better display of results
-variance_wrapper(ict_survey, speed_quanti)
+# Test of the variance function var_lfs
+y <- matrix(as.numeric(lfs_samp_ind$unemp), ncol = 1, dimnames = list(lfs_samp_ind$id_ind))
+with(technical_data_lfs, var_lfs(y = y, ind = ind, dwel = dwel, area = area))
 
-# Mean linearization
-variance_wrapper(ict_survey, mean(speed_quanti))
-# Ratio linearization
-variance_wrapper(ict_survey, ratio(turnover, employees))
 
-# Discretization of qualitative variables
-variance_wrapper(ict_survey, speed_quali)
-# On-the-fly recoding
-variance_wrapper(ict_survey, speed_quali == "Between 2 and 10 Mbs")
+# Step 2 : Definition of the variance wrapper
 
-# 1-domain estimation
-variance_wrapper(ict_survey, speed_quanti, where = division == "58")
-# Multiple domains estimation
-variance_wrapper(ict_survey, speed_quanti, by = division)
-
-# Multiple variables at a time
-variance_wrapper(ict_survey, speed_quanti, big_data)
-variance_wrapper(ict_survey, speed_quanti, mean(big_data))
-# Flexible syntax for where and by arguments
-# (similar to the aes() function in ggplot2)
-variance_wrapper(ict_survey, where = division == "58", 
-  mean(speed_quanti), mean(big_data * 100)
-)
-variance_wrapper(ict_survey, where = division == "58", 
-  mean(speed_quanti), mean(big_data * 100, where = division == "61")
-)
-variance_wrapper(ict_survey, where = division == "58", 
-  mean(speed_quanti), mean(big_data * 100, where = NULL)
+# Call of define_variance_wrapper
+precision_lfs <- define_variance_wrapper(
+  variance_function = var_lfs,
+  technical_data = technical_data_lfs, 
+  reference_id = technical_data_lfs$ind$id_ind,
+  reference_weight = technical_data_lfs$ind$sampling_weight,
+  default_id = "id_ind"
 )
 
+# Test
+precision_lfs(lfs_samp_ind, unemp)
+
+# The variance wrapper precision_lfs has the same features
+# as variance wrappers produced by the qvar function (see
+# qvar examples for more details).
+
+}
+\references{
+Rao, J.N.K (1975), "Unbiased variance estimation for multistage designs",
+  \emph{Sankhya}, C n°37
 }
 \seealso{
-\code{\link[=linearization_wrapper_standard]{standard linearization wrappers}} \code{\link{varDT}}
+\code{\link{qvar}}, \code{\link[=standard_statistic_wrapper]{standard statistic wrappers}}, \code{\link{varDT}}
 }
 \author{
 Martin Chevalier
