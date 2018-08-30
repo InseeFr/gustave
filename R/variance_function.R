@@ -344,6 +344,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
       ck <- (1 - pik) * n / pmax(n - p, 1)
       u <- tcrossprod(A %*% Matrix::Diagonal(x = ck), A)
       if(Matrix::rankMatrix(u, method = "qr") != NROW(u)){
+        # TODO: See if tol = 1e-12 in rankMatrix does not solve some issues
         is_colinear <- as.vector(is.na(stats::lm.fit(x = as.matrix(u), y = rep(1, NROW(u)))$coef))
         if(any(is_colinear)) note("Some variables in x were discarded due to collinearity.")
         A <- A[!is_colinear, , drop = FALSE]

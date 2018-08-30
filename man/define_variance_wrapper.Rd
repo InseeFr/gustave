@@ -71,13 +71,15 @@ Given a variance estimation \emph{function} (specific to a
 }
 \details{
 Defining variance estimation wrappers is the \strong{key feature} of
-  the \code{gustave} package.
+  the \code{gustave} package. It is the workhorse of the ready-to-use \code{
+  \link{qvar}} function and should be used directly to handle more complex
+  surveys (e.g. several stages, balanced sampling).
   
   Analytical variance estimation is often difficult to carry out by 
   non-specialists owing to the complexity of the underlying sampling 
-  and estimation methodology. This complexity yields complex \emph{variance estimation 
-  functions} which are most often only used by the sampling expert who 
-  actually wrote them. A \emph{variance estimation wrapper} is an 
+  and estimation methodology. This complexity yields complex \emph{variance 
+  estimation functions} which are most often only used by the sampling expert 
+  who actually wrote them. A \emph{variance estimation wrapper} is an 
   intermediate function that is "wrapped around" the (complex) variance 
   estimation function in order to provide the non-specialist with 
   user-friendly features: \itemize{ \item checks for consistency between the 
@@ -100,92 +102,99 @@ Defining variance estimation wrappers is the \strong{key feature} of
   estimated response probabilities, calibration variables)
   \item technical parameters (optional, one or more allowed): non-data arguments 
   to be used to control some aspect of the variance estimation (e.g. alternative
-  methodology)
-  }
+  methodology)}
+  
   \code{technical_data} and \code{technical_param} are used to determine
   which arguments of \code{variance_function} relate to technical information, 
   the only remaining argument is considered as the data argument.
 }
 \examples{
-### Example from the Information and communication technologies (ICT) survey
+### Example from the Labour force survey (LFS)
 
-# The subset of the (simulated) ICT survey has the following features: 
-# - stratified one-stage sampling design of 650 firms;
-# - 612 responding firms, non-response correction through reweighting 
-# in homogeneous response groups based on economic sub-sector and turnover;
-# - calibration on margins (number of firms and turnover broken down
-# by economic sub-sector).
+# The (simulated) Labour force survey (LFS) has the following characteristics:
+# - first sampling stage: balanced sampling of 4 areas (each corresponding to 
+#   about 120 dwellings) on first-order probability of inclusion (proportional to 
+#   the number of dwellings in the area) and total annual income in the area.
+# - second sampling stage: in each sampled area, simple random sampling of 20 
+#   dwellings
+# - neither non-response nor calibration
 
-# Step 1 : Definition of a variance function
+# As this is a multi-stage sampling design with balanced sampling at the first
+# stage, the qvar function does not apply. A variance wrapper can nonetheless
+# be defined using the core define_variance_wrapper() function.
 
-# In this context, the variance estimation function specific to the ICT 
+# Step 1 : Definition of the variance function and the corresponding technical data
+
+# In this context, the variance estimation function specific to the LFS 
 # survey can be defined as follows:
 
-variance_function_ict <- function(y, x, w, samp){
+var_lfs <- function(y, ind, dwel, area){
   
-  # Calibration
-  y <- res_cal(y, x = x, w = w)
+  variance <- list()
   
-  # Non-response
-  y <- add_zero(y, rownames = samp$id)
-  var_nr <- var_pois(y, pik = samp$response_prob_est, w = samp$w_sample)
+  # Variance associated with the sampling of the dwellings
+  y <- sum_by(y, ind$id_dwel)
+  variance[["dwel"]] <- var_srs(
+    y = y, pik = dwel$pik_dwel, strata = dwel$id_area, 
+    w = (1 / dwel$pik_area^2 - dwel$q_area)
+  )
   
-  # Sampling
-  y <- y / samp$response_prob_est
-  var_sampling <- var_srs(y, pik = 1 / samp$w_sample, strata = samp$strata)
+  # Variance associated with the sampling of the areas
+  y <- sum_by(y = y, by = dwel$id_area)
+  variance[["area"]] <- varDT(y = y, precalc = area$precalc_area)
   
-  var_sampling + var_nr
+  colSums(do.call(rbind, variance))
   
 }
 
-# y is the matrix of variables of interest, x, w, and samp are some technical data:
-technical_data_ict <- list(
-  
-  # x: calibration variables matrix
-  x = as.matrix(ict_sample[
-    ict_survey$firm_id,
-    c(paste0("N_", 58:63), paste0("turnover_", 58:63))
-  ]),
+# where ind, dwel and area are technical data:
 
-  # w: calibrated weights
-  w = ict_survey$w_calib[order(ict_survey$firm_id)],
-  
-  # samp: sample file
-  samp = list(
-    id = ict_sample$firm_id, 
-    w_sample = ict_sample$w_sample,
-    response_prob_est = ict_sample$w_sample / ict_sample$w_nrc,
-    strata = ict_sample$strata
-  )
-  
+technical_data_lfs <- list()
+
+# Technical data at the area level
+# The varDT function allows for the pre-calculation of 
+# most of the methodological quantities needed (which are
+# stored in precalc_area).
+precalc_area <- varDT(
+  y = NULL, 
+  pik = lfs_samp_area$pik_area, 
+  x = as.matrix(lfs_samp_area[c("pik_area", "income")]),
+  id = lfs_samp_area$id_area
+)
+technical_data_lfs$area <- list(id_area = lfs_samp_dwel$id_area, precalc_area = precalc_area)
+
+# Technical data at the dwelling level
+# In order to implement Rao (1975) formula for two-stage samples,
+# we associate each dwelling with the diagonal term corresponding 
+# to its area in the first-stage variance estimator: 
+lfs_samp_dwel$q_area <- setNames(precalc_area$diago, precalc_area$id)[lfs_samp_dwel$id_area]
+technical_data_lfs$dwel <- lfs_samp_dwel[c("id_dwel", "pik_dwel", "id_area", "pik_area", "q_area")]
+
+# Technical data at the individual level
+technical_data_lfs$ind <- lfs_samp_ind[c("id_ind", "id_dwel", "sampling_weight")]
+
+# Test of the variance function var_lfs
+y <- matrix(as.numeric(lfs_samp_ind$unemp), ncol = 1, dimnames = list(lfs_samp_ind$id_ind))
+with(technical_data_lfs, var_lfs(y = y, ind = ind, dwel = dwel, area = area))
+
+
+# Step 2 : Definition of the variance wrapper
+
+# Call of define_variance_wrapper
+precision_lfs <- define_variance_wrapper(
+  variance_function = var_lfs,
+  technical_data = technical_data_lfs, 
+  reference_id = technical_data_lfs$ind$id_ind,
+  reference_weight = technical_data_lfs$ind$sampling_weight,
+  default_id = "id_ind"
 )
 
-# Test of the variance function
-y <- matrix(ict_survey$speed_quanti, dimnames = list(ict_survey$firm_id))
-with(technical_data_ict, variance_function_ict(y, samp = samp, x = x, w = w))
+# Test
+precision_lfs(lfs_samp_ind, unemp)
 
-# Step 2 : Definition of a variance wrapper
-
-variance_wrapper_ict <- define_variance_wrapper(
-  variance_function = variance_function_ict,
-  reference_id = ict_survey$firm_id, 
-  reference_weight = ict_survey$w_calib, 
-  default_id = "firm_id",
-  technical_data = technical_data_ict
-)
-
-# The object technical_data_ict is embedded within 
-# the function variance_wrapper_ict
-ls(environment(variance_wrapper_ict))
-# Note : variance_wrapper_ict is a closure
-# (http://adv-r.had.co.nz/Functional-programming.html#closures)
-# As a consequence, the variance wrapper will work even if 
-# technical_data_ict is removed from globalenv()
-rm(technical_data_ict)
-
-# The defined variance wrapper has the same features
-# as one defined using the qvar() function with define = TRUE 
-# (see qvar() examples for more details).
+# The variance wrapper precision_lfs has the same features
+# as variance wrappers produced by the qvar function (see
+# qvar examples for more details).
 
 }
 \seealso{

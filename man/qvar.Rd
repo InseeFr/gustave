@@ -143,7 +143,8 @@ without having to specify the methodological characteristics of the survey
 \examples{
 ### Example from the Information and communication technologies (ICT) survey
 
-# The Information and communication technologies (ICT) survey has the following characteristics: 
+# The (simulated) Information and communication technologies (ICT) survey 
+# has the following characteristics: 
 # - stratified one-stage sampling design;
 # - non-response correction through reweighting in homogeneous response groups 
 # based on economic sub-sector and turnover;

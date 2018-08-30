@@ -9,7 +9,7 @@
   \item{id_dwel}{identifier of the dwelling}
   \item{id_area}{identifier of the area}
   \item{income}{total annual income of the dwelling in thousand euros (from income registry)}
-  \item{pik_area}{first-order inclusion probability of the area (proporional to the number of dwellings)}
+  \item{pik_area}{first-order inclusion probability of the area}
   \item{pik_dwel}{first-order inclusion probability of the dwelling within the area (20 dwelling sampled per area)}
   \item{pik}{first-order inclusion probability of the dwelling)}
 }}

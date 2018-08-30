@@ -41,7 +41,7 @@ summary(lfs_pop_area$income)
 # Draw the sample of areas (balanced sampling)
 lfs_pop_area$pik_area <- lfs_pop_area$number_dwelling * n_area / sum(lfs_pop_area$number_dwelling)
 lfs_pop_area$s <- as.logical(sampling::samplecube(
-  X = as.matrix(lfs_pop_area[, c("pik_area", "number_dwelling", "income"), with = FALSE]), 
+  X = as.matrix(lfs_pop_area[, c("pik_area", "income"), with = FALSE]), 
   pik = lfs_pop_area$pik_area
 ))
 
@@ -62,7 +62,7 @@ lfs_pop_ind_samp_dwel$sampling_weight <- 1 / lfs_pop_ind_samp_dwel$pik
 
 # Produce the final files
 lfs_samp_area <- data.frame(lfs_pop_area, stringsAsFactors = FALSE)[
-  lfs_pop_area$s, c("id_area", "number_dwelling", "income", "pik_area")
+  lfs_pop_area$s, c("id_area", "income", "pik_area")
 ]
 row.names(lfs_samp_area) <- NULL
 lfs_samp_dwel <- data.frame(lfs_pop_dwel_samp_area, stringsAsFactors = FALSE)[

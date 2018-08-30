@@ -86,9 +86,8 @@
 #' @format A data frame with 4 observations and 4 variables:
 #' \describe{
 #'   \item{id_area}{identifier of the area}
-#'   \item{number_dwelling}{number of dwellings in the area}
 #'   \item{income}{total annual income of the area in thousand euros (from income registry)}
-#'   \item{pik_area}{first-order inclusion probability of the area (proporional to the number of dwellings)}
+#'   \item{pik_area}{first-order inclusion probability of the area}
 #' }
 #' 
 #' @seealso \code{\link{define_variance_wrapper}} \code{\link{lfs_samp_dwel}} \code{\link{lfs_samp_ind}}
@@ -106,7 +105,7 @@
 #'   \item{id_dwel}{identifier of the dwelling}
 #'   \item{id_area}{identifier of the area}
 #'   \item{income}{total annual income of the dwelling in thousand euros (from income registry)}
-#'   \item{pik_area}{first-order inclusion probability of the area (proporional to the number of dwellings)}
+#'   \item{pik_area}{first-order inclusion probability of the area}
 #'   \item{pik_dwel}{first-order inclusion probability of the dwelling within the area (20 dwelling sampled per area)}
 #'   \item{pik}{first-order inclusion probability of the dwelling)}
 #' }
