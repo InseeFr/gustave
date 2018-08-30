@@ -128,7 +128,7 @@
 #'   )
 #'   
 #'   # Variance associated with the sampling of the areas
-#'   y <- sum_by(y = y, by = dwel$id_area)
+#'   y <- sum_by(y = y, by = dwel$id_area, w = 1 / dwel$pik_dwel) 
 #'   variance[["area"]] <- varDT(y = y, precalc = area$precalc_area)
 #'   
 #'   colSums(do.call(rbind, variance))
