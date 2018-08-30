@@ -10,9 +10,9 @@ technical_data_ict <- list(
     ))
   ),
   nrc = list(
-    id = ict_sample$firm_id[ict_sample$resp],
-    response_prob = ict_sample$response_prob_est[ict_sample$resp],
-    sampling_weight = ict_sample$w_sample[ict_sample$resp]
+    id = ict_sample$firm_id[ict_sample$resp & ict_sample$nrc],
+    response_prob = ict_sample$response_prob_est[ict_sample$resp & ict_sample$nrc],
+    sampling_weight = ict_sample$w_sample[ict_sample$resp & ict_sample$nrc]
   ),
   calib = list(
     id = ict_sample$firm_id[ict_sample$calib],

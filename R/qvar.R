@@ -648,16 +648,13 @@ qvar_variance_function <- function(y, samp, nrc, calib){
   # Calibration    
   if(!is.null(calib)){
     y <- add_zero(y, calib$id, remove = FALSE)
-    y[calib$id, ] <- res_cal(y = y[calib$id, ], precalc = calib$precalc)
+    y[calib$id, ] <- res_cal(y = y[calib$id, , drop = FALSE], precalc = calib$precalc)
   } 
 
   # Non-response
   if(!is.null(nrc)){
-    # TODO: Check if there is no problem with the following line
-    # (it could affect the estimated sampling variance)
-    y <- y[nrc$id, , drop = FALSE]
-    var[["nr"]] <- var_pois(y = y, pik = nrc$response_prob, w = nrc$sampling_weight)
-    y <- y / nrc$response_prob
+    var[["nr"]] <- var_pois(y[nrc$id, , drop = FALSE], pik = nrc$response_prob, w = nrc$sampling_weight)
+    y[nrc$id, ] <- as.matrix(Diagonal(x = 1 / nrc$response_prob) %*% y[nrc$id, , drop = FALSE])
   }
 
   # Sampling
