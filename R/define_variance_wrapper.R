@@ -135,7 +135,7 @@
 #'   y <- sum_by(y = y, by = dwel$id_area, w = 1 / dwel$pik_dwel) 
 #'   variance[["area"]] <- varDT(y = y, precalc = area)
 #'   
-#'   colSums(do.call(rbind, variance))
+#'   Reduce(`+`, variance)
 #'   
 #' }
 #' 
