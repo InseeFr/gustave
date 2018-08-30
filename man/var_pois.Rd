@@ -4,7 +4,7 @@
 \alias{var_pois}
 \title{Variance estimator for a Poisson sampling design}
 \usage{
-var_pois(y, pik, w = NULL)
+var_pois(y, pik, w = rep(1, length(pik)))
 }
 \arguments{
 \item{y}{A (sparse) numerical matrix of the variable(s) whose variance of their total

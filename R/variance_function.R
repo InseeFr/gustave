@@ -396,7 +396,7 @@ var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
 #'   \emph{Sankhya}, C n°37
 
 #' @export
-var_pois <- function(y, pik, w = NULL){
+var_pois <- function(y, pik, w = rep(1, length(pik))){
   colSums(w * (1 - pik) * (y / pik)^2)
 }
 
