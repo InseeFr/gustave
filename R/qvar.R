@@ -247,6 +247,7 @@ qvar <- function(data, ..., by = NULL, where = NULL,
                  nrc_weight = NULL, response_dummy = NULL, nrc_dummy = NULL,
                  calibration_weight = NULL, calibration_dummy = NULL, calibration_var = NULL,
                  define = FALSE, envir = parent.frame()
+                 # TODO: Add objects_to_include
 ){
   
   # Step 1: Define the variance wrapper
