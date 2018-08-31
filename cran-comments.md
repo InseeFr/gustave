@@ -7,3 +7,7 @@
 
 ## R CMD check results
 There were no ERRORs, WARNINGs or NOTEs.
+
+## Reverse dependencies
+
+There is no reverse dependencies.
