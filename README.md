@@ -1,4 +1,4 @@
-gustave [![Build Status](https://travis-ci.com/martinchevalier/gustave.svg?branch=master)](https://travis-ci.com/martinchevalier/gustave) [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/gustave)](https://cran.r-project.org/package=gustave)
+gustave [![Build Status](https://travis-ci.com/martinchevalier/gustave.svg?branch=master)](https://travis-ci.com/martinchevalier/gustave) [![codecov](https://codecov.io/gh/martinchevalier/gustave/branch/master/graph/badge.svg)](https://codecov.io/gh/martinchevalier/gustave) [![CRAN_Status](http://www.r-pkg.org/badges/version/gustave)](https://cran.r-project.org/package=gustave) 
 =======
 
 Gustave (Gustave: a User-oriented Statistical Toolkit for Analytical Variance Estimation) is an R package that provides a **toolkit for analytical variance estimation in survey sampling**. 
