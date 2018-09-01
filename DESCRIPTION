@@ -3,7 +3,7 @@ Type: Package
 Title: A User-Oriented Statistical Toolkit for Analytical Variance Estimation
 Depends: R(>= 3.2.5)
 Imports: methods, utils, stats, Matrix
-Suggests: testthat, sampling, magrittr, tibble, dplyr, data.table
+Suggests: testthat, covr, sampling, magrittr, tibble, dplyr, data.table
 Version: 0.4.0
 Authors@R: person("Martin", "Chevalier", role = c("aut", "cre", "cph"), email = "martin.chevalier@insee.fr")
 Author: Martin Chevalier [aut, cre, cph]
