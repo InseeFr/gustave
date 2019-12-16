@@ -4,8 +4,7 @@
 \alias{res_cal}
 \title{Linear Regression Residuals Calculation}
 \usage{
-res_cal(y = NULL, x, w = NULL, by = NULL, precalc = NULL,
-  id = NULL)
+res_cal(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
 }
 \arguments{
 \item{y}{A (sparse) numerical matrix of dependent variable(s).}
@@ -91,7 +90,7 @@ identical(res_cal(y, x), as.matrix(res_cal(Y, X)))
 
 # by parameter for within by-groups calculation
 res_cal(Y, X, by = by)
-identical(
+all.equal(
  res_cal(Y, X, by = by)[by == "a", ],
   res_cal(Y[by == "a", ], X[by == "a", ])
 )
