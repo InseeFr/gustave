@@ -7,6 +7,7 @@ r_github_packages:
 r:
 - 3.2
 - 3.3
+- 3.4
 - oldrel
 - release
 - devel
