@@ -4,12 +4,28 @@
 \alias{qvar}
 \title{Quickly perform a variance estimation in common cases}
 \usage{
-qvar(data, ..., by = NULL, where = NULL, alpha = 0.05,
-  display = TRUE, id, dissemination_dummy, dissemination_weight,
-  sampling_weight, strata = NULL, scope_dummy = NULL,
-  nrc_weight = NULL, response_dummy = NULL, nrc_dummy = NULL,
-  calibration_weight = NULL, calibration_dummy = NULL,
-  calibration_var = NULL, define = FALSE, envir = parent.frame())
+qvar(
+  data,
+  ...,
+  by = NULL,
+  where = NULL,
+  alpha = 0.05,
+  display = TRUE,
+  id,
+  dissemination_dummy,
+  dissemination_weight,
+  sampling_weight,
+  strata = NULL,
+  scope_dummy = NULL,
+  nrc_weight = NULL,
+  response_dummy = NULL,
+  nrc_dummy = NULL,
+  calibration_weight = NULL,
+  calibration_dummy = NULL,
+  calibration_var = NULL,
+  define = FALSE,
+  envir = parent.frame()
+)
 }
 \arguments{
 \item{data}{The \code{data.frame} containing all the technical information

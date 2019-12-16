@@ -4,9 +4,12 @@
 \alias{define_statistic_wrapper}
 \title{Define a statistic wrapper}
 \usage{
-define_statistic_wrapper(statistic_function, arg_type,
+define_statistic_wrapper(
+  statistic_function,
+  arg_type,
   arg_not_affected_by_domain = NULL,
-  display_function = standard_display)
+  display_function = standard_display
+)
 }
 \arguments{
 \item{statistic_function}{An R function specific to the statistic to

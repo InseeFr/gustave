@@ -5,8 +5,15 @@
 \alias{var_srs}
 \title{Variance approximation with Deville-Tillé (2005) formula}
 \usage{
-varDT(y = NULL, pik, x = NULL, strata = NULL, w = NULL,
-  precalc = NULL, id = NULL)
+varDT(
+  y = NULL,
+  pik,
+  x = NULL,
+  strata = NULL,
+  w = NULL,
+  precalc = NULL,
+  id = NULL
+)
 
 var_srs(y, pik, strata = NULL, w = NULL, precalc = NULL)
 }
