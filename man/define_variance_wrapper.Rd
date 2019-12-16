@@ -4,9 +4,15 @@
 \alias{define_variance_wrapper}
 \title{Define a variance estimation wrapper}
 \usage{
-define_variance_wrapper(variance_function, reference_id, reference_weight,
-  default_id = NULL, technical_data = NULL, technical_param = NULL,
-  objects_to_include = NULL)
+define_variance_wrapper(
+  variance_function,
+  reference_id,
+  reference_weight,
+  default_id = NULL,
+  technical_data = NULL,
+  technical_param = NULL,
+  objects_to_include = NULL
+)
 }
 \arguments{
 \item{variance_function}{An R function. It is the methodological workhorse of 
