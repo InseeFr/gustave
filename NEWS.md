@@ -1,3 +1,7 @@
+# 0.4.1
+
+Debug against R-devel: as of R 4.0.0, class(.) on a matrix object has length > 1.
+
 # 0.4.0
 
 - Breaking: Heavy remanufacturing of `define_variance_wrapper`
