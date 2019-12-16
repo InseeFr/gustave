@@ -78,7 +78,7 @@
 #'
 #' # by parameter for within by-groups calculation
 #' res_cal(Y, X, by = by)
-#' identical(
+#' all.equal(
 #'  res_cal(Y, X, by = by)[by == "a", ],
 #'   res_cal(Y[by == "a", ], X[by == "a", ])
 #' )
@@ -111,7 +111,7 @@ res_cal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
   }else list2env(precalc, envir = environment())
 
   if(is.null(y)) return(list(x = x, w = w, inv = inv)) else {
-    class_y <- class(y)
+    class_y <- class(y)[1]
     dimnames_y <- dimnames(y)
     y <- coerce_to_TsparseMatrix(y)
     if(!is.null(precalc) && !is.null(id) && !is.null(rownames(y)) && !identical(as.character(id), rownames(y))) stop(
