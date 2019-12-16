@@ -206,7 +206,7 @@ test_that("variance_wrapper works when used on a data.table or a tibble", {
     default_id = "firm_id"
   )
   expect_error(variance_wrapper(data.table::as.data.table(ict_survey), speed_quanti), regexp = NA)
-  expect_error(variance_wrapper(tibble::as.tibble(ict_survey), speed_quanti_NA), regexp = NA)
+  expect_error(variance_wrapper(tibble::as_tibble(ict_survey), speed_quanti_NA), regexp = NA)
 })
 
 
