@@ -4,14 +4,16 @@
 \name{lfs_samp_ind}
 \alias{lfs_samp_ind}
 \title{Sample of individuals in the Labour force survey}
-\format{A data frame with 157 observations and 5 variables:
+\format{
+A data frame with 157 observations and 5 variables:
 \describe{
   \item{id_ind}{identifier of the individual}
   \item{id_dwel}{identifier of the dwelling}
   \item{income}{total annual income of the individual in thousand euros (from income registry)}
   \item{unemp}{unemployment status}
   \item{sampling_weight}{sampling weight of the individual (inverse of the first-order inclusion probability of the dwelling)}
-}}
+}
+}
 \usage{
 lfs_samp_ind
 }

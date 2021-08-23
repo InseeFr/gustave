@@ -4,12 +4,14 @@
 \name{lfs_samp_area}
 \alias{lfs_samp_area}
 \title{Sample of areas in the Labour force survey}
-\format{A data frame with 4 observations and 3 variables:
+\format{
+A data frame with 4 observations and 3 variables:
 \describe{
   \item{id_area}{identifier of the area}
   \item{income}{total annual income of the area in thousand euros (from income registry)}
   \item{pik_area}{first-order inclusion probability of the area (proportional to the number of dwellings in the area)}
-}}
+}
+}
 \usage{
 lfs_samp_area
 }

@@ -5,7 +5,8 @@
 \alias{ict_sample}
 \title{Sample of the Information and communication technologies (ICT)
 survey}
-\format{A data frame with 650 observations and 8 variables:
+\format{
+A data frame with 650 observations and 8 variables:
 \describe{
   \item{firm_id}{identifier of the firm}
   \item{division}{identifier of the economic sub-sector}
@@ -23,7 +24,8 @@ survey}
   \item{N_58, N_59, N_60, N_61, N_62, N_63, turnover_58, turnover_59, turnover_60, turnover_61, turnover_62, turnover_63}{calibration variables (number of firms and turnover broken down by economic sub-sector)}
   \item{w_calib}{calibrated weight}
   \item{dissemination}{boolean indicating whether the unit appears in the dissemination file}
-}}
+}
+}
 \usage{
 ict_sample
 }

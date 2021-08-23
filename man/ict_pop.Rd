@@ -5,14 +5,16 @@
 \alias{ict_pop}
 \title{Sampling frame of the Information and communication technologies (ICT)
 survey}
-\format{A data frame with 7670 observations and 5 variables:
+\format{
+A data frame with 7670 observations and 5 variables:
 \describe{
   \item{firm_id}{identifier of the firm}
   \item{division}{identifier of the economic sub-sector}
   \item{employees}{number of employees}
   \item{turnover}{firm turnover, in thousand euros}
   \item{strata}{stratification variable}
-}}
+}
+}
 \usage{
 ict_pop
 }

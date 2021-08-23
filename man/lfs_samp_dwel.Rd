@@ -4,7 +4,8 @@
 \name{lfs_samp_dwel}
 \alias{lfs_samp_dwel}
 \title{Sample of dwellings in the Labour force survey}
-\format{A data frame with 80 observations and 6 variables:
+\format{
+A data frame with 80 observations and 6 variables:
 \describe{
   \item{id_dwel}{identifier of the dwelling}
   \item{id_area}{identifier of the area}
@@ -12,7 +13,8 @@
   \item{pik_area}{first-order inclusion probability of the area}
   \item{pik_dwel}{first-order inclusion probability of the dwelling within the area (20 dwelling sampled per area)}
   \item{pik}{first-order inclusion probability of the dwelling}
-}}
+}
+}
 \usage{
 lfs_samp_dwel
 }
