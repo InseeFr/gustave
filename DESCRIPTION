@@ -5,7 +5,7 @@ Depends: R(>= 3.2.5)
 Imports: methods, utils, stats, Matrix
 Suggests: testthat, covr, sampling, magrittr, tibble, dplyr, data.table
 Version: 0.4.2
-Authors@R: person("Martin", "Chevalier", role = c("aut", "cre", "cph"), email = "martin.chevalier@insee.fr")
+Authors@R: person("Martin", "Chevalier", role = c("aut", "cre", "cph"), email = "mc@slmc.fr")
 Author: Martin Chevalier [aut, cre, cph]
 Maintainer: Martin Chevalier <mc@slmc.fr>  
 URL: https://github.com/martinchevalier/gustave
