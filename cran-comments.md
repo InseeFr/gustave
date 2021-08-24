@@ -6,8 +6,9 @@
 * win-builder: R-oldrelease, R-release and R-devel
 
 ## R CMD check results
-There were no ERRORs, WARNINGs or NOTEs.
+No ERRORs nor WARNINGs.
+
+1 NOTE: new maintainer email address.
 
 ## Reverse dependencies
-
 There is no reverse dependencies.
