@@ -8,7 +8,7 @@ test_that("coerce_to_TsparseMatrix works as expected", {
   y <- setNames(1:10, letters[1:10])
   M <- Matrix::sparseMatrix(
     x = y, i = seq_along(y), j = rep(1, length(y)), 
-    giveCsparse = FALSE, dimnames = list(names(y), NULL)
+    repr = "T", dimnames = list(names(y), NULL)
   )
   expect_identical(coerce_to_TsparseMatrix(y), M)
   m <- matrix(1:10, ncol = 2, dimnames = list(letters[1:5]))

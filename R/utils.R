@@ -226,7 +226,7 @@ coerce_to_TsparseMatrix <- function(y){
   if(is.null(dim(y))){
     names_y <- names(y)
     res <- Matrix::sparseMatrix(
-      x = unname(y), i = seq_along(y), j = rep(1, length(y)), giveCsparse = FALSE
+      x = unname(y), i = seq_along(y), j = rep(1, length(y)), repr = "T"
     )
     if(!is.null(names_y)) rownames(res) <- names_y
   }else if(!methods::is(y,"TsparseMatrix")){
