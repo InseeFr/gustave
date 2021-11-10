@@ -176,5 +176,27 @@ test_that("NA values are handled correctly", {
   )
   rm(ict_sample)
 })
-
+test_that("Discretization works well when there is only one level", {
+  compute_variance <- function(y) rep(1, ncol(y))
+  set.seed(215)
+  d <- data.frame(
+    id = 1 : 1000, 
+    weight = c(rep(10, 1000)),
+    x = 1000 * rnorm(1000, mean = 10, sd = 2), 
+    a = c(rep('a', 500), rep('b', 500)),
+    y = rep('c', 1000),
+    z = c(rep('m1', 250), rep('m2', 250), rep('m3', 500))
+  )
+  
+  # Variance wrapper definition
+  precision <- gustave::define_variance_wrapper(
+    variance_function = compute_variance, 
+    reference_id = d$id, 
+    reference_weight = d$weight, 
+    default_id = 'id'
+  )
+  expect_error(precision(d, mean(y)), regexp = NA)
+  expect_error(precision(d, mean(z), by = a), regexp = NA)
+  expect_error(precision(d, mean(z), where = (a == 'b')), regexp = NA)
+})
 

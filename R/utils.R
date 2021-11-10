@@ -325,7 +325,11 @@ names_else_NA <- function(x){
 discretize_qualitative_var <- function(var, logical  = FALSE){
   var <- droplevels(as.factor(var))
   result <- Matrix(nrow = length(var), ncol = length(levels(var)))
-  result[!is.na(var), ] <- Matrix::sparse.model.matrix(~ var - 1)
+  if(length(levels(var)) == 1){
+    result[!is.na(var), ] <- 1L
+  }else{
+    result[!is.na(var), ] <- Matrix::sparse.model.matrix(~ var - 1)  
+  }
   result[is.na(var), ] <- NA
   if(!logical) result <- result * 1
   rownames(result) <- names(var)
