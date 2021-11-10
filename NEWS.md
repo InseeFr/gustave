@@ -1,3 +1,8 @@
+# 0.4.3 
+
+- Remove the giveCsparse warning (appeared with Matrix 1.3 shipped with R 4.0) (issue #7)
+- Fix the discretization problem with qualitative variables with one modality (issue #8), thanks to @ThomasDeroyon
+
 # 0.4.2
 
 Change maintainer e-mail address.
