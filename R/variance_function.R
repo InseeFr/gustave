@@ -111,14 +111,14 @@ res_cal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
   }else list2env(precalc, envir = environment())
 
   if(is.null(y)) return(list(x = x, w = w, inv = inv)) else {
-    class_y <- class(y)[1]
+    is_sparse_y <- inherits(y, c("Matrix"))
+    is_matrix_y <- !is_sparse_y && inherits(y, c("matrix"))
     dimnames_y <- dimnames(y)
-    y <- coerce_to_TsparseMatrix(y)
     if(!is.null(precalc) && !is.null(id) && !is.null(rownames(y)) && !identical(as.character(id), rownames(y))) stop(
       "The names of the data matrix (y argument) do not match the reference id (id argument)."
     )
     e <- y - x %*% ( inv  %*% crossprod(x,  Matrix::Diagonal(x = w) %*% y) )
-    if(class(e) != class_y) e <- methods::as(e, class_y)
+    if(!is_sparse_y) e <- if(is_matrix_y) as.matrix(e) else as.vector(e)
     dimnames(e) <- dimnames_y
     e
   }

@@ -170,7 +170,6 @@ add_zero <- function(y, rownames, remove = TRUE){
     if(is_data.frame_y) r <- as.data.frame(r)
   }else{
     r <- rbind(y, Matrix(0, nrow = length(compl), ncol = NCOL(y), dimnames = list(compl, NULL)))
-    r <- methods::as(r, class_y)
   }
 
   # Remove rows that do not match any element in rownames 
