@@ -1,3 +1,7 @@
+# 0.4.4
+
+- Adaptation to the upcoming Matrix 1.5
+
 # 0.4.3 
 
 - Remove the giveCsparse warning (appeared with Matrix 1.3 shipped with R 4.0) (issue #7)
