@@ -20,9 +20,9 @@ technical_data_ict <- list(
                      x = as.matrix(ict_sample[
                        ict_sample$calib,
                        c(paste0("N_", 58:63), paste0("turnover_", 58:63))
-                       ]),
+                    ]),
                      w = ict_sample$w_calib[ict_sample$calib],
-                     id = ict_sample$firm_id
+                    id = ict_sample$firm_id[ict_sample$calib]
     )
   )
 )
