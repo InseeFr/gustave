@@ -11,3 +11,4 @@
 ^.travis.yml$
 ^.gitlab-ci.script$
 ^R-CMD-check.sh$
+^.github$
