@@ -110,7 +110,7 @@ res_cal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
 
   }else list2env(precalc, envir = environment())
 
-  if(is.null(y)) return(list(x = x, w = w, inv = inv,id = id)) else {
+  if(is.null(y)) return(list(x = x, w = w, inv = inv, id = id)) else {
     is_sparse_y <- inherits(y, c("Matrix"))
     is_matrix_y <- !is_sparse_y && inherits(y, c("matrix"))
     dimnames_y <- dimnames(y)
