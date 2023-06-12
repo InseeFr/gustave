@@ -1,0 +1,13 @@
+/*-- scss:defaults --*/
+$custom-col: #ED1443;
+$presentation-heading-color: $custom-col;
+
+/*-- scss:rules --*/
+
+.reveal section h1 {
+  font-size: 2em;
+}
+
+.reveal title {
+  font-size: 3em;
+}

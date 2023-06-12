@@ -1,0 +1,53 @@
+---
+title: "Le *package* R gustave : utilisation et principes de conception"
+subtitle: "Présentation à Statec"
+author: Martin Chevalier
+date: 2023-06-15
+date-format: DD/MM/YYYY
+institute: Insee, DREES
+format: 
+  revealjs:
+    theme: [default, style.scss]
+    slide-number: true
+    logo: Logo_Insee.png
+    css: logo.css
+    transition: slide  
+    transition-speed: fast
+    width: 750*16/9
+    height: 750
+    incremental: true
+    toc: true
+    toc-depth: 1
+    template-partials: 
+      - toc-slide.html
+---
+
+## Introduction
+
+Le *package* R gustave est un outil informatique développé au sein de l'Insee à partir de 2016 pour répondre au **besoin grandissant** d'estimations de précision dans les enquêtes auprès des ménages et des entreprises. 
+
+. . . 
+
+L'élaboration et l'utilisation de ce *package* R constitue une réponse aux multiples *challenges* posés par l'estimation de variance : 
+
+- spécifités des méthodes d'estimation de la variance ;
+- diversité et complexité des plans de sondages et des méthodes de redressement ;
+- complexité des plans de sondage et des méthodes de redressement ;
+
+
+L'estimation de variance est une étape souvent **indispensable** dans le traitement d'une enquête statistique: 
+
+- outil pour évaluer la **qualité de l'information collectée** susceptible d'influer sur sa diffusion ;
+- indicateur utilisé dans les *reporting* au niveau européen (rapport qualité, réglement IESS).
+
+. . . 
+
+
+- la stratégie mise en oeuvre à l'Insee pour mener à bien l'estimation de variance sur des enquêtes complexes;
+- le *package* R gustave développé au sein du Département des méthodes statistiques (DMS).
+
+## Table des matières
+
+```{=html}
+<div id='toc'></div>
+```
