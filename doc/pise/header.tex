@@ -1,0 +1,62 @@
+
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{textcomp} 
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{booktabs,multirow}
+\usepackage{setspace}
+\usepackage{float}
+\usepackage{pgfpages}
+\usepackage{colortbl}
+\usepackage{epstopdf}
+\usepackage{framed}
+
+
+\definecolor{shadecolor}{RGB}{248,248,248}
+\definecolor{grayInsee}{HTML}{5a5758}
+\definecolor{redInsee}{HTML}{ed1443}
+
+\setbeamertemplate{navigation symbols}{}
+\usetheme{default}
+\setbeamertemplate{footline}[frame number]
+\setbeamercolor{page number in head/foot}{fg=grayInsee}
+
+\setbeamercolor{title}{fg=grayInsee}
+\setbeamercolor{section in toc}{fg=grayInsee}
+\setbeamercolor{subsection in toc}{fg=grayInsee}
+\setbeamertemplate{frametitle}{%
+	\large \textcolor{grayInsee}{\secname}
+	\\ \vspace{0.1cm} \Large \textcolor{redInsee}{\insertframetitle}
+}
+\setbeamercolor{local structure}{fg=redInsee}
+
+\AtBeginSection[]
+{\ifnum \thesection>1
+  \begin{frame}
+  \vfill
+  \begin{center}
+  \LARGE
+  \textcolor{grayInsee}{\insertsectionhead}
+  \end{center}
+  \vfill
+  \end{frame}
+\else
+\fi
+}
+
+\AtBeginSubsection[]{}
+
+
+\institute{\normalsize 23 août 2018}
+
+\author{\includegraphics[height = 2.5cm]{Logo_Insee.png}\\ ~ \\ \normalsize Martin \textsc{Chevalier} (DMS)}
+
+\date{}
+
+\renewenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+
+\newcommand{\strong}[1]{%
+  \textbf{\textcolor{redInsee}{#1}}%
+}

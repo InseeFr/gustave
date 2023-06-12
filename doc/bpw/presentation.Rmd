@@ -1,0 +1,430 @@
+---
+title: "\\large Exact, user-oriented and reproducible variance estimation with the \\texttt{gustave} package"
+fontsize: 12pt
+output:
+  beamer_presentation:
+    highlight: haddock
+    includes:
+      in_header: header.tex
+    keep_tex: no
+    slide_level: 3
+handout: yes
+---
+
+```{r, include=FALSE}
+if(!exists(".initOK")) source("fonctions.R")
+```
+
+# Exact, user-oriented and reproducible variance estimation with the `gustave` package {.unnumbered}
+
+### \ 
+
+\vspace{-0.5cm} Variance estimation is becoming a \strong{more and more important part} of the survey production process: 
+
+- tool to assess the quality of the data collected that may affect its dissemination;
+- key indicator in quality reports but also in the IESS regulation currently under discussion.
+
+\pause \bigskip It is also a \strong{complex issue} from a \strong{technical} and \strong{organizational} point of view.
+
+\pause \bigskip This talk: 
+
+- presents the way variance estimation is implemented in France for household surveys (including EU-SILC)
+- introduces the R `gustave` package
+
+
+### Outline
+
+\large
+\tableofcontents[sectionstyle=show/show, subsectionstyle=hide/hide/hide]
+
+
+# Purpose: make variance estimation easier
+
+### Sources of complexity: sampling design
+
+Sampling design is the first source of complexity for exact analytical variance estimation: 
+
+- complex \strong{sampling algorithms}: sampling with unequal probabilities, balanced sampling
+- \strong{multi-stages} sampling: two-stages sampling, master sample
+
+\pause \bigskip \strong{Remarks}
+
+- the "ultimate cluster" methodology is applicable only if the sampling rate of the first stage is negligible
+- bootstrap methodology might not be applicable under such complex sampling designs
+
+### \large Sources of complexity: estimation methodology
+
+In order to be exact, variance estimation should also take into account the estimation methodology implemented: 
+
+- \strong{non-response correction}: the unit non-response process can be described as an additional Poisson sampling phase
+
+- \strong{calibration on margins}: calibration on margins yields significant variance reduction provided the auxiliary variables are well correlated with the variables of interest
+
+\pause \bigskip \strong{Remark} Depending on the imputation methodology, \strong{item non-response} can also be taken into account in the variance estimation process.
+
+### Sources of complexity: indicators
+
+A final source of complexity comes from the indicators whose variance is to be estimated: 
+
+- \strong{non-linear indicators}: mean, ratio, quantiles, Gini coefficient, At-risk of poverty rate, etc. $\rightarrow$ \strong{linearization techniques}
+
+- \strong{domain estimations}: regional estimates
+
+\pause \strong{Remark} Variance estimation with small area estimation methodology is beyond the scope of this talk.
+
+
+### \large Organizational consequence: division of labour
+
+- \strong{Methodologist}: methodological expertise, production of variance estimation programs
+- \strong{Survey specialist}: topic-related expertise, use of the variance estimation programs for studies and quality reporting
+
+\pause \bigskip \strong{New challenges}: in order to be used in practice, variance estimation programs should be
+
+- as easy-to-use as possible
+- comprehensive (e.g. linearization, domain estimation)
+- self-contained (reproducibility)
+- not too difficult to maintain (for future upgrades)
+
+
+### Introducing the `gustave` package
+
+
+\strong{G}ustave: a \strong{U}ser-oriented \strong{S}tatistical \strong{T}oolkit for \strong{A}nalytical \strong{V}ariance \strong{E}stimation
+
+\pause \bigskip R package currently available on GitHub: \url{https://github.com/martinchevalier/gustave}
+
+\bigskip \pause \strong{Goal} Make variance estimation as easy as possible in providing the methodologist with dedicated tools.
+
+# Live demonstration
+
+### \large Variance estimation in the French EU-SILC
+
+The French EU-SILC: 
+
+- \pause 9 years rotating panel: two master samples involved, each with balanced sampling at the first stage
+- \pause general weight share methodology
+- \pause non-negligible unit non-response (attrition) and complex non-response scheme
+- \pause calibration on margins
+- \pause highly non-linear indicators: At-risk of poverty rate, Gini coefficient, etc.
+
+\bigskip \pause Once processed by the `gustave` package: \strong{one single standalone data file per year}.
+
+```{r, include=FALSE}
+load("output_for_beamer.RData")
+```
+
+### First run
+
+\footnotesize
+```{r, eval=FALSE}
+# Load the standalone .RData file
+load("silc_bpw/precisionSilc14.RData")
+# Note : the 4 data files of the survey are loaded
+# together with the precisionSilc() function
+
+# Mean equivalised disposable income per household
+precisionSilc(h, HX090)
+```
+
+\pause 
+```{r, echo=FALSE}
+o1
+```
+
+```{r}
+# The variance estimation takes about 1 second.
+```
+
+
+
+### Standard use
+
+\footnotesize
+```{r, eval=FALSE}
+# Share of households below a given (absolute) threshold
+# (see below for relative threshold e.g. arpr)
+precisionSilc(h, HX090 < 20000)
+
+# Work intensity
+precisionSilc(r, as.factor(RX050))
+```
+
+\pause 
+```{r, echo=FALSE}
+options(width = 70)
+o3[, 1:4]
+options(width = 55)
+```
+
+\pause 
+```{r, eval=FALSE}
+# Number of people with severe material deprivation
+precisionSilc(r, total(RX060 == 1))
+
+# Ratio of equivalised disposable income 
+# per person in the household
+precisionSilc(h, ratio(HX090, HX040))
+```
+
+### Domain estimation
+
+\pause \footnotesize
+```{r, eval=FALSE}
+# Domain estimation with where (FR10 : Paris area)
+precisionSilc(h, HX090, where = DB040 == "FR10")
+```
+
+```{r, echo=FALSE}
+o6
+```
+
+\pause 
+```{r, eval=FALSE}
+
+# Domain estimation with by
+precisionSilc(h, HX090, by = DB040)
+```
+
+```{r, echo=FALSE}
+o7[1:5, 1:4]
+```
+
+### Complex linearizations using the `vardpoor` package
+
+\footnotesize
+```{r, eval=FALSE}
+# Installation of the vardpoor package
+install.packages("vardpoor")
+
+# Gini coefficient
+precisionSilc(r, gini(HX090))
+```
+
+\vspace{-0.5cm}
+```{r, echo=FALSE}
+o8
+```
+
+\pause
+```{r, eval=FALSE}
+# At-risk of poverty rate
+precisionSilc(r, arpr(HX090))
+```
+
+\vspace{-0.5cm}
+```{r, echo=FALSE}
+o9
+```
+
+
+# How-to: `gustave` package starter's guide
+
+### "Wrap" a complex function in an easier one
+
+The aim of the `gustave` package is to hide the complexity of the variance estimation process from the end user.
+
+\pause \bigskip \strong{Basic idea} "Wrapping" the complex variance estimation *function* within a variance estimation *wrapper*.
+
+- \pause \strong{variance estimation \textit{function}}: survey-specific function with a numerical matrix of data as input and the estimated variances as output
+- \pause \strong{variance estimation \textit{wrapper}}: generic function which handles systematic operations (linearizations, domain estimation, etc.), calls the variance function and displays the results
+
+### Case study: stratified SRS with calibration
+
+```{r simulation, echo=FALSE, results="hide", cache=TRUE}
+library(gustave)
+N <- 5000000
+n <- 2000
+H <- 10
+size <- rep(n/H, H)
+
+# Randomly generating a sampling frame and first-order 
+# probabilities of inclusion
+set.seed(1)
+frame <- data.frame(
+  id = 1:N
+  , stratum = sample.int(H, size = N, replace = TRUE)
+  , auxiliary_var = 10 + rnorm(N)
+)
+
+# frame$pik <- as.vector(frame$pik * (size / tapply(frame$pik, frame$stratum, sum))[frame$stratum])
+
+# Drawing the sample with sampling::UPmaxentropy()
+library(sampling)
+sample <- frame[sampling::strata(
+  data = frame, size = size, stratanames = "stratum"
+  , method = "srswor"
+)$ID_unit, ]
+sample$pik <- 1 / rep(N/n, n)
+sample$d <- 1 / sample$pik 
+sample$w <- sample$d * calib(sample$auxiliary_var, d = sample$d, sum(frame$auxiliary_var), method = "raking")
+
+  
+# Randomly generating the data that would have been collected
+# on the field and storing it in the "survey" data.frame 
+survey <- cbind(
+  sample[, c("id", "w", "auxiliary_var")]
+  , data.frame(
+      var1 = sample$auxiliary_var + rnorm(n)*2
+    , var2 = letters[sample.int(3, n, replace = TRUE)]
+))
+
+# Sorting the "sample" and "survey" objects by id
+sample <- sample[order(sample$id), ]
+survey <- survey[order(survey$id), ]
+```
+
+- simple random sampling of 2,000 households among 5,000,000
+- 10 strata of size 200 each
+- calibration on margins with one calibration variable
+
+\strong{Remark} No unit non-response for this example.
+
+\pause \footnotesize
+```{r}
+names(sample)
+
+names(survey)
+```
+
+
+### Step 1: Define the variance *function*
+
+\footnotesize
+```{r, eval=FALSE}
+# Install the gustave package from GitHub
+install.packages("devtools")
+devtools::install_github("martinchevalier/gustave")
+library(gustave)
+```
+
+\pause
+```{r, eval=FALSE, echo=FALSE}
+devtools::install_github("martinchevalier/gustave", ref = "Consolidation-and-documentation")
+```
+
+```{r, include=FALSE}
+library(gustave)
+```
+
+
+```{r}
+# Define the variance function
+variance_function <- function(y){
+  # Taking calibration into account
+  e <- rescal(y, sample$auxiliary_var)
+  # Variance estimation
+  var <- varDT(
+    y = e, pik = sample$pik, strata = sample$stratum
+  )
+  return(var)
+}
+variance_function(survey$var1)
+```
+
+
+
+
+### Step 2: Define the variance *wrapper*
+
+\footnotesize
+```{r}
+# Define the variance wrapper
+variance_wrapper <- define_variance_wrapper(
+  variance_function = variance_function
+  , reference_id = sample$id
+  , default = list(id = "id", weight = "w")
+  , objects_to_include = "sample"
+)
+
+# Export the survey data and the variance wrapper
+# for later use or dissemination
+save(
+  survey, variance_wrapper
+  , file = "precisionSurvey.RData"
+)
+```
+
+```{r, echo=FALSE}
+# Removing all files except the survey data
+# and the variance wrapper
+rm(list = ls())
+```
+
+
+### Step 3: Use the variance wrapper
+
+\footnotesize
+
+```{r}
+# Load the .RData (for instance in an empty environment)
+load("precisionSurvey.RData")
+ls()
+
+# Use the variance wrapper
+variance_wrapper(survey, var1)[, 1:3]
+variance_wrapper(survey, mean(var1), by = var2)
+```
+
+
+
+# Discussion and perspectives
+
+### Use of the `gustave` package at Insee
+
+The `gustave` package is currently \strong{used in production} at Insee for the variance estimation of: EU-SILC, LFS, the French victimation survey (and AES by the end of 2017).
+
+\pause \bigskip The programs it produces are used by survey specialists with no expertise in variance estimation nor in the R software.
+
+\pause \bigskip The Department of statistical methods sees the `gustave` package as an \strong{investment}: 
+
+- the code of the most generic operations (e.g. linearizations, domain estimation) is documented and open for review
+- it will be easier to maintain than a set of separated codes
+
+### Compatibility with the `vardpoor` package
+
+The `vardpoor` package is developed and maintained by the Central Statistical Bureau of Latvia (presented in the 2015 EU-SILC Best Practices Workshop in London).
+
+\pause It is also dedicated to variance estimation, but with a different focus: 
+
+- it provides a wide variety of linearization functions (Laeken indicators)
+- variance estimation is not exact as it relies on the "ultimate cluster" methodology
+
+\pause The \strong{linearization functions provided by the \texttt{vardpoor} package can be used within a variance wrapper} produced by the `gustave` package through a \strong{linearization wrapper}. 
+
+
+### Milestones and perspectives
+
+- Under intensive development until the end of 2017: consolidation, documentation, code review
+- \bigskip \pause A version will be available on CRAN at the latest in august 2018 (available on GitHub as of now)
+<!-- - \bigskip \pause \strong{Key feature before the first release}: "ready-to-estimate" variance wrapper for simple cases (one-stage stratified SRS with non-response and calibration). -->
+
+- \bigskip \pause \strong{Key features before the first release}: 
+
+    - new and enhanced linearization wrappers (e.g. quantiles)
+    - "ready-to-estimate" variance wrapper for simple cases (one-stage stratified SRS with non-response and calibration)
+    
+
+
+
+
+# Exact, user-oriented and reproducible variance estimation with the `gustave` package {.unnumbered}
+
+### Conclusion
+
+- Variance estimation in household surveys is a complex topic, which implies a \strong{strong collaboration between survey specialists and methodologists}.
+
+- \bigskip \pause The development of a unifying R package is a source of \strong{efficiency} and improves the \strong{quality} of the whole process.
+
+- \bigskip \pause It is an investment that also relies on other \strong{open-source initiatives}, e.g. the `vardpoor` package.
+
+- \bigskip \pause It stimulates the use of softwares \strong{alternative to SAS} at Insee. 
+
+### \ 
+
+\begin{center}
+  \large
+  \strong{Thank your for your attention!} \\
+  \bigskip \strong{Questions?}
+  
+  \normalsize \bigskip \bigskip Martin Chevalier \\ martin.chevalier@insee.fr \\\url{https://github.com/martinchevalier/gustave}
+\end{center}

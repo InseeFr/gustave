@@ -1,0 +1,611 @@
+---
+title: "\\Large Outils pour l'estimation de variance dans les enquêtes de l'Insee : le \\textit{package} R gustave"
+fontsize: 11pt
+output:
+  beamer_presentation:
+    highlight: haddock
+    includes:
+      in_header: header.tex
+    keep_tex: no
+    slide_level: 3
+handout: yes
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(collapse=TRUE)
+```
+
+# Outils pour l'estimation de variance dans les enquêtes de l'Insee : le *package* R gustave {.unnumbered}
+
+### \ 
+
+\strong{Objectif de la réunion} Présenter les outils développés récemment par la Division Sondages pour l'estimation de variance à travers le [\underline{\textit{package} R gustave}](https://CRAN.R-project.org/package=gustave).
+
+\large \bigskip 
+\tableofcontents[sectionstyle=show/show, subsectionstyle=hide/hide/hide]
+
+# Outils \og prêts-à-estimer \fg{} pour les cas les plus simples
+
+### Retour sur l'existant
+
+\strong{Plusieurs outils} ont été développés ces dernières années pour estimer la variance d'estimateurs calculés dans des \strong{enquêtes relativement simples}: 
+
+- \pause macro SAS `%calker`: sondage aléatoire simple stratifié, correction de la non-réponse par repondération ou par imputation au sein des strates de tirage;
+
+- \pause \bigskip macro SAS `%calker_grh`: sondage aléatoire simple stratifié, correction de la non-réponse par repondération au sein de groupes de réponse homogènes quelconques;
+
+- \pause \bigskip macro SAS `%everest`: sondage aléatoire simple stratifié, correction de la non-réponse par imputation au sein des strates de tirage ou par repondération au sein de groupes de réponse homogènes quelconques, calage sur marges.
+
+### La fonction `qvar()` du *package* gustave
+
+gustave est un \strong{\textit{package} R} fournissant une \strong{boîte à outils pour l'estimation de variance}. 
+
+\bigskip \pause `qvar()` est une *fonction* du *package* gustave, qui \strong{combine les autres fonctions proposées par gustave} dans un outil \og prêt-à-estimer \fg{} dans les cas les plus simples, à savoir: \pause
+
+- sondage aléatoire simple stratifié;
+- correction de la non-réponse par repondération dans des groupes de réponse homogènes;
+- calage sur marges.
+
+\bigskip \pause En ce sens, `gustave::qvar()` est \strong{susceptible de remplacer la macro SAS \texttt{\%everest}}.
+
+\bigskip \pause \small \strong{Remarque} Le nom \og qvar \fg{} signifie \og \textit{quick variance estimation} \fg{} et est pensé par analogie avec la fonction `qplot()` du *package* ggplot2.
+
+### Démonstration: Installation et chargement du *package* gustave
+
+La version 0.3.0 du *package* gustave est accessible sur le dépôt de *packages* classique de R (le [\underline{CRAN}](https://cran.r-project.org/)). 
+
+\bigskip \pause La version 0.4.0 en développement est disponible sur [\underline{github.com}](https://) et sur le [\underline{serveur gitlab de l'Insee}](https://git.stable.innovation.insee.eu/methodologie-sondage/gustave).
+
+\pause \footnotesize
+```{r, eval=FALSE}
+# Installation de la version de développement depuis github
+devtools::install_github("martinchevalier/gustave", ref = "dev")
+
+# Chargement du package gustave
+library(gustave)
+
+# Affichage de l'aide de la fonction qvar()
+? qvar
+```
+
+```{r, include=FALSE}
+library(gustave)
+```
+
+### Démonstration: Données d'exemple
+
+Le *package* gustave embarque des \strong{données d'exemple simulées} inspirées de l'enquête Technologies de l'information et de la communication.
+
+\pause \scriptsize
+```{r}
+# Table d'échantillon ict_sample
+names(ict_sample)
+
+# Table de variables d'intérêt ict_survey
+names(ict_survey)
+```
+
+### Démonstration: Plan de sondage (1)
+
+\scriptsize
+```{r}
+# Estimation ne tenant compte que de l'échantillonnage
+qvar(
+  
+  # Paramètres méthodologiques
+  data = ict_sample, 
+  dissemination_dummy = "dissemination", 
+  dissemination_weight = "w_sample",
+  id = "firm_id",
+  sampling_weight = "w_sample",
+  
+  # Variable d'intérêt
+  turnover
+  
+)
+```
+
+### Démonstration: Plan de sondage (2)
+
+\scriptsize
+```{r}
+# Ajout de la strate de tirage
+qvar(
+  
+  # Paramètres méthodologiques
+  data = ict_sample, 
+  dissemination_dummy = "dissemination", 
+  dissemination_weight = "w_sample",
+  id = "firm_id",
+  sampling_weight = "w_sample", strata = "strata",
+  
+  # Variable d'intérêt
+  turnover
+  
+)
+```
+
+
+### \large Démonstration : Fixation des paramètres méthodologiques
+
+\scriptsize
+```{r}
+# Définition d'une fonction avec les paramètres méthodologiques de TIC
+precisionTic <- qvar(
+  data = ict_sample,
+  dissemination_dummy = "dissemination",
+  dissemination_weight = "w_sample",
+  id = "firm_id",
+  sampling_weight = "w_sample", strata = "strata",
+  define = TRUE
+)
+
+# Utilisation de la fonction
+precisionTic(ict_survey, turnover)
+```
+
+
+
+### Démonstration: Ergonomie (1)
+
+\scriptsize
+```{r}
+# Estimation de moyennes et de ratio
+precisionTic(ict_survey, mean(turnover))
+precisionTic(ict_survey, ratio(turnover, employees))
+
+# Plusieurs estimateurs en un seul appel
+precisionTic(ict_survey, 
+  "CA moyen" = mean(turnover),
+  "CA moyen par salarié" = ratio(turnover, employees)
+)
+```
+
+### Démonstration: Ergonomie (2)
+
+\scriptsize
+```{r}
+# Estimation sur un domaine
+precisionTic(ict_survey, mean(speed_quanti), where = employees >= 50)[, 1:4]
+
+# Estimation sur plusieurs domaines
+precisionTic(ict_survey, mean(speed_quanti), by = division)[, 1:5]
+
+# Domaines différents par estimateur
+precisionTic(ict_survey, 
+  "CA moyen des 50 et plus" = mean(turnover, where = employees >= 50),
+  "CA moyen des 100 et plus" = mean(turnover, where = employees >= 100)
+)[, c(1, 3:5)]
+```
+
+### Démonstration: Ergonomie (3)
+
+```{r, include=FALSE}
+library(dplyr)
+```
+
+\scriptsize
+
+```{r}
+# Dichotomisation à la volée
+precisionTic(ict_survey, mean(speed_quanti > 100))[, 1:4]
+
+# Dichotomisation automatique des variables qualitatives
+precisionTic(ict_survey, mean(speed_quali))[, 1:4]
+
+# Intégration avec dplyr et %>%
+library(dplyr)
+ict_survey %>% 
+  precisionTic("Connexion supérieure à 100 Mbs" = mean(speed_quanti > 100)) %>% 
+  select(label, est, lower, upper)
+```
+
+### Démonstration: Prise en compte du champ
+
+\scriptsize
+```{r}
+# Ajout de l'indicatrice d'appartenance au champ
+precisionTic <-  qvar(
+  data = ict_sample, 
+  dissemination_dummy = "dissemination", 
+  dissemination_weight = "w_sample",
+  id = "firm_id",
+  sampling_weight = "w_sample", strata = "strata", 
+  scope_dummy = "scope"
+)
+```
+
+### Démonstration: Correction de la non-réponse (1)
+
+\scriptsize
+```{r}
+# Ajout de la correction de la non-réponse
+precisionTic <- qvar(
+  data = ict_sample, 
+  dissemination_dummy = "dissemination", 
+  dissemination_weight = "w_nrc",
+  id = "firm_id",
+  sampling_weight = "w_sample", strata = "strata", 
+  scope_dummy = "scope", 
+  nrc_weight = "w_nrc", response_dummy = "resp", hrg = "hrg",
+  define = TRUE
+)
+```
+
+### Démonstration: Correction de la non-réponse (2)
+
+\scriptsize
+```{r}
+# Cas d'unités exclues de la repondération
+precisionTic <- qvar(
+  data = ict_sample, 
+  dissemination_dummy = "dissemination", 
+  dissemination_weight = "w_nrc",
+  id = "firm_id",
+  sampling_weight = "w_sample", strata = "strata", 
+  scope_dummy = "scope", 
+  nrc_weight = "w_nrc", response_dummy = "resp", hrg = "hrg", 
+  nrc_dummy = "nrc",
+  define = TRUE
+)
+```
+
+### Démonstration: Calage sur marges (1)
+
+\scriptsize
+```{r}
+# Ajout du calage sur marges
+precisionTic <- qvar(
+  data = ict_sample, 
+  dissemination_dummy = "dissemination", 
+  dissemination_weight = "w_calib",
+  id = "firm_id",
+  sampling_weight = "w_sample", strata = "strata", 
+  scope_dummy = "scope", 
+  nrc_weight = "w_nrc", response_dummy = "resp", hrg = "hrg",
+  nrc_dummy = "nrc",
+  calibration_weight = "w_calib", 
+  calibration_var = c(paste0("N_", 58:63), paste0("turnover_", 58:63)),
+  define = TRUE
+)
+```
+
+### Démonstration: Calage sur marges (2)
+
+\scriptsize
+```{r}
+# Cas d'unités exclues du calage
+precisionTic <- qvar(
+  data = ict_sample, 
+  dissemination_dummy = "dissemination", 
+  dissemination_weight = "w_calib",
+  id = "firm_id",
+  sampling_weight = "w_sample", strata = "strata", 
+  scope_dummy = "scope", 
+  nrc_weight = "w_nrc", response_dummy = "resp", hrg = "hrg",
+  nrc_dummy = "nrc",
+  calibration_weight = "w_calib", 
+  calibration_var = c(paste0("N_", 58:63), paste0("turnover_", 58:63)),
+  calibration_dummy = "calib",
+  define = TRUE
+)
+```
+
+### Pour synthétiser
+
+\normalsize
+
+`gustave::qvar()` facilite la production de programmes d'estimation de variance relativement ergonomiques \strong{dans les cas les plus simples}.
+
+\bigskip \pause Cette fonction opère par ailleurs un \strong{grand nombre de contrôles techniques et méthodologiques}.
+
+\bigskip \pause Plusieurs \strong{limitations}: 
+
+- elle ne prend pas en compte la correction de la non-réponse par imputation (contrairement à `%everest`);
+- elle ne permet pas de tenir compte des plans de sondage complexes: degrés multiples, partage des poids.
+
+\bigskip \pause Les \strong{autres fonctionnalités du \textit{package} gustave} apportent des éléments de réponse à ces questions.
+
+
+# Boîte à outils pour les cas plus complexes
+
+### Principes du *package* gustave (1)
+
+\pause \strong{G}ustave: a \strong{U}ser-oriented \strong{S}tatistical \strong{T}oolkit for \strong{A}nalytical \strong{V}ariance \strong{E}stimation 
+
+\bigskip \pause gustave est avant tout une \og boîte à outils \fg{} (*toolkit*), i.e. une \strong{collection de fonctions utiles au ou à la méthodologue} pour estimer la variance d'estimateurs issus d'une enquête par sondage.
+
+\bigskip \pause En ce sens, son approche diffère sensiblement de celle proposée par la macro SAS `%poulpe` (*cf.* les [\underline{actes des JMS 1998}](http://jms-insee.fr/jms1998_programme/#1513415199356-a8a1bdde-becd)): 
+
+- \pause `%poulpe`: macro complète qui met en \oe uvre un cadre méthodologique à portée universelle;
+- \pause gustave: ensemble de \og petites \fg{} fonctions qui simplifient le travail du ou de la méthodologue.
+
+### Principes du *package* gustave (2)
+
+D'un point de vue organisationnel, gustave s'inscrit dans une organisation du travail à \strong{deux niveaux}: 
+
+1. \pause \vspace{-0.2cm} \strong{Méthodologue}: analyse méthodologique, mobilisation de l'information auxiliaire, construction d'un \strong{programme d'estimation de variance} raisonnablement exact;
+
+2. \pause \strong{Responsable d'enquête, chargé(e) d'étude}: utilisation du programme d'estimation dans le cadre d'études ou pour répondre à des obligations réglementaires.
+
+\bigskip \pause \strong{Conséquence} : les programmes d'estimation de variance doivent donc
+
+- \vspace{-0.2cm} être autonomes et aussi simples d'utilisation que possible;
+- prendre en compte l'ensemble des éléments relatifs au calcul de précision;
+- ne pas être trop complexes à développer ni à maintenir.
+
+### Principes du *package* gustave (3)
+
+\pause \strong{Idée centrale} \og Emballer \fg{} la fonction d'estimation de variance complexe dans une autre fonction (appelée \og \textit{wrapper} \fg{}) plus simple d'utilisation: 
+
+- \pause \bigskip \strong{fonction d'estimation de la variance}: fonction spécifique à chaque enquête développée par le ou la méthodologue; 
+
+    \hspace{1cm} $\rightarrow$ \strong{complexité méthodologique}
+    
+- \pause \bigskip \strong{\textit{wrapper} d'estimation de variance}: fonction générique qui prend en charge des opérations systématiques (calcul des statistiques, domaines), appelle la fonction de variance et affiche les résultats. 
+
+    \hspace{1cm} $\rightarrow$ \strong{complexité informatique}
+    
+### Contenu du *package* gustave
+
+De ce fait, les fonctions du *package* gustave sont de deux ordres: 
+
+1. \pause \strong{Fonctions méthodologiques}: estimateurs de variance usuels (Sen-Yates-Grundy, Deville-Tillé pour le sondage équilibré, etc.), fonctions outils (calcul des résidus de calage, somme par groupe, etc.);
+
+    \hspace{1cm} $\rightarrow$ faciliter l'écriture de la \strong{fonction de variance}
+
+2. \pause \bigskip \strong{Fonctions techniques}: fonctions qui simplifient la production de programmes d'estimation de variance qui ne nécessitent pas d'expertise méthodologique particulière. 
+
+    \hspace{1cm} $\rightarrow$ produire le \strong{\textit{wrapper} de variance}
+
+\small \bigskip \pause \strong{Remarque} `qvar()` n'est qu'un \strong{appel pré-paramétré} produisant des \strong{\textit{wrappers} de variance}. 
+
+### Démonstration: Précision de l'EEC
+
+La production des programmes de calcul de précision pour l'enquête Emploi en continu (EEC) est désormais \strong{directement intégrée à la chaîne de production trimestrielle} de l'enquête.
+
+\bigskip \pause Le module spécifique de la chaîne de production est une \strong{mise en \oe uvre des fonctions du \textit{package} gustave}. 
+
+\bigskip \pause Conceptuellement, le production du programme de calcul de précision pour un trimestre de l'EEC comporte \strong{deux étapes}:
+
+1. \pause Ecriture de la fonction de variance;
+2. \pause Création du *wrapper* de variance.
+
+### Démonstration: Fonction de variance (1)
+
+\small
+
+L'écriture de la fonction de variance spécifique à une enquête découle  de l'\strong{analyse de sa méthodologie}, notamment pour déterminer l'\strong{information auxiliaire} nécessaire. 
+
+\pause Ici la fonction de variance prend les arguments suivants: 
+
+- \vspace{-0.3cm} \texttt{y}: variables d'intérêt (sous la forme d'une matrice) sur lesquelles faire porter l'estimation de variance;
+- `up`: information auxiliaire relative aux unités primaires (\og bisecteurs \fg{});
+- `log`: information auxiliaire relative aux logements;
+- `ind`: information auxiliaire relative aux individus.
+
+\scriptsize \pause 
+```{r, eval=FALSE}
+varEec <- function(y, up, log, ind){
+  
+  variance <- list()
+  
+  # Etape 0 : Agrégation par logement
+  y <- sum_by(y, by = ind$idlog)
+  
+  # Etape 1 : Prise en compte du calage
+  y <- add_zero(y, log$id[log$cal])
+  y <- res_cal(y, precalc = log$res_cal_precalc)
+```
+
+### Démonstration: Fonction de variance (2)
+
+\scriptsize
+```{r, eval=FALSE}
+  (...)
+
+  # Etape 2 : Prise en compte de la non-réponse
+  variance[["nr"]] <- colSums(
+    (1/log$pilog[log$cal]^2 - log$qlog[log$cal]) * 
+      (1 - log$pinr[log$cal]) * (y/log$pinr[log$cal])^2
+  )
+  y <- add_zero(y / log$pinr[log$cal], log$id)
+  
+  # Etape 3 : Sélection des logements dans les up
+  variance[["log"]] <- varDT(
+    y, w = 1/(log$piup^2) - log$qup, 
+    precalc = log$varDT_precalc
+  )
+
+  # Etape 4 : Sélection des up
+  y <- sum_by(y, by = log$idup, w = 1/log$pilog_up)
+  y <- add_zero(y, up$id)
+  variance[["up"]] <- varDT(y, precalc = up$precalc)
+  
+  colSums(do.call(rbind, variance))
+  
+}
+```
+
+### Démonstration: *Wrapper* de variance
+
+\small À partir de la fonction de variance et de l'information auxiliaire nécessaire, la fonction `define_variance_wrapper()` crée un *wrapper* de variance simple d'utilisation.
+
+\pause \scriptsize
+
+```{r, eval=FALSE}
+# Création du wrapper de variance avec define_variance_wrapper()
+precisionEec <- define_variance_wrapper(
+  variance_function = varEec,
+  technical_data = list(up = up, log = log, ind = ind),
+  reference_id = technical_data$ind$id,
+  reference_weight = technical_data$ind$w,
+  default_id = quote(paste0(ident, noi))
+)
+
+# Utilisation du wrapper de variance (données du T4 2014)
+precisionEec(z, acteu %in% 2)
+```
+
+\vspace{-0.5cm}
+```{r, echo=FALSE}
+load("gustave_jms_exemple.RData")
+eec1
+```
+
+\small \vspace{-0.2cm} \strong{Remarque} Le *wrapper* de variance est une fonction complètement autonome: toute l'information auxiliaire spécifiée au paramètre `technical_data` est intégrée *dans* la fonction (il s'agit d'une [\underline{\textit{closure}}](http://adv-r.had.co.nz/Functional-programming.html#closures)).
+
+### Un *package* pensé pour être extensible (1)
+
+La fonction `define_variance_wrapper()` accepte \strong{n'importe quelle fonction de variance en entrée}: 
+
+- autant d'information auxiliaire que nécessaire;
+- utilisation des fonctions d'autres *packages* pour coder la fonction de variance (utiliser `require()` dans la fonction de variance);
+- prise en compte de paramètres affectant l'estimation de variance (méthodologies alternatives, etc.).
+
+\bigskip \pause Large éventail de méthodologies couvert à ce jour: 
+
+- échantillons tirés dans l'échantillon-maître Octopusse (formule spécifique dérivée de la formule de Sen-Yates-Grundy);
+- degrés multiples (CVS);
+- partage des poids complexes (SRCV).
+
+### Un *package* pensé pour être extensible (2)
+
+La fonction de variance peut exporter, en plus des variances estimées, des \strong{résultats intermédiaires} de l'estimation de variance. 
+
+\bigskip \pause Cette fonctionnalité facilite la création de \strong{surcouches} à partir des *wrappers* de variance produits par le *package* gustave.
+
+\bigskip \pause \strong{Exemple} Dans l'EEC, l'estimation de variance pour des indicateurs faisant intervenir plusieurs trimestres (évolution d'un trimestre à l'autre, moyennes annuelles, etc.) s'appuie sur la récupération des résultats intermédiaires des *wrappers* de variance de chaque trimestre concerné (estimation des covariances trimestrielles).
+
+
+### Un *package* pensé pour être extensible (3)
+
+Il est également possible de définir de nouvelles fonctions pour estimer la précision de \strong{statistiques complexes} grâce à la fonction `define_statistic_wrapper()`: 
+
+\scriptsize \pause 
+```{r, eval=FALSE}
+# Définition du coefficient de gini à partir du package vardpoor
+gini <- define_statistic_wrapper(
+  statistic_function = function(y, weight){
+    require(vardpoor)
+    result <- lingini(Y = y, weight = weight)
+    list(point = result$value$Gini, lin = result$lin$lin_gini)
+  }, 
+  arg_type = list(data = "y", weight = "weight", param = NULL)
+)
+
+# Utilisation pour calculer la précision dans l'enquête SRCV en 2014
+precisionSrcv(r, gini(HX090))
+```
+
+\pause
+```{r, echo=FALSE}
+srcv2
+```
+
+### Pour synthétiser
+
+\large
+
+Au-delà de la fonction \og prête-à-estimer \fg{} `qvar()`, le *package* gustave est pensé comme une \strong{boîte à outils pour le ou la méthodologue} en charge de l'estimation de variance. 
+
+\pause \bigskip Il rassemble des fonctions méthodologiques et techniques qui \strong{facilitent la création de programmes d'estimation de variance simples d'utilisation et autonomes}.
+
+\pause \bigskip Sa conception est pensée pour que ses fonctionnalités soient \strong{le plus extensibles possibles}. 
+
+\pause \bigskip Ce souci est également présent dans ses \strong{principes de développement}. 
+
+
+# Principes et outils de développement
+
+### Objectif: maximiser la maintenabilité
+
+Le développement d'un outil de calcul de précision conduit à affronter \strong{deux sources de complexité}: 
+
+- \pause complexité \strong{méthodologique}: méthodes souvent ardues et peu enseignées en formation initiale; 
+- \pause complexité \strong{informatique}: outils complexes pour obtenir des programmes ergonomiques pour le non-spécialiste (gestion fine des [\underline{environnements}](http://adv-r.had.co.nz/Environments.html), [\underline{évaluation non-standard}](http://adv-r.had.co.nz/Computing-on-the-language.html), etc.).
+
+\bigskip \pause Dans ce contexte, le risque est élevé d'aboutir à un \strong{outil très difficilement maintenable dans le temps}, notamment dans le contexte des mobilités à l'Insee.
+
+\pause \bigskip \strong{Solution mise en \oe uvre} Adopter des \strong{principes de développement qui maximisent la maintenabilité du code}, inspirés de l'univers du \strong{logiciel libre}.
+
+### Principes (1) : Logiciel libre et *package*
+
+\strong{Utilisation de R}: logiciel libre conçu pour l'exploitation de données statistiques, R présente davantage de garanties de pérennité (à l'Insee et en général) que des alternatives (SAS notamment).
+
+\bigskip \pause Plus encore, R offre la possibilité de \strong{structurer un ensemble de codes sous la forme de \textit{packages}}:
+
+- \pause gestion des conflits de noms et des dépendances;
+- \pause documentation de l'ensemble des fonctions accessibles à l'utilisateur;
+- \pause intégration de données d'exemple;
+- \pause diffusion sur le CRAN: validation technique du *package* et installation facile.
+
+\bigskip \pause \strong{Pour en savoir plus} [\underline{Développer un \textit{package} avec RStudio et git}](https://git.stable.innovation.insee.eu/formation/r_dev)
+
+### Principes (2) : Suivi de versions
+
+Les évolutions du *package* sont \strong{suivies en version} depuis l'été 2017: 
+
+- \pause \strong{code source librement accessible} sur plusieurs plateformes de développement: [\underline{github.com}](https://github.com/martinchevalier/gustave), [\underline{gitlab interne de l'Insee}](https://git;stable.innovation.insee.eu/methodologie-sondage/gustave);
+
+- \pause \bigskip \strong{conservation de toutes les versions} (plus de 300 *commits* à ce jour) avec leurs métadonnées: une description est associée à chaque ensemble cohérent de modifications;
+
+- \pause \bigskip \strong{travail collaboratif facilité}, y compris de façon concomittante: création de branches pour des développements particulier, gestion des conflits;
+
+- \pause \bigskip possibilité pour des utilisateurs externes de \strong{proposer efficacement des modifications} (remontée de *bugs*, demandes spécifiques, *pull requests*).
+
+### Principes (3) : Tests unitaires et intégration en continu
+
+Le développement sous la forme de *packages* favorise également le développement de \strong{tests unitaires}: 
+
+1. \pause À chaque fonctionnalité du *package* est associé un \strong{test} qui vérifie son bon fonctionnement.
+2. \pause Au cours du développement, il est très facile de rejouer tous les tests unitaires pour garantir la \strong{non-régression}.
+
+    \pause \bigskip $\rightarrow$ gustave comporte plus de \strong{180 tests unitaires}.
+
+\bigskip \pause Il est possible d'associer suivi de versions et tests unitaires *via* l'\strong{intégration en continu}: 
+
+- à chaque nouvelle version du *package*, des tests sont automatiquement réalisés;
+- une notification est envoyée en cas d'échec.
+
+### Principes (4) : Formation et organisation du travail
+
+Le maintien d'un programme dans le temps ne dépend pas que de ses caractéristiques techniques, mais aussi du cadre organisationnel: 
+
+- \pause \href{https://git.stable.innovation.insee.eu/formation}{\strong{\underline{formations au développement avec R}}}: initiation, perfectionnement, développement de *packages*, gestion de version;
+
+- \bigskip \pause participation à l'\strong{amélioration des outils de développement}: utilisation de git dans RStudio sur AUS, investissement dans les outils proposés par la [\underline{plateforme Innovation}](https://onyxia.beta.innovation.insee.eu);
+
+- \bigskip \pause organisation sous forme de \strong{binôme}: passation longue avec Nicolas Paliod en 2017-2018, y compris sur les points les plus techniques du *package*;
+
+- \bigskip \pause \strong{impulsion collective} au sein de la section Méthodes d'estimation: investissement de moyen terme dans le développement de *packages* R et les outils collaboratifs.
+
+### De nouvelles possibilités de collaboration
+
+Le modèle de développement du *package* gustave est résolument \strong{ouvert et horizontal}. Tout un chacun peut ainsi: 
+
+- \vspace{-0.2cm} \pause utiliser la \strong{toute dernière version} en cours de développement;
+- \pause \strong{relire le code} pour comprendre son fonctionnement, détecter d'éventuelles erreurs et \strong{proposer un correctif};
+- \pause \strong{proposer une nouvelle fonctionnalité} et éventuellement des éléments pour la mettre en \oe uvre. 
+
+\pause Les plateformes de développement comme github.com ou gitlab permettent de facilement communiquer autour du code: 
+
+- \vspace{-0.2cm} ticket d'incident (*bug report*);
+- proposition de nouvelle fonctionnalité (*feature request*);
+- proposition de code à intégrer dans le *package* (*pull request*).
+
+\pause Ces nouvelles méthodes de travail et ces nouveaux outils ouvrent de \strong{nouvelles possibilités de collaboration} autour des questions méthodologiques.
+
+# Outils pour l'estimation de variance dans les enquêtes de l'Insee : le *package* R gustave {.unnumbered}
+
+### \ 
+
+\begin{center}
+  \large
+  \strong{Merci de votre attention!}  
+
+  \normalsize \bigskip \bigskip Martin Chevalier \\ martin.chevalier@insee.fr \\\url{https://github.com/martinchevalier/gustave}
+\end{center}
+
+
+
