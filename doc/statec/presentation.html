@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head>
+<html lang="fr"><head>
 <script src="presentation_files/libs/clipboard/clipboard.min.js"></script>
 <script src="presentation_files/libs/quarto-html/tabby.min.js"></script>
 <script src="presentation_files/libs/quarto-html/popper.min.js"></script>
@@ -29,6 +29,71 @@
       margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
       vertical-align: middle;
     }
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      { color: #003b4f; background-color: #f1f3f5; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #003b4f; } /* Normal */
+    code span.al { color: #ad0000; } /* Alert */
+    code span.an { color: #5e5e5e; } /* Annotation */
+    code span.at { color: #657422; } /* Attribute */
+    code span.bn { color: #ad0000; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #003b4f; } /* ControlFlow */
+    code span.ch { color: #20794d; } /* Char */
+    code span.cn { color: #8f5902; } /* Constant */
+    code span.co { color: #5e5e5e; } /* Comment */
+    code span.cv { color: #5e5e5e; font-style: italic; } /* CommentVar */
+    code span.do { color: #5e5e5e; font-style: italic; } /* Documentation */
+    code span.dt { color: #ad0000; } /* DataType */
+    code span.dv { color: #ad0000; } /* DecVal */
+    code span.er { color: #ad0000; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #ad0000; } /* Float */
+    code span.fu { color: #4758ab; } /* Function */
+    code span.im { color: #00769e; } /* Import */
+    code span.in { color: #5e5e5e; } /* Information */
+    code span.kw { color: #003b4f; } /* Keyword */
+    code span.op { color: #5e5e5e; } /* Operator */
+    code span.ot { color: #003b4f; } /* Other */
+    code span.pp { color: #ad0000; } /* Preprocessor */
+    code span.sc { color: #5e5e5e; } /* SpecialChar */
+    code span.ss { color: #20794d; } /* SpecialString */
+    code span.st { color: #20794d; } /* String */
+    code span.va { color: #111111; } /* Variable */
+    code span.vs { color: #20794d; } /* VerbatimString */
+    code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </style>
   <link rel="stylesheet" href="presentation_files/libs/revealjs/dist/theme/quarto.css">
   <link rel="stylesheet" href="logo.css">
@@ -320,6 +385,30 @@
       margin-right: 0; 
     }
   </style>
+  <script>
+    function move_titleSlide() {
+        var titleSlide = document.querySelector('section#title-slide');
+        var titleSlideClone = titleSlide.cloneNode(true);
+        titleSlideClone.id = 'title-slide-cloned';
+        document.querySelector('.reveal .slides').appendChild(titleSlideClone);
+        Reveal.sync();
+    }
+
+    window.document.addEventListener("DOMContentLoaded", function (event) {
+      move_titleSlide();
+    });
+  </script>
+
+
+  <style>
+    #title-slide-cloned {
+      text-align: center
+    }
+
+    #title-slide-cloned .subtitle {
+      margin-bottom: 2.5rem
+    }
+  </style>
 </head>
 <body class="quarto-light">
   <div class="reveal">
@@ -342,37 +431,712 @@ Martin Chevalier
 
   <p class="date">15/06/2023</p>
 </section>
-<section id="introduction" class="slide level2">
-<h2>Introduction</h2>
+<section>
+<section id="introduction" class="title-slide slide level1 center">
+<h1>Introduction</h1>
+
+</section>
+<section id="le-package-r-gustave" class="slide level2">
+<h2>Le <em>package</em> R gustave</h2>
 <p>Le <em>package</em> R gustave est un outil informatique développé au sein de l’Insee à partir de 2016 pour répondre au <strong>besoin grandissant</strong> d’estimations de précision dans les enquêtes auprès des ménages et des entreprises.</p>
 <div class="fragment">
-<p>L’élaboration et l’utilisation de ce <em>package</em> R constitue une réponse aux multiples <em>challenges</em> posés par l’estimation de variance :</p>
+<p>L’élaboration et l’utilisation de ce <em>package</em> R constitue une réponse aux nombreux <strong>défis posés par l’estimation de variance</strong> :</p>
 <ul>
-<li class="fragment">spécifités des méthodes d’estimation de la variance ;</li>
-<li class="fragment">diversité et complexité des plans de sondages et des méthodes de redressement ;</li>
-<li class="fragment">complexité des plans de sondage et des méthodes de redressement ;</li>
-</ul>
-<p>L’estimation de variance est une étape souvent <strong>indispensable</strong> dans le traitement d’une enquête statistique:</p>
-<ul>
-<li class="fragment">outil pour évaluer la <strong>qualité de l’information collectée</strong> susceptible d’influer sur sa diffusion ;</li>
-<li class="fragment">indicateur utilisé dans les <em>reporting</em> au niveau européen (rapport qualité, réglement IESS).</li>
+<li class="fragment"><strong>complexité</strong> des plans de sondages et des méthodes de redressement à prendre en compte ;</li>
+<li class="fragment"><strong>diversité</strong> des plans de sondage et des méthodes de redressement selon les opérations ;</li>
+<li class="fragment"><strong>spécifité</strong> des méthodes d’estimation de la variance.</li>
 </ul>
 </div>
 <div class="fragment">
+<p><strong>Précédents à l’Insee</strong> : macros <strong><em>%poulpe</em></strong>, <strong><em>%calker</em></strong>, <strong><em>%calker_grh</em></strong> et <strong><em>%everest</em></strong>.</p>
+</div>
+</section>
+<section id="introduction---aspect-organisationnel" class="slide level2">
+<h2>Introduction - Aspect organisationnel</h2>
+<p><br>
+</p>
+<p><strong>Objectif</strong> : Rendre le calcul de précision (plus) simple</p>
+<p><br>
+</p>
+<div class="fragment">
+<p>L’utilisation du <em>package</em> gustave va de pair avec une <strong>mise en oeuvre en deux étapes</strong> du calcul de précision :</p>
+<ol type="1">
+<li class="fragment"><p><strong>Méthodologue</strong> : analyse méthodologique, mobilisation de l’information auxiliaire, construction d’un <strong>programme d’estimation de variance</strong> raisonnablement exact;</p></li>
+<li class="fragment"><p><strong>Responsable d’enquête, chargé·e d’étude</strong> : utilisation du programme d’estimation <strong>raisonnablement simple d’utilisation</strong> dans le cadre d’études ou pour répondre à des obligations réglementaires.</p></li>
+</ol>
+</div>
+</section>
+<section id="introduction---aspect-méthodologique" class="slide level2">
+<h2>Introduction - Aspect méthodologique</h2>
+<p>Pour le ou la méthodologue, gustave se présente comme une <strong>«&nbsp;boîte à outil&nbsp;» (<em>toolkit</em>) pour l’estimation de variance</strong> :</p>
 <ul>
-<li class="fragment">la stratégie mise en oeuvre à l’Insee pour mener à bien l’estimation de variance sur des enquêtes complexes;</li>
-<li class="fragment">le <em>package</em> R gustave développé au sein du Département des méthodes statistiques (DMS).</li>
+<li class="fragment"><p>fonctions codant les <strong>estimateurs de variance classiques</strong> : Sen-Yates-Grundy, Deville-Tillé ;</p></li>
+<li class="fragment"><p>fonctions permettant de prendre en compte le <strong>calage sur marges</strong> ;</p></li>
+<li class="fragment"><p>fonctions mettant en oeuvre les <strong>linéarisations classiques</strong> : moyenne, ratio, différence de ratios ;</p></li>
+<li class="fragment"><p>calcul automatique des variables pour l’<strong>estimation sur des domaines</strong> (et articulation avec la linéarisation éventuelle).</p></li>
+</ul>
+<div class="fragment">
+<p><strong>Rien ne limite <em>a priori</em> la complexité</strong> du programme d’estimation de variance ou des linéarisations (de nouvelles linéarisations peuvent être créées).</p>
+</div>
+</section>
+<section id="introduction---aspect-informatique" class="slide level2">
+<h2>Introduction - Aspect informatique</h2>
+<p>gustave intervient pour <strong>transformer le programme d’estimation de la variance</strong> élaboré par le ou la méthodologue en une <strong>fonction (un <em>wrapper</em>) plus facile d’utilisation</strong> :</p>
+<ul>
+<li class="fragment">il n’est nécessaire de connaître <strong>aucun aspect de la méthodologie de l’enquête</strong> pour lancer le calcul de précision ;</li>
+<li class="fragment"><strong>toutes les données nécessaires</strong> au calcul sont transportées avec la fonction ;</li>
+<li class="fragment">un effort important a été réalisé en vue de <strong>rendre la manipulation la plus simple possible</strong> : évaluation non-standard pour linéariser/recoder des variables à la volée, arguments <code>by</code> et <code>where</code>, etc.</li>
+</ul>
+<div class="fragment">
+<p><strong>Remarque</strong> Une <strong>fonction prête à l’emploi</strong>, <code>qvar()</code>, simplifie la définition d’un <em>wrapper</em> de variance pour les <strong>cas les plus simples</strong>.</p>
+</div>
+</section>
+<section id="plan-de-la-présentation" class="slide level2">
+<h2>Plan de la présentation</h2>
+<p>&nbsp;</p>
+<div class="fragment">
+<div style="font-size:1.25em">
+<p><strong>La fonction <code>qvar()</code> : un outil «&nbsp;prêt-à-estimer&nbsp;» pour les cas les plus simples</strong></p>
+</div>
+<p>&nbsp;</p>
+</div>
+<div class="fragment">
+<div style="font-size:1.25em">
+<p><strong>Le <em>package</em> gustave : une boîte à outils pour l’estimation de variance</strong></p>
+</div>
+<p>&nbsp;</p>
+</div>
+<div class="fragment">
+<div style="font-size:1.25em">
+<p><strong>Considérations informatiques</strong></p>
+</div>
+</div>
+</section></section>
+<section>
+<section id="la-fonction-qvar-un-outil-prêt-à-estimer-pour-les-cas-les-plus-simples" class="title-slide slide level1 center">
+<h1>La fonction <code>qvar()</code> : un outil «&nbsp;prêt-à-estimer&nbsp;» pour les cas les plus simples</h1>
+
+</section>
+<section id="principe-de-la-fonction-qvar" class="slide level2">
+<h2>Principe de la fonction <code>qvar()</code></h2>
+<p><code>qvar()</code> est une <em>fonction</em> du <em>package</em> gustave, qui <strong>combine les autres fonctions proposées par le <em>package</em></strong> dans un outil « prêt-à-estimer » dans les cas les plus simples, à savoir :</p>
+<ul>
+<li class="fragment">sondage aléatoire simple stratifié ;</li>
+<li class="fragment">correction de la non-réponse par repondération dans des groupes de réponse homogènes ;</li>
+<li class="fragment">calage sur marges.</li>
+</ul>
+<div class="fragment">
+<p><code>qvar()</code> est ainsi particulièrement adaptée aux enquêtes réalisées par l’Insee <strong>auprès des entreprises</strong> et remplace les macros SAS <strong><em>%calker_grh</em></strong> et <strong><em>%everest</em></strong>.</p>
+</div>
+<div class="fragment">
+<p><strong>Remarque</strong> Le nom «&nbsp;qvar&nbsp;» signifie «&nbsp;<em>quick variance estimation</em>&nbsp;» et est pensé par analogie avec la fonction <code>qplot()</code> du <em>package</em> ggplot2.</p>
+</div>
+</section>
+<section id="démonstration-installation-et-chargement" class="slide level2">
+<h2>Démonstration : Installation et chargement</h2>
+<p>La version 0.4.4 du <em>package</em> gustave est accessible <a href="https://CRAN.R-project.org/package=gustave">sur le CRAN</a>.</p>
+<div class="fragment">
+<p>La version en cours de développement est disponible sur <a href="https://github.com/InseeFr/gustave">github.com</a>.</p>
+</div>
+<div class="fragment">
+<p>&nbsp;</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># Installation de la version disponible sur le CRAN</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">install.packages</span>(<span class="st">"gustave"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3"></a></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="co"># Installation de la version de développement depuis github</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"InseeFr/gustave"</span>)</span>
+<span id="cb1-6"><a href="#cb1-6"></a></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="co"># Chargement du package gustave</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a><span class="fu">library</span>(gustave)</span>
+<span id="cb1-9"><a href="#cb1-9"></a></span>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="co"># Affichage de l'aide de la fonction qvar()</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a>? qvar</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+</section>
+<section id="démonstration-données-dexemple" class="slide level2">
+<h2>Démonstration : Données d’exemple</h2>
+<p>Le <em>package</em> gustave embarque des <strong>données d’exemple simulées</strong> inspirées de l’enquête Technologies de l’information et de la communication.</p>
+<div class="fragment">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># Table d'échantillon ict_sample</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="fu">names</span>(ict_sample)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "firm_id"           "division"          "employees"        
+ [4] "turnover"          "strata"            "w_sample"         
+ [7] "scope"             "resp"              "nrc"              
+[10] "hrg"               "response_prob_est" "w_nrc"            
+[13] "calib"             "N_58"              "N_59"             
+[16] "N_60"              "N_61"              "N_62"             
+[19] "N_63"              "turnover_58"       "turnover_59"      
+[22] "turnover_60"       "turnover_61"       "turnover_62"      
+[25] "turnover_63"       "w_calib"           "dissemination"    </code></pre>
+</div>
+</div>
+</div>
+<div class="fragment">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># Table de variables d'intérêt ict_survey</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="fu">names</span>(ict_survey)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "firm_id"         "division"        "employees"       "turnover"       
+ [5] "w_calib"         "speed_quanti"    "speed_quanti_NA" "speed_quali"    
+ [9] "speed_quali_NA"  "big_data"        "big_data_NA"    </code></pre>
+</div>
+</div>
+</div>
+</section>
+<section id="démonstration-lancement-de-qvar" class="slide level2">
+<h2>Démonstration : Lancement de <code>qvar()</code></h2>
+<p>En première approche, <code>qvar()</code> nécessite de spécifier <strong>tous les paramètres de l’enquête</strong> pour mener à bien une estimation.</p>
+<div class="fragment">
+<p><strong>Remarque</strong> Ici, on n’a repris que les paramètres relatifs au plan de sondage.</p>
+</div>
+<div class="fragment">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">qvar</span>(</span>
+<span id="cb6-2"><a href="#cb6-2"></a>  <span class="co"># Paramètres du plan de sondage</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a>  <span class="at">data =</span> ict_sample,</span>
+<span id="cb6-4"><a href="#cb6-4"></a>  <span class="at">id =</span> <span class="st">"firm_id"</span>,</span>
+<span id="cb6-5"><a href="#cb6-5"></a>  <span class="at">sampling_weight =</span> <span class="st">"w_sample"</span>,</span>
+<span id="cb6-6"><a href="#cb6-6"></a>  <span class="at">strata =</span> <span class="st">"strata"</span>,</span>
+<span id="cb6-7"><a href="#cb6-7"></a>  <span class="co"># Paramètres sur les observations diffusées et leur poids</span></span>
+<span id="cb6-8"><a href="#cb6-8"></a>  <span class="at">dissemination_dummy =</span> <span class="st">"dissemination"</span>,</span>
+<span id="cb6-9"><a href="#cb6-9"></a>  <span class="at">dissemination_weight =</span> <span class="st">"w_sample"</span>,</span>
+<span id="cb6-10"><a href="#cb6-10"></a>  <span class="co"># Variable d'intérêt</span></span>
+<span id="cb6-11"><a href="#cb6-11"></a>  turnover</span>
+<span id="cb6-12"><a href="#cb6-12"></a>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                 call   n       est     variance      std       cv     lower
+1 total(y = turnover) 506 138423007 2.349875e+14 15329303 11.07425 108378125
+      upper
+1 168467890</code></pre>
+</div>
+</div>
+</div>
+</section>
+<section id="démonstration-création-dun-wrapper" class="slide level2">
+<h2>Démonstration : Création d’un <em>wrapper</em></h2>
+<p>Mais <code>qvar()</code> est pensé pour être utilisé en <strong>deux étapes distinctes</strong> :</p>
+<ol type="1">
+<li class="fragment">(Méthodologue) Définition d’un <strong><em>wrapper</em> de variance</strong></li>
+</ol>
+<div class="fragment">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>precisionTic <span class="ot">&lt;-</span> <span class="fu">qvar</span>(</span>
+<span id="cb8-2"><a href="#cb8-2"></a>  <span class="co"># Paramètres du plan de sondage</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a>  <span class="at">data =</span> ict_sample,</span>
+<span id="cb8-4"><a href="#cb8-4"></a>  <span class="at">id =</span> <span class="st">"firm_id"</span>,</span>
+<span id="cb8-5"><a href="#cb8-5"></a>  <span class="at">sampling_weight =</span> <span class="st">"w_sample"</span>,</span>
+<span id="cb8-6"><a href="#cb8-6"></a>  <span class="at">strata =</span> <span class="st">"strata"</span>,</span>
+<span id="cb8-7"><a href="#cb8-7"></a>  <span class="co"># Paramètres sur les observations diffusées et leur poids</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a>  <span class="at">dissemination_dummy =</span> <span class="st">"dissemination"</span>,</span>
+<span id="cb8-9"><a href="#cb8-9"></a>  <span class="at">dissemination_weight =</span> <span class="st">"w_sample"</span>,</span>
+<span id="cb8-10"><a href="#cb8-10"></a>  <span class="co"># Argument indiquant qu'on souhaite définir un outil de calcul de précision </span></span>
+<span id="cb8-11"><a href="#cb8-11"></a>  <span class="at">define =</span> <span class="cn">TRUE</span></span>
+<span id="cb8-12"><a href="#cb8-12"></a>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ol start="2" type="1">
+<li class="fragment">(Chargé·e d’étude) Utilisation du <em>wrapper</em></li>
+</ol>
+</div>
+<div class="fragment">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">precisionTic</span>(ict_survey, turnover)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                 call   n       est     variance      std       cv     lower
+1 total(y = turnover) 506 138423007 2.349875e+14 15329303 11.07425 108378125
+      upper
+1 168467890</code></pre>
+</div>
+</div>
+</div>
+</section>
+<section id="démonstration-ergonomie-1" class="slide level2">
+<h2>Démonstration : Ergonomie (1)</h2>
+<p>Estimation de moyennes ou de ratio</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="fu">precisionTic</span>(ict_survey, <span class="fu">mean</span>(turnover))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                call   n      est variance      std       cv    lower    upper
+1 mean(y = turnover) 506 22536.97  6016444 2452.844 10.88365 17729.48 27344.45</code></pre>
+</div>
+</div>
+<div class="fragment">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="fu">precisionTic</span>(ict_survey, <span class="fu">ratio</span>(turnover, employees))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                      call   n      est variance      std
+1 ratio(num = turnover, denom = employees) 506 251.7953 842.8196 29.03136
+        cv    lower    upper
+1 11.52974 194.8949 308.6957</code></pre>
+</div>
+</div>
+</div>
+<div class="fragment">
+<p>Plusieurs estimations en un seul appel (avec labels optionnels)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="fu">precisionTic</span>(ict_survey,</span>
+<span id="cb15-2"><a href="#cb15-2"></a>  <span class="st">"CA moyen"</span> <span class="ot">=</span> <span class="fu">mean</span>(turnover),</span>
+<span id="cb15-3"><a href="#cb15-3"></a>  <span class="st">"CA moyen par salarié"</span> <span class="ot">=</span> <span class="fu">ratio</span>(turnover, employees)</span>
+<span id="cb15-4"><a href="#cb15-4"></a>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                 label                                     call   n        est
+1             CA moyen                       mean(y = turnover) 506 22536.9667
+2 CA moyen par salarié ratio(num = turnover, denom = employees) 506   251.7953
+      variance        std       cv      lower      upper
+1 6016443.9018 2452.84404 10.88365 17729.4807 27344.4527
+2     842.8196   29.03136 11.52974   194.8949   308.6957</code></pre>
+</div>
+</div>
+</div>
+</section>
+<section id="démonstration-ergonomie-2" class="slide level2">
+<h2>Démonstration : Ergonomie (2)</h2>
+<p>Estimation sur un ou plusieurs domaines</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="fu">precisionTic</span>(ict_survey, <span class="fu">mean</span>(speed_quanti), <span class="at">where =</span> employees <span class="sc">&gt;=</span> <span class="dv">50</span>)[, <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">5</span>)]</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                             call   n      est      std
+1 mean(y = speed_quanti, where = employees &gt;= 50) 193 42.50389 3.587081</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a><span class="fu">precisionTic</span>(ict_survey, <span class="fu">mean</span>(speed_quanti), <span class="at">by =</span> division)[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">6</span>)]</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                   call by   n      est      std
+1 mean(y = speed_quanti, by = division) 58 152 36.17213 3.227243
+2 mean(y = speed_quanti, by = division) 59  69 19.75255 3.313274
+3 mean(y = speed_quanti, by = division) 60  35 54.18026 6.729909</code></pre>
+</div>
+</div>
+<div class="fragment">
+<p>Domaines différents par estimateur</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a><span class="co"># Domaines différents par estimateur</span></span>
+<span id="cb21-2"><a href="#cb21-2"></a><span class="fu">precisionTic</span>(ict_survey,</span>
+<span id="cb21-3"><a href="#cb21-3"></a>  <span class="st">"CA moyen des 50 et plus"</span> <span class="ot">=</span> <span class="fu">mean</span>(turnover, <span class="at">where =</span> employees <span class="sc">&gt;=</span> <span class="dv">50</span>),</span>
+<span id="cb21-4"><a href="#cb21-4"></a>  <span class="st">"CA moyen des 100 et plus"</span> <span class="ot">=</span> <span class="fu">mean</span>(turnover, <span class="at">where =</span> employees <span class="sc">&gt;=</span> <span class="dv">100</span>)</span>
+<span id="cb21-5"><a href="#cb21-5"></a>)[, <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">6</span>)]</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                     label   n      est      std
+1  CA moyen des 50 et plus 193 27980.13 6230.232
+2 CA moyen des 100 et plus 137 32736.42 9002.801</code></pre>
+</div>
+</div>
+</div>
+</section>
+<section id="démonstration-ergonomie-3" class="slide level2">
+<h2>Démonstration : Ergonomie (3)</h2>
+<p>Dichotomisation automatique</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a><span class="fu">precisionTic</span>(ict_survey, <span class="fu">mean</span>(speed_quanti <span class="sc">&gt;</span> <span class="dv">100</span>))[, <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">5</span>)]</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                          call   n       est       std
+1 mean(y = speed_quanti &gt; 100) 506 0.1590424 0.0176685</code></pre>
+</div>
+</div>
+<div class="fragment">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a><span class="fu">precisionTic</span>(ict_survey, <span class="fu">mean</span>(speed_quali))[, <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">6</span>)]</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                   call                     mod   n        est         std
+1 mean(y = speed_quali)        Less than 2 Mbps 506 0.03352201 0.008172459
+2 mean(y = speed_quali)   Between 2 and 10 Mbps 506 0.33934964 0.022436266
+3 mean(y = speed_quali)  Between 10 and 30 Mbps 506 0.32479578 0.022060963
+4 mean(y = speed_quali) Between 30 and 100 Mbps 506 0.14329014 0.016876586
+5 mean(y = speed_quali)          Above 100 Mbps 506 0.15904243 0.017668498</code></pre>
+</div>
+</div>
+</div>
+<div class="fragment">
+<p>Intégration avec <code>%&gt;%</code> et dplyr</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb27-2"><a href="#cb27-2"></a>ict_survey <span class="sc">%&gt;%</span></span>
+<span id="cb27-3"><a href="#cb27-3"></a>  <span class="fu">precisionTic</span>(<span class="st">"Connexion supérieure à 100 Mbs"</span> <span class="ot">=</span> <span class="fu">mean</span>(speed_quanti <span class="sc">&gt;</span> <span class="dv">100</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb27-4"><a href="#cb27-4"></a>  <span class="fu">select</span>(label, est, lower, upper)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                           label       est     lower     upper
+1 Connexion supérieure à 100 Mbs 0.1590424 0.1244128 0.1936721</code></pre>
+</div>
+</div>
+</div>
+</section>
+<section id="démonstration-unités-hors-champ" class="slide level2">
+<h2>Démonstration : Unités hors-champ</h2>
+<p>Il est facile dans <code>qvar()</code> de tenir compte du fait que des unités ont été <strong>détectées comme hors-champ par l’enquête</strong> (présentes dans la base de sondage mais pas dans la suite des redressements).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a>precisionTic <span class="ot">&lt;-</span>  <span class="fu">qvar</span>(</span>
+<span id="cb29-2"><a href="#cb29-2"></a>  </span>
+<span id="cb29-3"><a href="#cb29-3"></a>  <span class="co"># Paramètres du plan de sondage</span></span>
+<span id="cb29-4"><a href="#cb29-4"></a>  <span class="at">data =</span> ict_sample,</span>
+<span id="cb29-5"><a href="#cb29-5"></a>  <span class="at">id =</span> <span class="st">"firm_id"</span>,</span>
+<span id="cb29-6"><a href="#cb29-6"></a>  <span class="at">sampling_weight =</span> <span class="st">"w_sample"</span>,</span>
+<span id="cb29-7"><a href="#cb29-7"></a>  <span class="at">strata =</span> <span class="st">"strata"</span>,</span>
+<span id="cb29-8"><a href="#cb29-8"></a>  </span>
+<span id="cb29-9"><a href="#cb29-9"></a>  <span class="co"># Indicatrice d'appartenance au champ</span></span>
+<span id="cb29-10"><a href="#cb29-10"></a>  <span class="at">scope_dummy =</span> <span class="st">"scope"</span>,</span>
+<span id="cb29-11"><a href="#cb29-11"></a></span>
+<span id="cb29-12"><a href="#cb29-12"></a>  <span class="co"># Paramètres sur les observations diffusées et leur poids</span></span>
+<span id="cb29-13"><a href="#cb29-13"></a>  <span class="at">dissemination_dummy =</span> <span class="st">"dissemination"</span>,</span>
+<span id="cb29-14"><a href="#cb29-14"></a>  <span class="at">dissemination_weight =</span> <span class="st">"w_sample"</span>,</span>
+<span id="cb29-15"><a href="#cb29-15"></a>  </span>
+<span id="cb29-16"><a href="#cb29-16"></a>  <span class="co"># Argument indiquant qu'on souhaite définir un outil de calcul de précision </span></span>
+<span id="cb29-17"><a href="#cb29-17"></a>  <span class="at">define =</span> <span class="cn">TRUE</span></span>
+<span id="cb29-18"><a href="#cb29-18"></a>  </span>
+<span id="cb29-19"><a href="#cb29-19"></a>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="démonstration-correction-de-la-non-réponse" class="slide level2">
+<h2>Démonstration : Correction de la non-réponse</h2>
+<p><code>qvar()</code> est en mesure de tenir compte d’une étape de correction de la non-réponse par <strong>repondération au sein de groupes de réponse homogène</strong>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1"></a>precisionTic <span class="ot">&lt;-</span> <span class="fu">qvar</span>(</span>
+<span id="cb30-2"><a href="#cb30-2"></a>  </span>
+<span id="cb30-3"><a href="#cb30-3"></a>  <span class="co"># Paramètres du plan de sondage</span></span>
+<span id="cb30-4"><a href="#cb30-4"></a>  <span class="at">data =</span> ict_sample,</span>
+<span id="cb30-5"><a href="#cb30-5"></a>  <span class="at">id =</span> <span class="st">"firm_id"</span>,</span>
+<span id="cb30-6"><a href="#cb30-6"></a>  <span class="at">sampling_weight =</span> <span class="st">"w_sample"</span>, </span>
+<span id="cb30-7"><a href="#cb30-7"></a>  <span class="at">strata =</span> <span class="st">"strata"</span>,</span>
+<span id="cb30-8"><a href="#cb30-8"></a></span>
+<span id="cb30-9"><a href="#cb30-9"></a>  <span class="co"># Indicatrice d'appartenance au champ</span></span>
+<span id="cb30-10"><a href="#cb30-10"></a>  <span class="at">scope_dummy =</span> <span class="st">"scope"</span>,</span>
+<span id="cb30-11"><a href="#cb30-11"></a>  </span>
+<span id="cb30-12"><a href="#cb30-12"></a>  <span class="co"># Paramètres de la correction de la non-réponse</span></span>
+<span id="cb30-13"><a href="#cb30-13"></a>  <span class="at">nrc_dummy =</span> <span class="st">"nrc"</span>,</span>
+<span id="cb30-14"><a href="#cb30-14"></a>  <span class="at">nrc_weight =</span> <span class="st">"w_nrc"</span>,</span>
+<span id="cb30-15"><a href="#cb30-15"></a>  <span class="at">response_dummy =</span> <span class="st">"resp"</span>,</span>
+<span id="cb30-16"><a href="#cb30-16"></a>  <span class="at">hrg =</span> <span class="st">"hrg"</span>,</span>
+<span id="cb30-17"><a href="#cb30-17"></a></span>
+<span id="cb30-18"><a href="#cb30-18"></a>  <span class="co"># Paramètres sur les observations diffusées et leur poids</span></span>
+<span id="cb30-19"><a href="#cb30-19"></a>  <span class="at">dissemination_dummy =</span> <span class="st">"dissemination"</span>,</span>
+<span id="cb30-20"><a href="#cb30-20"></a>  <span class="at">dissemination_weight =</span> <span class="st">"w_nrc"</span>,</span>
+<span id="cb30-21"><a href="#cb30-21"></a>  </span>
+<span id="cb30-22"><a href="#cb30-22"></a>  <span class="co"># Argument indiquant qu'on souhaite définir un outil de calcul de précision </span></span>
+<span id="cb30-23"><a href="#cb30-23"></a>  <span class="at">define =</span> <span class="cn">TRUE</span></span>
+<span id="cb30-24"><a href="#cb30-24"></a>  </span>
+<span id="cb30-25"><a href="#cb30-25"></a>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="démonstration-calage-sur-marges" class="slide level2">
+<h2>Démonstration : Calage sur marges</h2>
+<p>Enfin, <code>qvar()</code> peut également tenir compte de l’<strong>impact d’un calage sur marges</strong> sur la précision des estimateurs.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1"></a>precisionTic <span class="ot">&lt;-</span> <span class="fu">qvar</span>(</span>
+<span id="cb31-2"><a href="#cb31-2"></a></span>
+<span id="cb31-3"><a href="#cb31-3"></a>  <span class="co"># Paramètres du plan de sondage</span></span>
+<span id="cb31-4"><a href="#cb31-4"></a>  <span class="at">data =</span> ict_sample,</span>
+<span id="cb31-5"><a href="#cb31-5"></a>  <span class="at">id =</span> <span class="st">"firm_id"</span>,</span>
+<span id="cb31-6"><a href="#cb31-6"></a>  <span class="at">sampling_weight =</span> <span class="st">"w_sample"</span>, </span>
+<span id="cb31-7"><a href="#cb31-7"></a>  <span class="at">strata =</span> <span class="st">"strata"</span>,</span>
+<span id="cb31-8"><a href="#cb31-8"></a></span>
+<span id="cb31-9"><a href="#cb31-9"></a>  <span class="co"># Indicatrice d'appartenance au champ</span></span>
+<span id="cb31-10"><a href="#cb31-10"></a>  <span class="at">scope_dummy =</span> <span class="st">"scope"</span>,</span>
+<span id="cb31-11"><a href="#cb31-11"></a>  </span>
+<span id="cb31-12"><a href="#cb31-12"></a>  <span class="co"># Paramètres de la correction de la non-réponse</span></span>
+<span id="cb31-13"><a href="#cb31-13"></a>  <span class="at">nrc_dummy =</span> <span class="st">"nrc"</span>,</span>
+<span id="cb31-14"><a href="#cb31-14"></a>  <span class="at">response_dummy =</span> <span class="st">"resp"</span>,</span>
+<span id="cb31-15"><a href="#cb31-15"></a>  <span class="at">hrg =</span> <span class="st">"hrg"</span>,</span>
+<span id="cb31-16"><a href="#cb31-16"></a>  <span class="at">nrc_weight =</span> <span class="st">"w_nrc"</span>,</span>
+<span id="cb31-17"><a href="#cb31-17"></a>  </span>
+<span id="cb31-18"><a href="#cb31-18"></a>  <span class="co"># Paramètres du calage sur marges</span></span>
+<span id="cb31-19"><a href="#cb31-19"></a>  <span class="at">calibration_dummy =</span> <span class="st">"calib"</span>,</span>
+<span id="cb31-20"><a href="#cb31-20"></a>  <span class="at">calibration_var =</span> <span class="fu">c</span>(<span class="fu">paste0</span>(<span class="st">"N_"</span>, <span class="dv">58</span><span class="sc">:</span><span class="dv">63</span>), <span class="fu">paste0</span>(<span class="st">"turnover_"</span>, <span class="dv">58</span><span class="sc">:</span><span class="dv">63</span>)),</span>
+<span id="cb31-21"><a href="#cb31-21"></a>  <span class="at">calibration_weight =</span> <span class="st">"w_calib"</span>,</span>
+<span id="cb31-22"><a href="#cb31-22"></a></span>
+<span id="cb31-23"><a href="#cb31-23"></a>  <span class="co"># Paramètres sur les observations diffusées et leur poids</span></span>
+<span id="cb31-24"><a href="#cb31-24"></a>  <span class="at">dissemination_dummy =</span> <span class="st">"dissemination"</span>,</span>
+<span id="cb31-25"><a href="#cb31-25"></a>  <span class="at">dissemination_weight =</span> <span class="st">"w_calib"</span>,</span>
+<span id="cb31-26"><a href="#cb31-26"></a>  </span>
+<span id="cb31-27"><a href="#cb31-27"></a>  <span class="co"># Argument indiquant qu'on souhaite définir un outil de calcul de précision </span></span>
+<span id="cb31-28"><a href="#cb31-28"></a>  <span class="at">define =</span> <span class="cn">TRUE</span></span>
+<span id="cb31-29"><a href="#cb31-29"></a></span>
+<span id="cb31-30"><a href="#cb31-30"></a>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="la-fonction-qvar-à-retenir" class="slide level2">
+<h2>La fonction <code>qvar()</code> : à retenir</h2>
+<p><code>qvar()</code> facilite la production de programmes d’estimation de variance relativement ergonomiques <strong>dans les cas les plus simples</strong>.</p>
+<div class="fragment">
+<p>&nbsp;</p>
+<p>Elle ne permet cependant pas de tenir compte des <strong>plans de sondage complexes</strong> (phases multiples, partage des poids, etc.), omniprésents dans les enquêtes ménages de l’Insee.</p>
+</div>
+<div class="fragment">
+<p>&nbsp;</p>
+<p>Pour ces cas plus complexes, le <em>package</em> gustave propose une <strong>boîte à outils de fonctions</strong> permettant au ou à la méthodologue de <strong>construire un <em>wrapper</em> de variance sur-mesure</strong>.</p>
+</div>
+</section></section>
+<section>
+<section id="le-package-gustave-une-boîte-à-outils-pour-lestimation-de-variance" class="title-slide slide level1 center">
+<h1>Le <em>package</em> gustave : une boîte à outils pour l’estimation de variance</h1>
+
+</section>
+<section id="principes-du-package-gustave-1" class="slide level2">
+<h2>Principes du <em>package</em> gustave (1)</h2>
+<p><strong>G</strong>ustave: a <strong>U</strong>ser-oriented <strong>S</strong>tatistical <strong>T</strong>oolkit for <strong>A</strong>nalytical <strong>V</strong>ariance <strong>E</strong>stimation</p>
+<p>&nbsp;</p>
+<div class="fragment">
+<p><strong>Idée centrale</strong> «&nbsp;Emballer&nbsp;» (<em>wrap</em>) la fonction d’estimation de variance complexe dans une autre fonction (appelée <em>wrapper</em>) plus simple d’utilisation :</p>
+<ul>
+<li class="fragment"><p><strong>fonction d’estimation de la variance</strong> : fonction spécifique à chaque enquête développée par le ou la méthodologue ;</p></li>
+<li class="fragment"><p><strong><em>wrapper</em> d’estimation de variance</strong> : fonction générique qui prend en charge des opérations systématiques (calcul des statistiques, domaines), appelle la fonction de variance et affiche les résultats.</p></li>
 </ul>
 </div>
 </section>
-<section id="table-des-matières" class="slide level2">
-<h2>Table des matières</h2>
-<div id="toc"></div>
+<section id="principes-du-package-gustave-2" class="slide level2">
+<h2>Principes du <em>package</em> gustave (2)</h2>
+<p>Les fonctions fondamentales du <em>package</em> gustave sont de <strong>deux ordres</strong> :</p>
+<ol type="1">
+<li class="fragment"><p><strong>Fonctions méthodologiques</strong> : estimateurs de variance usuels (Sen-Yates-Grundy, Deville-Tillé, etc.), fonctions outils (calcul des résidus de calage, somme par groupe, etc.) → <strong>faciliter l’écriture de la fonction de variance</strong></p></li>
+<li class="fragment"><p><strong>Fonctions techniques</strong> : fonctions qui simplifient la production de programmes d’estimation de variance qui ne nécessitent pas d’expertise méthodologique particulière → <strong>produire le <em>wrapper</em> de variance</strong></p></li>
+</ol>
+<div class="fragment">
+<p>&nbsp;</p>
+<p><strong>Remarque</strong> <code>qvar()</code> n’est qu’un <strong>appel pré-paramétré</strong> produisant des <strong><em>wrappers</em> de variance</strong> utilisant une <strong>fonction de variance</strong> générique.</p>
+</div>
+</section>
+<section id="démonstration-précision-de-leec" class="slide level2">
+<h2>Démonstration : Précision de l’EEC</h2>
+<p>L’enquête Emploi en continu (EEC) est la <strong>déclinaison française des <em>Labour force surveys</em> (LFS) européennes</strong>.</p>
+<p><br>
+</p>
+<div class="fragment">
+<p>Le réglement IESS définit des <strong>cibles en matière de précision</strong> au niveau national et régional : de ce fait, l’élaboration d’outils d’estimation de variance est <strong>intégrée à la chaîne de production trimestrielle de l’enquête</strong>.</p>
+<p><br>
+</p>
+</div>
+<div class="fragment">
+<p>Conceptuellement, le production du programme de calcul de précision pour un trimestre de l’EEC comporte <strong>deux étapes</strong> :</p>
+<ol type="1">
+<li class="fragment">Ecriture de la fonction de variance</li>
+<li class="fragment">Création du <em>wrapper</em> de variance</li>
+</ol>
+</div>
+</section>
+<section id="démonstration-fonction-de-variance-1" class="slide level2">
+<h2>Démonstration : Fonction de variance (1)</h2>
+<p>L’écriture de la fonction de variance spécifique à une enquête découle de l’<strong>analyse de sa méthodologie</strong>, notamment pour déterminer l’<strong>information auxiliaire</strong> nécessaire.</p>
+<div class="fragment">
+<p><strong>Remarque</strong> La fonction de variance détaillée ici correspond à celle utilisée jusqu’au renouvellement de l’échantillon de l’EEC en 2020.</p>
+</div>
+<div class="fragment">
+<p>La fonction de variance prend <strong>en entrée les arguments suivants</strong> :</p>
+<ul>
+<li class="fragment"><code>y</code> : variables d’intérêtsur lesquelles faire porter l’estimation de variance ;</li>
+<li class="fragment"><code>up</code> : information auxiliaire relative aux unités primaires («&nbsp;bisecteurs&nbsp;») ;</li>
+<li class="fragment"><code>log</code>: information auxiliaire relative aux logements ;</li>
+<li class="fragment"><code>ind</code>: information auxiliaire relative aux individus.</li>
+</ul>
+</div>
+</section>
+<section id="démonstration-fonction-de-variance-2" class="slide level2">
+<h2>Démonstration : Fonction de variance (2)</h2>
+<p>Code complet de la fonction de variance</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1"></a>varEec <span class="ot">&lt;-</span> <span class="cf">function</span>(y, up, log, ind){</span>
+<span id="cb32-2"><a href="#cb32-2"></a></span>
+<span id="cb32-3"><a href="#cb32-3"></a>  variance <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb32-4"><a href="#cb32-4"></a></span>
+<span id="cb32-5"><a href="#cb32-5"></a>  <span class="co"># Etape 0 : Agrégation par logement</span></span>
+<span id="cb32-6"><a href="#cb32-6"></a>  y <span class="ot">&lt;-</span> <span class="fu">sum_by</span>(y, <span class="at">by =</span> ind<span class="sc">$</span>idlog)</span>
+<span id="cb32-7"><a href="#cb32-7"></a></span>
+<span id="cb32-8"><a href="#cb32-8"></a>  <span class="co"># Etape 1 : Prise en compte du calage</span></span>
+<span id="cb32-9"><a href="#cb32-9"></a>  y <span class="ot">&lt;-</span> <span class="fu">add_zero</span>(y, log<span class="sc">$</span>id[log<span class="sc">$</span>cal])</span>
+<span id="cb32-10"><a href="#cb32-10"></a>  y <span class="ot">&lt;-</span> <span class="fu">res_cal</span>(y, <span class="at">precalc =</span> log<span class="sc">$</span>res_cal_precalc)</span>
+<span id="cb32-11"><a href="#cb32-11"></a></span>
+<span id="cb32-12"><a href="#cb32-12"></a>  <span class="co"># Etape 2 : Prise en compte de la non-réponse</span></span>
+<span id="cb32-13"><a href="#cb32-13"></a>  variance[[<span class="st">"nr"</span>]] <span class="ot">&lt;-</span> <span class="fu">colSums</span>(</span>
+<span id="cb32-14"><a href="#cb32-14"></a>    (<span class="dv">1</span><span class="sc">/</span>log<span class="sc">$</span>pilog[log<span class="sc">$</span>cal]<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> log<span class="sc">$</span>qlog[log<span class="sc">$</span>cal]) <span class="sc">*</span></span>
+<span id="cb32-15"><a href="#cb32-15"></a>      (<span class="dv">1</span> <span class="sc">-</span> log<span class="sc">$</span>pinr[log<span class="sc">$</span>cal]) <span class="sc">*</span> (y<span class="sc">/</span>log<span class="sc">$</span>pinr[log<span class="sc">$</span>cal])<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb32-16"><a href="#cb32-16"></a>  )</span>
+<span id="cb32-17"><a href="#cb32-17"></a>  y <span class="ot">&lt;-</span> <span class="fu">add_zero</span>(y <span class="sc">/</span> log<span class="sc">$</span>pinr[log<span class="sc">$</span>cal], log<span class="sc">$</span>id)</span>
+<span id="cb32-18"><a href="#cb32-18"></a></span>
+<span id="cb32-19"><a href="#cb32-19"></a>  <span class="co"># Etape 3 : Sélection des logements dans les up</span></span>
+<span id="cb32-20"><a href="#cb32-20"></a>  variance[[<span class="st">"log"</span>]] <span class="ot">&lt;-</span> <span class="fu">varDT</span>(</span>
+<span id="cb32-21"><a href="#cb32-21"></a>    y, <span class="at">w =</span> <span class="dv">1</span><span class="sc">/</span>(log<span class="sc">$</span>piup<span class="sc">^</span><span class="dv">2</span>) <span class="sc">-</span> log<span class="sc">$</span>qup,</span>
+<span id="cb32-22"><a href="#cb32-22"></a>    <span class="at">precalc =</span> log<span class="sc">$</span>varDT_precalc</span>
+<span id="cb32-23"><a href="#cb32-23"></a>  )</span>
+<span id="cb32-24"><a href="#cb32-24"></a></span>
+<span id="cb32-25"><a href="#cb32-25"></a>  <span class="co"># Etape 4 : Sélection des up</span></span>
+<span id="cb32-26"><a href="#cb32-26"></a>  y <span class="ot">&lt;-</span> <span class="fu">sum_by</span>(y, <span class="at">by =</span> log<span class="sc">$</span>idup, <span class="at">w =</span> <span class="dv">1</span><span class="sc">/</span>log<span class="sc">$</span>pilog_up)</span>
+<span id="cb32-27"><a href="#cb32-27"></a>  y <span class="ot">&lt;-</span> <span class="fu">add_zero</span>(y, up<span class="sc">$</span>id)</span>
+<span id="cb32-28"><a href="#cb32-28"></a>  variance[[<span class="st">"up"</span>]] <span class="ot">&lt;-</span> <span class="fu">varDT</span>(y, <span class="at">precalc =</span> up<span class="sc">$</span>precalc)</span>
+<span id="cb32-29"><a href="#cb32-29"></a></span>
+<span id="cb32-30"><a href="#cb32-30"></a>  <span class="fu">colSums</span>(<span class="fu">do.call</span>(rbind, variance))</span>
+<span id="cb32-31"><a href="#cb32-31"></a></span>
+<span id="cb32-32"><a href="#cb32-32"></a>}</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="démonstration-fonction-de-variance-3" class="slide level2">
+<h2>Démonstration : Fonction de variance (3)</h2>
+<p>Le code de la fonction de variance fait appel à de nombreuses fonctions outils du package gustave: <code>sum_by()</code>, <code>add_zero()</code>, <code>res_cal()</code>, <code>varDT()</code>.</p>
+<p>&nbsp;</p>
+<div class="fragment">
+<p>Les fonctions <code>res_cal()</code> et <code>varDT()</code> comportent un argument spécifique, <code>precalc</code> permettant de <strong>passer en entrée un objet précalculé</strong> accélérant souvent grandement l’ensemble des calculs.</p>
+<p>&nbsp;</p>
+</div>
+<div class="fragment">
+<p>Pour l’essentiel, il s’agit de la matrice <span class="math inline">\((X'X)^{-1}\)</span> utilisée pour <strong>calculer les résidus d’une régression linéaire</strong> sur les variables d’équilibrage ou de calage (<span class="math inline">\(X\)</span>) dans ces deux fonctions.</p>
+</div>
+</section>
+<section id="démonstration-wrapper-de-variance" class="slide level2">
+<h2>Démonstration : <em>Wrapper</em> de variance</h2>
+<p>À partir de la fonction de variance et de l’information auxiliaire nécessaire, la fonction <code>define_variance_wrapper()</code> crée un <em>wrapper</em> de variance simple d’utilisation.</p>
+<div class="fragment">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1"></a><span class="co"># Création du wrapper de variance avec define_variance_wrapper()</span></span>
+<span id="cb33-2"><a href="#cb33-2"></a>precisionEec <span class="ot">&lt;-</span> <span class="fu">define_variance_wrapper</span>(</span>
+<span id="cb33-3"><a href="#cb33-3"></a>  <span class="at">variance_function =</span> varEec,</span>
+<span id="cb33-4"><a href="#cb33-4"></a>  <span class="at">technical_data =</span> <span class="fu">list</span>(<span class="at">up =</span> up, <span class="at">log =</span> log, <span class="at">ind =</span> ind),</span>
+<span id="cb33-5"><a href="#cb33-5"></a>  <span class="at">reference_id =</span> technical_data<span class="sc">$</span>ind<span class="sc">$</span>id,</span>
+<span id="cb33-6"><a href="#cb33-6"></a>  <span class="at">reference_weight =</span> technical_data<span class="sc">$</span>ind<span class="sc">$</span>w,</span>
+<span id="cb33-7"><a href="#cb33-7"></a>  <span class="at">default_id =</span> <span class="fu">quote</span>(<span class="fu">paste0</span>(ident, noi))</span>
+<span id="cb33-8"><a href="#cb33-8"></a>)</span>
+<span id="cb33-9"><a href="#cb33-9"></a></span>
+<span id="cb33-10"><a href="#cb33-10"></a><span class="co"># Utilisation du wrapper de variance (données du T4 2014)</span></span>
+<span id="cb33-11"><a href="#cb33-11"></a><span class="fu">precisionEec</span>(z, acteu <span class="sc">%in%</span> <span class="dv">2</span>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>                     call     est   variance      std       cv   lower   upper
+1 total(y = acteu %in% 2) 3001046 2158830156 46463.21 1.548234 2909980 3092112</code></pre>
+</div>
+</div>
+</div>
+<div class="fragment">
+<p><strong>Remarque</strong> Toute l’information auxiliaire spécifiée au paramètre <code>technical_data</code> est intégrée <em>dans</em> le <em>wrapper</em> (il s’agit d’une <a href="http://adv-r.had.co.nz/Functional-profgramming.html#closures"><em>closure</em></a>).</p>
+</div>
+</section>
+<section id="un-package-pensé-pour-être-extensible-1" class="slide level2">
+<h2>Un <em>package</em> pensé pour être extensible (1)</h2>
+<p>La fonction <code>define_variance_wrapper()</code> accepte <strong>n’importe quelle fonction de variance en entrée</strong> :</p>
+<ul>
+<li class="fragment">autant d’information auxiliaire que nécessaire ;</li>
+<li class="fragment">utilisation des fonctions d’autres <em>packages</em> pour coder la fonction de variance (utiliser <code>require()</code> dans la fonction de variance) ;</li>
+<li class="fragment">prise en compte de paramètres affectant l’estimation de variance (méthodologies alternatives, etc.).</li>
+</ul>
+<div class="fragment">
+<p><strong>Large éventail de méthodologies couvert</strong> : méthodes d’échantillonage complexes (échantillon-maître des enquêtes ménages de l’Insee), partage des poids complexes (EU-Silc).</p>
+</div>
+</section>
+<section id="un-package-pensé-pour-être-extensible-2" class="slide level2">
+<h2>Un <em>package</em> pensé pour être extensible (2)</h2>
+<p>La fonction de variance peut exporter, en plus des variances estimées, des <strong>résultats intermédiaires</strong> de l’estimation de variance.</p>
+<p>&nbsp;</p>
+<div class="fragment">
+<p>Cette fonctionnalité facilite la <strong>création de surcouches</strong> à partir des <em>wrappers</em> de variance produits par le <em>package</em> gustave.</p>
+<p><br>
+</p>
+</div>
+<div class="fragment">
+<p><strong>Exemple</strong> Dans l’EEC, l’estimation de variance pour des indicateurs faisant intervenir plusieurs trimestres (évolution d’un trimestre à l’autre, moyennes annuelles, etc.) s’appuie sur la récupération des résultats intermédiaires des <em>wrappers</em> de variance de chaque trimestre concerné (estimation des covariances trimestrielles).</p>
+</div>
+</section>
+<section id="un-package-pensé-pour-être-extensible-3" class="slide level2">
+<h2>Un <em>package</em> pensé pour être extensible (3)</h2>
+<p>Il est également possible de définir de nouvelles fonctions pour estimer la précision de <strong>statistiques complexes</strong> grâce à la fonction <code>define_statistic_wrapper()</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1"></a><span class="co"># Définition de la linéarisée du coefficient de gini à partir du package vardpoor</span></span>
+<span id="cb35-2"><a href="#cb35-2"></a>gini <span class="ot">&lt;-</span> <span class="fu">define_statistic_wrapper</span>(</span>
+<span id="cb35-3"><a href="#cb35-3"></a>  <span class="at">statistic_function =</span> <span class="cf">function</span>(y, weight){</span>
+<span id="cb35-4"><a href="#cb35-4"></a>    <span class="fu">require</span>(vardpoor)</span>
+<span id="cb35-5"><a href="#cb35-5"></a>    result <span class="ot">&lt;-</span> <span class="fu">lingini</span>(<span class="at">Y =</span> y, <span class="at">weight =</span> weight)</span>
+<span id="cb35-6"><a href="#cb35-6"></a>    <span class="fu">list</span>(<span class="at">point =</span> result<span class="sc">$</span>value<span class="sc">$</span>Gini, <span class="at">lin =</span> result<span class="sc">$</span>lin<span class="sc">$</span>lin_gini)</span>
+<span id="cb35-7"><a href="#cb35-7"></a>  },</span>
+<span id="cb35-8"><a href="#cb35-8"></a>  <span class="at">arg_type =</span> <span class="fu">list</span>(<span class="at">data =</span> <span class="st">"y"</span>, <span class="at">weight =</span> <span class="st">"weight"</span>, <span class="at">param =</span> <span class="cn">NULL</span>)</span>
+<span id="cb35-9"><a href="#cb35-9"></a>)</span>
+<span id="cb35-10"><a href="#cb35-10"></a></span>
+<span id="cb35-11"><a href="#cb35-11"></a><span class="co"># Utilisation pour calculer la précision dans EU-Silc en 2014</span></span>
+<span id="cb35-12"><a href="#cb35-12"></a><span class="fu">precisionSilc</span>(r, <span class="fu">gini</span>(HX090))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>             call      est  variance       std      cv    lower    upper
+1 gini(y = HX090) 29.21328 0.1013441 0.3183458 1.08973 28.58933 29.83722</code></pre>
+</div>
+</div>
+</section>
+<section id="le-package-gustave-pour-synthétiser" class="slide level2">
+<h2>Le <em>package</em> gustave : Pour synthétiser</h2>
+<p>Au-delà de la fonction «&nbsp;prête-à-estimer&nbsp;» <code>qvar()</code>, le <em>package</em> gustave est pensé comme une <strong>boîte à outils pour le ou la méthodologue</strong> en charge de l’estimation de variance.</p>
+<div class="fragment">
+<p>&nbsp;</p>
+<p>Il rassemble des fonctions méthodologiques et techniques qui <strong>facilitent la création de programmes d’estimation de variance simples d’utilisation et autonomes</strong>.</p>
+</div>
+<div class="fragment">
+<p><br>
+</p>
+<p>Sa conception est pensée pour que ses fonctionnalités soient <strong>le plus extensibles possibles</strong>.</p>
+</div>
+</section></section>
+<section>
+<section id="considérations-informatiques" class="title-slide slide level1 center">
+<h1>Considérations informatiques</h1>
+
+</section>
+<section id="statut-du-package-gustave" class="slide level2">
+<h2>Statut du <em>package</em> gustave</h2>
+<p>gustave est <strong>utilisé en production à l’Insee et au sein du Service statistique public français</strong> (notamment à la DREES). Il est considéré comme <strong>stable</strong>.</p>
+<p>&nbsp;</p>
+<div class="fragment">
+<p>Son code source est <strong>hébergé sur le dépôt de codes de l’Insee</strong> sur <a href="https://github.com/InseeFr/gustave">github</a>.</p>
+<p>&nbsp;</p>
+</div>
+<div class="fragment">
+<p><strong>Sa maintenance est opérée par la Division sondages de l’Insee</strong>, Martin Chevalier (son créateur) intervenant <strong>en appui</strong> (notamment pour <strong>assurer la continuité</strong> des relations avec le CRAN).</p>
+<p>&nbsp;</p>
+</div>
+<div class="fragment">
+<p><strong>Les suggestions de fonctionnalités et contributions sont les bienvenues</strong>.</p>
+</div>
+</section>
+<section id="dépendances" class="slide level2">
+<h2>Dépendances</h2>
+<p>gustave dépend des <em>packages</em> methods, utils, stats et Matrix, tous considérés comme <em>recommended</em> et donc <strong>préinstallés avec R</strong>.</p>
+<p>&nbsp;</p>
+<div class="fragment">
+<p>Cette parcimonie dans les dépendances se traduit en pratique par <strong>peu de montées de version techniques</strong>.</p>
+<p>&nbsp;</p>
+</div>
+<div class="fragment">
+<p>Néanmoins, les évolutions récentes du <em>package</em> Matrix ont nécessité <strong>plusieurs montées de version</strong>, <strong>cassant la compatibilité ascendante</strong> des outils de calcul de précision créés avec des versions antérieures de gustave.</p>
+<p><br>
+</p>
+</div>
+<div class="fragment">
+<p>L’apport du <em>package</em> Matrix est tel qu’<strong>une suppression de cette dépendance n’appraît néanmoins pas opportune</strong>.</p>
+</div>
+</section>
+<section id="sources-de-complexité-dans-le-développement" class="slide level2">
+<h2>Sources de complexité dans le développement</h2>
+<p>La finalité de gustave étend de <strong>simplifier</strong> le travail du ou de la méthodologue et l’utilisation par le ou la non-spécialiste, <strong>il incorpore tout un ensemble de fonctionnalités</strong> en pratique complexe à développer et à maintenir :</p>
+<ul>
+<li class="fragment"><a href="http://adv-r.had.co.nz/Computing-on-the-language.html">évaluation non-standard</a> : casuistique pour s’assurer que les objets sont <strong>évalués au bout niveau</strong> ;</li>
+<li class="fragment"><a href="https://adv-r.hadley.nz/function-factories.html"><em>function factories</em> et <em>closures</em></a> : <strong>complexité des objets créés</strong> (fonctions embarquant avec elles deux environnements stockant des données, l’un étant le parent de l’autre) ;</li>
+<li class="fragment">nombreux <strong>tests méthodologiques réalisés par <code>qvar()</code></strong> : <code>qvar()</code> comportant de nombreux tests vérifiant la cohérence des paramètres saisis, tous ces tests doivent être <strong>eux-mêmes testés systématiquement</strong>.</li>
+</ul>
+</section>
+<section id="principes-de-développement" class="slide level2">
+<h2>Principes de développement</h2>
+<p>&nbsp;</p>
+<ul>
+<li class="fragment">Recherche de <strong>stabilité</strong> : pas d’ajout de dépendances trop lourde.</li>
+</ul>
+<p>&nbsp;</p>
+<ul>
+<li class="fragment">Importance des <strong><a href="https://r-pkgs.org/testing-basics.html">tests unitaires</a></strong> : les sources de complexité rendent l’impact d’une modification du code particulièrement difficile à anticiper.</li>
+</ul>
+<p>&nbsp;</p>
+<ul>
+<li class="fragment"><strong>Développement <em>open-source</em></strong> : suivi de version avec git, évolutions <em>via</em> des <em>Pull requests</em> systématiquement testées.</li>
+</ul>
 
 <img src="Logo_Insee.png" class="slide-logo r-stretch"><div class="footer footer-default">
 
 </div>
-</section>
+</section></section>
     </div>
   </div>
 
@@ -415,14 +1179,14 @@ Martin Chevalier
         controlsTutorial: false,
 
         // Determines where controls appear, "edges" or "bottom-right"
-        controlsLayout: 'edges',
+        controlsLayout: 'bottom-right',
 
         // Visibility rule for backwards navigation arrows; "faded", "hidden"
         // or "visible"
         controlsBackArrows: 'faded',
 
         // Display a presentation progress bar
-        progress: true,
+        progress: false,
 
         // Display the page number of the current slide
         slideNumber: 'c/t',
@@ -441,7 +1205,7 @@ Martin Chevalier
         respondToHashChanges: true,
 
         // Push each slide change to the browser history
-        history: true,
+        history: false,
 
         // Enable keyboard shortcuts for navigation
         keyboard: true,
@@ -584,6 +1348,44 @@ Martin Chevalier
         ]
       });
     </script>
+    
+    <script>
+      // htmlwidgets need to know to resize themselves when slides are shown/hidden.
+      // Fire the "slideenter" event (handled by htmlwidgets.js) when the current
+      // slide changes (different for each slide format).
+      (function () {
+        // dispatch for htmlwidgets
+        function fireSlideEnter() {
+          const event = window.document.createEvent("Event");
+          event.initEvent("slideenter", true, true);
+          window.document.dispatchEvent(event);
+        }
+
+        function fireSlideChanged(previousSlide, currentSlide) {
+          fireSlideEnter();
+
+          // dispatch for shiny
+          if (window.jQuery) {
+            if (previousSlide) {
+              window.jQuery(previousSlide).trigger("hidden");
+            }
+            if (currentSlide) {
+              window.jQuery(currentSlide).trigger("shown");
+            }
+          }
+        }
+
+        // hookup for slidy
+        if (window.w3c_slidy) {
+          window.w3c_slidy.add_observer(function (slide_num) {
+            // slide_num starts at position 1
+            fireSlideChanged(null, w3c_slidy.slides[slide_num - 1]);
+          });
+        }
+
+      })();
+    </script>
+
     <script id="quarto-html-after-body" type="application/javascript">
     window.document.addEventListener("DOMContentLoaded", function (event) {
       const toggleBodyColorMode = (bsSheetEl) => {
@@ -635,12 +1437,12 @@ Martin Chevalier
         // flash "checked"
         button.classList.add('code-copy-button-checked');
         var currentTitle = button.getAttribute("title");
-        button.setAttribute("title", "Copied!");
+        button.setAttribute("title", "Copié");
         let tooltip;
         if (window.bootstrap) {
           button.setAttribute("data-bs-toggle", "tooltip");
           button.setAttribute("data-bs-placement", "left");
-          button.setAttribute("data-bs-title", "Copied!");
+          button.setAttribute("data-bs-title", "Copié");
           tooltip = new bootstrap.Tooltip(button, 
             { trigger: "manual", 
               customClass: "code-copy-button-tooltip",
