@@ -10,6 +10,7 @@ execute:
   echo: true
 format: 
   revealjs:
+    self-contained: true
     theme: [default, style.scss]
     slide-number: c/t
     logo: Logo_Insee.png
