@@ -129,9 +129,13 @@ gustave intervient pour **transformer le programme d'estimation de la variance**
 
 `qvar()` est une *fonction* du *package* gustave, qui **combine les autres fonctions proposées par le *package*** dans un outil &#171; prêt-à-estimer &#187; dans les cas les plus simples, à savoir : 
 
+:::{.nonincremental}
+
 - sondage aléatoire simple stratifié ;
 - correction de la non-réponse par repondération au sein de groupes de réponse homogènes (optionnelle) ;
 - calage sur marges (optionnel).
+
+:::
 
 . . .
 
@@ -144,8 +148,6 @@ gustave intervient pour **transformer le programme d'estimation de la variance**
 ## Démonstration : Installation et chargement
 
 La version 0.4.4 du *package* gustave est accessible [sur le CRAN]( https://CRAN.R-project.org/package=gustave).
-
-. . . 
 
 La version en cours de développement est disponible sur [github.com](https://github.com/InseeFr/gustave).
 
@@ -177,21 +179,29 @@ library(gustave)
 
 Le *package* gustave embarque des **données d'exemple simulées** inspirées de l'enquête Technologies de l'information et de la communication.
 
-- Table d'échantillon `ict_sample`
+:::{.nonincremental}
 
-. . . 
+:::{.fragment}
+
+- Table d'échantillon `ict_sample`
 
 ```{r}
 names(ict_sample)
 ```
 
-- Table de variables d'intérêt `ict_survey`
+:::
 
-. . . 
+:::{.fragment}
+
+- Table de variables d'intérêt `ict_survey`
 
 ```{r}
 names(ict_survey)
 ```
+
+:::
+
+:::
 
 ## Démonstration : Lancement de `qvar()` 
 
@@ -210,9 +220,11 @@ qvar(
   id = "firm_id",
   sampling_weight = "w_sample",
   strata = "strata",
+  
   # Paramètres sur les observations diffusées et leur poids
   dissemination_dummy = "dissemination",
   dissemination_weight = "w_sample",
+  
   # Variable d'intérêt
   turnover
 )
@@ -241,7 +253,7 @@ precisionTic <- qvar(
 )
 ```
 
-2. (Chargé·e d'étude) Utilisation du *wrapper* 
+2. (Chargé·e d'étude) Utilisation du *wrapper*  (sur les répondants)
 
 . . . 
 
@@ -253,7 +265,7 @@ precisionTic(ict_survey, turnover)
 
 ## Démonstration : Ergonomie (1)
 
-Estimation de moyennes ou de ratio
+Estimation de moyennes ou de ratio (linéarisation à la volée)
 
 ```{r}
 precisionTic(ict_survey, mean(turnover))
@@ -278,14 +290,16 @@ Estimation sur un ou plusieurs domaines
 ```{r}
 precisionTic(ict_survey, mean(speed_quanti), where = employees >= 50)[, c(1:3, 5)]
 ```
+
+. . . 
+
 ```{r}
-precisionTic(ict_survey, mean(speed_quanti), by = division)[1:3, c(1:4, 6)]
+precisionTic(ict_survey, mean(speed_quanti), by = division)[, c(1:4, 6)]
 ```
 . . . 
 
 Domaines différents par estimateur
 ```{r}
-# Domaines différents par estimateur
 precisionTic(ict_survey,
   "CA moyen des 50 et plus" = mean(turnover, where = employees >= 50),
   "CA moyen des 100 et plus" = mean(turnover, where = employees >= 100)
@@ -481,9 +495,12 @@ Le réglement IESS définit des **cibles en matière de précision** au niveau n
 
 Conceptuellement, le production du programme de calcul de précision pour un trimestre de l'EEC comporte **deux étapes** : 
 
+:::{.nonincremental}
+
 1. Ecriture de la fonction de variance
 2. Création du *wrapper* de variance
 
+:::
 
 ## Démonstration : Fonction de variance (1)
 
@@ -559,7 +576,7 @@ Les fonctions `res_cal()` et `varDT()` comportent un argument spécifique, `prec
 
 . . . 
 
-Pour l'essentiel, il s'agit de la matrice $(X'X)^{-1}$ utilisée pour **calculer les résidus d'une régression linéaire** sur les variables d'équilibrage ou de calage ($X$) dans ces deux fonctions.
+Pour l'essentiel, il s'agit de la matrice $(X'X)^{-1}$ utilisée pour **calculer les résidus d'une régression linéaire** sur les variables d'équilibrage ou de calage dans ces deux fonctions.
 
 ## Démonstration : *Wrapper* de variance
 
@@ -623,11 +640,14 @@ Cette fonctionnalité facilite la **création de surcouches** à partir des *wra
 
 ## Un *package* pensé pour être extensible (3)
 
-Il est également possible de définir de nouvelles fonctions pour estimer la précision de **statistiques complexes** grâce à la fonction `define_statistic_wrapper()`:
+Il est également possible de définir de nouvelles fonctions pour estimer la précision de **statistiques complexes** grâce à la fonction `define_statistic_wrapper()`.
+
+. . . 
+
+**Exemple** Définition de la linéarisée du gini à partir du *package* vardpoor
 
 ```{r}
 #| eval: false
-# Définition de la linéarisée du coefficient de gini à partir du package vardpoor
 gini <- define_statistic_wrapper(
   statistic_function = function(y, weight){
     require(vardpoor)
@@ -714,7 +734,7 @@ La finalité de gustave étant de **simplifier** le travail du ou de la méthodo
 
 - [évaluation non-standard](http://adv-r.had.co.nz/Computing-on-the-language.html) : casuistique pour s'assurer que les objets sont **évalués au bout niveau** ;
 - [*function factories* et *closures*](https://adv-r.hadley.nz/function-factories.html) : **complexité des objets créés** (fonctions embarquant avec elles deux environnements stockant des données, l'un étant le parent de l'autre) ;
-- nombreux **tests méthodologiques réalisés par `qvar()`** : `qvar()` comportant de nombreux tests vérifiant la cohérence méthodologique des paramètres saisis, tous ces tests doivent être **eux-mêmes testés systématiquement**.
+- nombreux **tests méthodologiques réalisés par `qvar()`** : `qvar()` comportant de nombreux tests vérifiant la cohérence méthodologique des paramètres saisis, tous ces tests doivent être **eux-mêmes systématiquement testés**.
 
 ## Principes de développement
 
