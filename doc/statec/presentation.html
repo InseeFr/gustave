@@ -561,7 +561,7 @@ bottom: unset !important;
 right: 20px;
 top: 12px;
 left: unset !important;
-height: 10% !important;
+height: 13% !important;
 width: unset !important;
 max-width: unset !important;
 max-height: unset !important;
@@ -1289,7 +1289,7 @@ Martin Chevalier
 <p>L’utilisation du <em>package</em> gustave va de pair avec une <strong>mise en oeuvre en deux étapes</strong> du calcul de précision :</p>
 <ol type="1">
 <li class="fragment"><p><strong>Méthodologue</strong> : analyse méthodologique, mobilisation de l’information auxiliaire, construction d’un <strong>programme d’estimation de variance</strong> raisonnablement exact;</p></li>
-<li class="fragment"><p><strong>Responsable d’enquête, chargé·e d’étude</strong> : utilisation du programme d’estimation <strong>raisonnablement simple d’utilisation</strong> dans le cadre d’études ou pour répondre à des obligations réglementaires.</p></li>
+<li class="fragment"><p><strong>Responsable d’enquête, chargé·e d’étude</strong> : utilisation d’un programme d’estimation <strong>raisonnablement simple d’utilisation</strong> dans le cadre d’études ou pour répondre à des obligations réglementaires.</p></li>
 </ol>
 </div>
 </section>
@@ -1312,7 +1312,7 @@ Martin Chevalier
 <ul>
 <li class="fragment">il n’est nécessaire de connaître <strong>aucun aspect de la méthodologie de l’enquête</strong> pour lancer le calcul de précision ;</li>
 <li class="fragment"><strong>toutes les données nécessaires</strong> au calcul sont transportées avec la fonction ;</li>
-<li class="fragment">un effort important a été réalisé en vue de <strong>rendre la manipulation la plus simple possible</strong> : évaluation non-standard pour linéariser/recoder des variables à la volée, arguments <code>by</code> et <code>where</code>, etc.</li>
+<li class="fragment">un effort important a été réalisé sur l’<strong>ergonomie du <em>wrapper</em></strong> : évaluation non-standard pour linéariser/recoder des variables à la volée, arguments <code>by</code> et <code>where</code>, etc.</li>
 </ul>
 <div class="fragment">
 <p><strong>Remarque</strong> Une <strong>fonction prête à l’emploi</strong>, <code>qvar()</code>, simplifie la définition d’un <em>wrapper</em> de variance pour les <strong>cas les plus simples</strong>.</p>
@@ -1322,25 +1322,22 @@ Martin Chevalier
 <h2>Plan de la présentation</h2>
 <p> </p>
 <div class="fragment">
-<div style="font-size:1.25em">
-<p><strong>La fonction <code>qvar()</code> : un outil « prêt-à-estimer » pour les cas les plus simples</strong></p>
+<!-- -->
+<h3 id="la-fonction-qvar-un-outil-prêt-à-estimer-pour-les-cas-les-plus-simples">La fonction <code>qvar()</code> : un outil « prêt-à-estimer » pour les cas les plus simples</h3>
 </div>
 <p> </p>
-</div>
 <div class="fragment">
-<div style="font-size:1.25em">
-<p><strong>Le <em>package</em> gustave : une boîte à outils pour l’estimation de variance</strong></p>
+<!-- -->
+<h3 id="le-package-gustave-une-boîte-à-outils-pour-lestimation-de-variance">Le <em>package</em> gustave : une boîte à outils pour l’estimation de variance</h3>
 </div>
 <p> </p>
-</div>
 <div class="fragment">
-<div style="font-size:1.25em">
-<p><strong>Considérations informatiques</strong></p>
-</div>
+<!-- -->
+<h3 id="considérations-informatiques">Considérations informatiques</h3>
 </div>
 </section></section>
 <section>
-<section id="la-fonction-qvar-un-outil-prêt-à-estimer-pour-les-cas-les-plus-simples" class="title-slide slide level1 center">
+<section id="la-fonction-qvar-un-outil-prêt-à-estimer-pour-les-cas-les-plus-simples-1" class="title-slide slide level1 center">
 <h1>La fonction <code>qvar()</code> : un outil « prêt-à-estimer » pour les cas les plus simples</h1>
 
 </section>
@@ -1349,11 +1346,11 @@ Martin Chevalier
 <p><code>qvar()</code> est une <em>fonction</em> du <em>package</em> gustave, qui <strong>combine les autres fonctions proposées par le <em>package</em></strong> dans un outil « prêt-à-estimer » dans les cas les plus simples, à savoir :</p>
 <ul>
 <li class="fragment">sondage aléatoire simple stratifié ;</li>
-<li class="fragment">correction de la non-réponse par repondération dans des groupes de réponse homogènes ;</li>
-<li class="fragment">calage sur marges.</li>
+<li class="fragment">correction de la non-réponse par repondération au sein de groupes de réponse homogènes (optionnelle) ;</li>
+<li class="fragment">calage sur marges (optionnel).</li>
 </ul>
 <div class="fragment">
-<p><code>qvar()</code> est ainsi particulièrement adaptée aux enquêtes réalisées par l’Insee <strong>auprès des entreprises</strong> et remplace les macros SAS <strong><em>%calker_grh</em></strong> et <strong><em>%everest</em></strong>.</p>
+<p><code>qvar()</code> est ainsi particulièrement adaptée aux enquêtes de l’Insee <strong>auprès des entreprises</strong> et remplace les macros SAS <strong><em>%calker_grh</em></strong> et <strong><em>%everest</em></strong>.</p>
 </div>
 <div class="fragment">
 <p><strong>Remarque</strong> Le nom « qvar » signifie « <em>quick variance estimation</em> » et est pensé par analogie avec la fonction <code>qplot()</code> du <em>package</em> ggplot2.</p>
@@ -1385,31 +1382,33 @@ Martin Chevalier
 <section id="démonstration-données-dexemple" class="slide level2">
 <h2>Démonstration : Données d’exemple</h2>
 <p>Le <em>package</em> gustave embarque des <strong>données d’exemple simulées</strong> inspirées de l’enquête Technologies de l’information et de la communication.</p>
+<ul>
+<li class="fragment">Table d’échantillon <code>ict_sample</code></li>
+</ul>
 <div class="fragment">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># Table d&#39;échantillon ict_sample</span></span>
-<span id="cb2-2"><a href="#cb2-2"></a><span class="fu">names</span>(ict_sample)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="fu">names</span>(ict_sample)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> [1] &quot;firm_id&quot;           &quot;division&quot;          &quot;employees&quot;        
- [4] &quot;turnover&quot;          &quot;strata&quot;            &quot;w_sample&quot;         
- [7] &quot;scope&quot;             &quot;resp&quot;              &quot;nrc&quot;              
-[10] &quot;hrg&quot;               &quot;response_prob_est&quot; &quot;w_nrc&quot;            
-[13] &quot;calib&quot;             &quot;N_58&quot;              &quot;N_59&quot;             
-[16] &quot;N_60&quot;              &quot;N_61&quot;              &quot;N_62&quot;             
-[19] &quot;N_63&quot;              &quot;turnover_58&quot;       &quot;turnover_59&quot;      
-[22] &quot;turnover_60&quot;       &quot;turnover_61&quot;       &quot;turnover_62&quot;      
+<pre><code> [1] &quot;firm_id&quot;           &quot;division&quot;          &quot;employees&quot;         &quot;turnover&quot;         
+ [5] &quot;strata&quot;            &quot;w_sample&quot;          &quot;scope&quot;             &quot;resp&quot;             
+ [9] &quot;nrc&quot;               &quot;hrg&quot;               &quot;response_prob_est&quot; &quot;w_nrc&quot;            
+[13] &quot;calib&quot;             &quot;N_58&quot;              &quot;N_59&quot;              &quot;N_60&quot;             
+[17] &quot;N_61&quot;              &quot;N_62&quot;              &quot;N_63&quot;              &quot;turnover_58&quot;      
+[21] &quot;turnover_59&quot;       &quot;turnover_60&quot;       &quot;turnover_61&quot;       &quot;turnover_62&quot;      
 [25] &quot;turnover_63&quot;       &quot;w_calib&quot;           &quot;dissemination&quot;    </code></pre>
 </div>
 </div>
+<ul>
+<li class="fragment">Table de variables d’intérêt <code>ict_survey</code></li>
+</ul>
 </div>
 <div class="fragment">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># Table de variables d&#39;intérêt ict_survey</span></span>
-<span id="cb4-2"><a href="#cb4-2"></a><span class="fu">names</span>(ict_survey)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">names</span>(ict_survey)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> [1] &quot;firm_id&quot;         &quot;division&quot;        &quot;employees&quot;       &quot;turnover&quot;       
- [5] &quot;w_calib&quot;         &quot;speed_quanti&quot;    &quot;speed_quanti_NA&quot; &quot;speed_quali&quot;    
- [9] &quot;speed_quali_NA&quot;  &quot;big_data&quot;        &quot;big_data_NA&quot;    </code></pre>
+<pre><code> [1] &quot;firm_id&quot;         &quot;division&quot;        &quot;employees&quot;       &quot;turnover&quot;        &quot;w_calib&quot;        
+ [6] &quot;speed_quanti&quot;    &quot;speed_quanti_NA&quot; &quot;speed_quali&quot;     &quot;speed_quali_NA&quot;  &quot;big_data&quot;       
+[11] &quot;big_data_NA&quot;    </code></pre>
 </div>
 </div>
 </div>
@@ -1435,10 +1434,8 @@ Martin Chevalier
 <span id="cb6-11"><a href="#cb6-11"></a>  turnover</span>
 <span id="cb6-12"><a href="#cb6-12"></a>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                 call   n       est     variance      std       cv     lower
-1 total(y = turnover) 506 138423007 2.349875e+14 15329303 11.07425 108378125
-      upper
-1 168467890</code></pre>
+<pre><code>                 call   n       est     variance      std       cv     lower     upper
+1 total(y = turnover) 506 138423007 2.349875e+14 15329303 11.07425 108378125 168467890</code></pre>
 </div>
 </div>
 </div>
@@ -1472,10 +1469,8 @@ Martin Chevalier
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">precisionTic</span>(ict_survey, turnover)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                 call   n       est     variance      std       cv     lower
-1 total(y = turnover) 506 138423007 2.349875e+14 15329303 11.07425 108378125
-      upper
-1 168467890</code></pre>
+<pre><code>                 call   n       est     variance      std       cv     lower     upper
+1 total(y = turnover) 506 138423007 2.349875e+14 15329303 11.07425 108378125 168467890</code></pre>
 </div>
 </div>
 </div>
@@ -1494,10 +1489,10 @@ Martin Chevalier
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="fu">precisionTic</span>(ict_survey, <span class="fu">ratio</span>(turnover, employees))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                                      call   n      est variance      std
-1 ratio(num = turnover, denom = employees) 506 251.7953 842.8196 29.03136
-        cv    lower    upper
-1 11.52974 194.8949 308.6957</code></pre>
+<pre><code>                                      call   n      est variance      std       cv    lower
+1 ratio(num = turnover, denom = employees) 506 251.7953 842.8196 29.03136 11.52974 194.8949
+     upper
+1 308.6957</code></pre>
 </div>
 </div>
 </div>
@@ -1509,12 +1504,12 @@ Martin Chevalier
 <span id="cb15-3"><a href="#cb15-3"></a>  <span class="st">&quot;CA moyen par salarié&quot;</span> <span class="ot">=</span> <span class="fu">ratio</span>(turnover, employees)</span>
 <span id="cb15-4"><a href="#cb15-4"></a>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                 label                                     call   n        est
-1             CA moyen                       mean(y = turnover) 506 22536.9667
-2 CA moyen par salarié ratio(num = turnover, denom = employees) 506   251.7953
-      variance        std       cv      lower      upper
-1 6016443.9018 2452.84404 10.88365 17729.4807 27344.4527
-2     842.8196   29.03136 11.52974   194.8949   308.6957</code></pre>
+<pre><code>                 label                                     call   n        est     variance
+1             CA moyen                       mean(y = turnover) 506 22536.9667 6016443.9018
+2 CA moyen par salarié ratio(num = turnover, denom = employees) 506   251.7953     842.8196
+         std       cv      lower      upper
+1 2452.84404 10.88365 17729.4807 27344.4527
+2   29.03136 11.52974   194.8949   308.6957</code></pre>
 </div>
 </div>
 </div>
@@ -1593,7 +1588,7 @@ Martin Chevalier
 </section>
 <section id="démonstration-unités-hors-champ" class="slide level2">
 <h2>Démonstration : Unités hors-champ</h2>
-<p>Il est facile dans <code>qvar()</code> de tenir compte du fait que des unités ont été <strong>détectées comme hors-champ par l’enquête</strong> (présentes dans la base de sondage mais pas dans la suite des redressements).</p>
+<p>Il est facile dans <code>qvar()</code> de tenir compte du fait que des unités ont été <strong>détectées comme hors-champ par l’enquête</strong> (présentes dans la base de sondage mais pas dans la suite de l’exploitation).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a>precisionTic <span class="ot">&lt;-</span>  <span class="fu">qvar</span>(</span>
 <span id="cb29-2"><a href="#cb29-2"></a>  </span>
@@ -1649,7 +1644,7 @@ Martin Chevalier
 </section>
 <section id="démonstration-calage-sur-marges" class="slide level2">
 <h2>Démonstration : Calage sur marges</h2>
-<p>Enfin, <code>qvar()</code> peut également tenir compte de l’<strong>impact d’un calage sur marges</strong> sur la précision des estimateurs.</p>
+<p>Enfin, <code>qvar()</code> peut également tenir compte de l’<strong>impact d’un éventuel calage sur marges</strong> sur la précision des estimateurs.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1"></a>precisionTic <span class="ot">&lt;-</span> <span class="fu">qvar</span>(</span>
 <span id="cb31-2"><a href="#cb31-2"></a></span>
@@ -1688,15 +1683,15 @@ Martin Chevalier
 <p><code>qvar()</code> facilite la production de programmes d’estimation de variance relativement ergonomiques <strong>dans les cas les plus simples</strong>.</p>
 <div class="fragment">
 <p> </p>
-<p>Elle ne permet cependant pas de tenir compte des <strong>plans de sondage complexes</strong> (phases multiples, partage des poids, etc.), omniprésents dans les enquêtes ménages de l’Insee.</p>
+<p>Elle ne permet cependant pas de tenir compte des <strong>plans de sondage complexes</strong> (phases multiples, partage des poids, etc.), très fréquents dans les enquêtes ménages de l’Insee (échantillon-maître).</p>
 </div>
 <div class="fragment">
 <p> </p>
-<p>Pour ces cas plus complexes, le <em>package</em> gustave propose une <strong>boîte à outils de fonctions</strong> permettant au ou à la méthodologue de <strong>construire un <em>wrapper</em> de variance sur-mesure</strong>.</p>
+<p>Pour ces cas plus complexes, le <em>package</em> gustave propose une <strong>boîte à outils de fonctions</strong> permettant au ou à la méthodologue de <strong>construire un <em>wrapper</em> de variance « sur-mesure »</strong>.</p>
 </div>
 </section></section>
 <section>
-<section id="le-package-gustave-une-boîte-à-outils-pour-lestimation-de-variance" class="title-slide slide level1 center">
+<section id="le-package-gustave-une-boîte-à-outils-pour-lestimation-de-variance-1" class="title-slide slide level1 center">
 <h1>Le <em>package</em> gustave : une boîte à outils pour l’estimation de variance</h1>
 
 </section>
@@ -1746,16 +1741,18 @@ Martin Chevalier
 <h2>Démonstration : Fonction de variance (1)</h2>
 <p>L’écriture de la fonction de variance spécifique à une enquête découle de l’<strong>analyse de sa méthodologie</strong>, notamment pour déterminer l’<strong>information auxiliaire</strong> nécessaire.</p>
 <div class="fragment">
-<p><strong>Remarque</strong> La fonction de variance détaillée ici correspond à celle utilisée jusqu’au renouvellement de l’échantillon de l’EEC en 2020.</p>
+<p>La fonction de variance prend <strong>en entrée les arguments suivants</strong> :</p>
+<div>
+<ul>
+<li><code>y</code> : variables d’intérêt sur lesquelles faire porter l’estimation de variance ;</li>
+<li><code>up</code> : information auxiliaire relative aux unités primaires (« bisecteurs ») ;</li>
+<li><code>log</code> : information auxiliaire relative aux logements ;</li>
+<li><code>ind</code> : information auxiliaire relative aux individus.</li>
+</ul>
+</div>
 </div>
 <div class="fragment">
-<p>La fonction de variance prend <strong>en entrée les arguments suivants</strong> :</p>
-<ul>
-<li class="fragment"><code>y</code> : variables d’intérêtsur lesquelles faire porter l’estimation de variance ;</li>
-<li class="fragment"><code>up</code> : information auxiliaire relative aux unités primaires (« bisecteurs ») ;</li>
-<li class="fragment"><code>log</code>: information auxiliaire relative aux logements ;</li>
-<li class="fragment"><code>ind</code>: information auxiliaire relative aux individus.</li>
-</ul>
+<p><strong>Remarque</strong> La fonction de variance détaillée ici correspond à celle utilisée jusqu’au renouvellement de l’échantillon de l’EEC en 2020.</p>
 </div>
 </section>
 <section id="démonstration-fonction-de-variance-2" class="slide level2">
@@ -1798,7 +1795,7 @@ Martin Chevalier
 </section>
 <section id="démonstration-fonction-de-variance-3" class="slide level2">
 <h2>Démonstration : Fonction de variance (3)</h2>
-<p>Le code de la fonction de variance fait appel à de nombreuses fonctions outils du package gustave: <code>sum_by()</code>, <code>add_zero()</code>, <code>res_cal()</code>, <code>varDT()</code>.</p>
+<p>Le code de la fonction de variance fait appel à de nombreuses fonctions outils du package gustave : <code>sum_by()</code>, <code>add_zero()</code>, <code>res_cal()</code>, <code>varDT()</code>.</p>
 <p> </p>
 <div class="fragment">
 <p>Les fonctions <code>res_cal()</code> et <code>varDT()</code> comportent un argument spécifique, <code>precalc</code> permettant de <strong>passer en entrée un objet précalculé</strong> accélérant souvent grandement l’ensemble des calculs.</p>
@@ -1845,7 +1842,7 @@ Martin Chevalier
 <li class="fragment">prise en compte de paramètres affectant l’estimation de variance (méthodologies alternatives, etc.).</li>
 </ul>
 <div class="fragment">
-<p><strong>Large éventail de méthodologies couvert</strong> : méthodes d’échantillonage complexes (échantillon-maître des enquêtes ménages de l’Insee), partage des poids complexes (EU-Silc).</p>
+<p><strong>Large éventail de méthodologies couvert</strong> : méthodes d’échantillonage complexes (échantillon-maître des enquêtes ménages de l’Insee), partages des poids (EU-Silc).</p>
 </div>
 </section>
 <section id="un-package-pensé-pour-être-extensible-2" class="slide level2">
@@ -1899,7 +1896,7 @@ Martin Chevalier
 </div>
 </section></section>
 <section>
-<section id="considérations-informatiques" class="title-slide slide level1 center">
+<section id="considérations-informatiques-1" class="title-slide slide level1 center">
 <h1>Considérations informatiques</h1>
 
 </section>
@@ -1933,23 +1930,23 @@ Martin Chevalier
 </p>
 </div>
 <div class="fragment">
-<p>L’apport du <em>package</em> Matrix est tel qu’<strong>une suppression de cette dépendance n’appraît néanmoins pas opportune</strong>.</p>
+<p>L’apport du <em>package</em> Matrix est tel qu’<strong>une suppression de cette dépendance n’apparaît néanmoins pas opportune</strong>.</p>
 </div>
 </section>
 <section id="sources-de-complexité-dans-le-développement" class="slide level2">
 <h2>Sources de complexité dans le développement</h2>
-<p>La finalité de gustave étend de <strong>simplifier</strong> le travail du ou de la méthodologue et l’utilisation par le ou la non-spécialiste, <strong>il incorpore tout un ensemble de fonctionnalités</strong> en pratique complexe à développer et à maintenir :</p>
+<p>La finalité de gustave étant de <strong>simplifier</strong> le travail du ou de la méthodologue et l’utilisation par le ou la non-spécialiste, <strong>il incorpore tout un ensemble de fonctionnalités</strong> en pratique complexes à développer et à maintenir :</p>
 <ul>
 <li class="fragment"><a href="http://adv-r.had.co.nz/Computing-on-the-language.html">évaluation non-standard</a> : casuistique pour s’assurer que les objets sont <strong>évalués au bout niveau</strong> ;</li>
 <li class="fragment"><a href="https://adv-r.hadley.nz/function-factories.html"><em>function factories</em> et <em>closures</em></a> : <strong>complexité des objets créés</strong> (fonctions embarquant avec elles deux environnements stockant des données, l’un étant le parent de l’autre) ;</li>
-<li class="fragment">nombreux <strong>tests méthodologiques réalisés par <code>qvar()</code></strong> : <code>qvar()</code> comportant de nombreux tests vérifiant la cohérence des paramètres saisis, tous ces tests doivent être <strong>eux-mêmes testés systématiquement</strong>.</li>
+<li class="fragment">nombreux <strong>tests méthodologiques réalisés par <code>qvar()</code></strong> : <code>qvar()</code> comportant de nombreux tests vérifiant la cohérence méthodologique des paramètres saisis, tous ces tests doivent être <strong>eux-mêmes testés systématiquement</strong>.</li>
 </ul>
 </section>
 <section id="principes-de-développement" class="slide level2">
 <h2>Principes de développement</h2>
 <p> </p>
 <ul>
-<li class="fragment">Recherche de <strong>stabilité</strong> : pas d’ajout de dépendances trop lourde.</li>
+<li class="fragment">Recherche de <strong>stabilité</strong> : pas d’ajout de dépendances trop lourde ni d’évolution trop brutale de l’interface utilisateur.</li>
 </ul>
 <p> </p>
 <ul>
