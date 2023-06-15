@@ -698,7 +698,7 @@ Son code source est **hébergé sur le dépôt de codes de l'Insee** sur [github
 
 . . . 
 
-**Sa maintenance est opérée par la Division sondages de l'Insee**, Martin Chevalier (son créateur) intervenant **en appui** (notamment pour **assurer la continuité** des relations avec le CRAN).
+**Sa maintenance est opérée par la Division sondages de l'Insee**, Martin Chevalier (son créateur) intervenant **en appui**.
 
 \ 
 
@@ -732,7 +732,7 @@ L'apport du *package* Matrix est tel qu'**une suppression de cette dépendance n
 
 La finalité de gustave étant de **simplifier** le travail du ou de la méthodologue et l'utilisation par le ou la non-spécialiste, **il incorpore tout un ensemble de fonctionnalités** en pratique complexes à développer et à maintenir : 
 
-- [évaluation non-standard](http://adv-r.had.co.nz/Computing-on-the-language.html) : casuistique pour s'assurer que les objets sont **évalués au bout niveau** ;
+- [évaluation non-standard](http://adv-r.had.co.nz/Computing-on-the-language.html) : casuistique pour s'assurer que les objets sont **évalués au bon niveau** ;
 - [*function factories* et *closures*](https://adv-r.hadley.nz/function-factories.html) : **complexité des objets créés** (fonctions embarquant avec elles deux environnements stockant des données, l'un étant le parent de l'autre) ;
 - nombreux **tests méthodologiques réalisés par `qvar()`** : `qvar()` comportant de nombreux tests vérifiant la cohérence méthodologique des paramètres saisis, tous ces tests doivent être **eux-mêmes systématiquement testés**.
 
