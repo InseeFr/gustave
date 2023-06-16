@@ -1,0 +1,751 @@
+---
+title: "Le *package* R gustave : utilisation et principes de conception"
+subtitle: "Présentation à Statec"
+author: Martin Chevalier
+date: 2023-06-15
+date-format: DD/MM/YYYY
+institute: Insee, DREES
+lang: fr
+execute: 
+  echo: true
+format: 
+  revealjs:
+    self-contained: true
+    theme: [default, style.scss]
+    slide-number: c/t
+    logo: Logo_Insee.png
+    css: logo.css
+    transition: slide  
+    transition-speed: fast
+    width: 750*16/9
+    height: 750
+    incremental: true
+    toc-depth: 1
+    navigation-mode: linear
+    progress: false
+    history: false
+    controls-layout: bottom-right
+    include-in-header: append-title-slide.html
+---
+
+```{r}
+#| include: false
+options(width = 100)
+```
+
+
+# Introduction
+
+## Le *package* R gustave
+
+Le *package* R gustave est un outil informatique développé au sein de l'Insee à partir de 2016 pour répondre au **besoin grandissant** d'estimations de précision dans les enquêtes auprès des ménages et des entreprises.
+
+. . . 
+
+L'élaboration et l'utilisation de ce *package* R constitue une réponse aux nombreux **défis posés par l'estimation de variance** : 
+
+- **complexité** des plans de sondages et des méthodes de redressement à prendre en compte ;
+- **diversité** des plans de sondage et des méthodes de redressement selon les opérations ;
+- **spécifité** des méthodes d'estimation de la variance.
+
+. . . 
+
+**Précédents à l'Insee** : macros ***%poulpe***, ***%calker***, ***%calker_grh*** et ***%everest***.
+
+## Introduction - Aspect organisationnel
+
+\
+
+**Objectif** : Rendre le calcul de précision (plus) simple
+
+\
+
+. . . 
+
+L'utilisation du *package* gustave va de pair avec une **mise en oeuvre en deux étapes** du calcul de précision : 
+
+1. **Méthodologue** : analyse méthodologique, mobilisation de l'information auxiliaire, construction d'un **programme d'estimation de variance** raisonnablement exact;
+
+2. **Responsable d'enquête, chargé·e d'étude** : utilisation d'un programme d'estimation **raisonnablement simple d'utilisation** dans le cadre d'études ou pour répondre à des obligations réglementaires.
+
+## Introduction - Aspect méthodologique
+
+Pour le ou la méthodologue, gustave se présente comme une **&laquo;&nbsp;boîte à outil&nbsp;&raquo; (*toolkit*) pour l'estimation de variance** : 
+
+- fonctions codant les **estimateurs de variance classiques** : Sen-Yates-Grundy, Deville-Tillé ;
+
+- fonctions permettant de prendre en compte le **calage sur marges** ;
+
+- fonctions mettant en oeuvre les **linéarisations classiques** : moyenne, ratio, différence de ratios ;
+
+- calcul automatique des variables pour l'**estimation sur des domaines** (et articulation avec la linéarisation éventuelle).
+
+. . . 
+
+**Rien ne limite *a priori* la complexité** du programme d'estimation de variance ou des linéarisations (de nouvelles linéarisations peuvent être créées).
+
+## Introduction - Aspect informatique
+
+gustave intervient pour **transformer le programme d'estimation de la variance** élaboré par le ou la méthodologue en une **fonction  (un *wrapper*) plus facile d'utilisation** :
+
+- il n'est nécessaire de connaître **aucun aspect de la méthodologie de l'enquête** pour lancer le calcul de précision ;
+- **toutes les données nécessaires** au calcul sont transportées avec la fonction ;
+- un effort important a été réalisé sur l'**ergonomie du *wrapper*** : évaluation non-standard pour linéariser/recoder des variables à la volée, arguments `by` et `where`, etc.
+
+. . . 
+
+**Remarque** Une **fonction prête à l'emploi**, `qvar()`, simplifie la définition d'un *wrapper* de variance pour les **cas les plus simples**. 
+
+## Plan de la présentation
+
+\ 
+
+:::{.fragment}
+
+### La fonction `qvar()` : un outil &laquo;&nbsp;prêt-à-estimer&nbsp;&raquo; pour les cas les plus simples
+
+:::
+
+\ 
+
+:::{.fragment}
+
+### Le *package* gustave : une boîte à outils pour l'estimation de variance
+
+:::
+
+\ 
+
+:::{.fragment}
+
+### Considérations informatiques
+
+:::
+
+
+# La fonction `qvar()` : un outil &laquo;&nbsp;prêt-à-estimer&nbsp;&raquo; pour les cas les plus simples
+
+## Principe de la fonction `qvar()`
+
+`qvar()` est une *fonction* du *package* gustave, qui **combine les autres fonctions proposées par le *package*** dans un outil &#171; prêt-à-estimer &#187; dans les cas les plus simples, à savoir : 
+
+:::{.nonincremental}
+
+- sondage aléatoire simple stratifié ;
+- correction de la non-réponse par repondération au sein de groupes de réponse homogènes (optionnelle) ;
+- calage sur marges (optionnel).
+
+:::
+
+. . .
+
+`qvar()` est ainsi particulièrement adaptée aux enquêtes de l'Insee **auprès des entreprises** et remplace les macros SAS ***%calker_grh*** et ***%everest***.
+
+. . .
+
+**Remarque** Le nom &laquo;&nbsp;qvar&nbsp;&raquo; signifie &laquo;&nbsp;*quick variance estimation*&nbsp;&raquo; et est pensé par analogie avec la fonction `qplot()` du *package* ggplot2.
+
+## Démonstration : Installation et chargement
+
+La version 0.4.4 du *package* gustave est accessible [sur le CRAN]( https://CRAN.R-project.org/package=gustave).
+
+La version en cours de développement est disponible sur [github.com](https://github.com/InseeFr/gustave).
+
+. . . 
+
+\ 
+
+```{r}
+#| eval: FALSE
+
+# Installation de la version disponible sur le CRAN
+install.packages("gustave")
+
+# Installation de la version de développement depuis github
+remotes::install_github("InseeFr/gustave")
+
+# Chargement du package gustave
+library(gustave)
+
+# Affichage de l'aide de la fonction qvar()
+? qvar
+```
+
+```{r, include=FALSE}
+library(gustave)
+```
+
+## Démonstration : Données d'exemple
+
+Le *package* gustave embarque des **données d'exemple simulées** inspirées de l'enquête Technologies de l'information et de la communication.
+
+:::{.nonincremental}
+
+:::{.fragment}
+
+- Table d'échantillon `ict_sample`
+
+```{r}
+names(ict_sample)
+```
+
+:::
+
+:::{.fragment}
+
+- Table de variables d'intérêt `ict_survey`
+
+```{r}
+names(ict_survey)
+```
+
+:::
+
+:::
+
+## Démonstration : Lancement de `qvar()` 
+
+En première approche, `qvar()` nécessite de spécifier **tous les paramètres de l'enquête** pour mener à bien une estimation. 
+
+. . . 
+
+**Remarque** Ici, on n'a repris que les paramètres relatifs au plan de sondage.
+
+. . . 
+
+```{r}
+qvar(
+  # Paramètres du plan de sondage
+  data = ict_sample,
+  id = "firm_id",
+  sampling_weight = "w_sample",
+  strata = "strata",
+  
+  # Paramètres sur les observations diffusées et leur poids
+  dissemination_dummy = "dissemination",
+  dissemination_weight = "w_sample",
+  
+  # Variable d'intérêt
+  turnover
+)
+```
+
+## Démonstration : Création d'un *wrapper*
+
+Mais `qvar()` est pensé pour être utilisé en **deux étapes distinctes** : 
+
+1. (Méthodologue) Définition d'un ***wrapper* de variance**
+
+. . . 
+
+```{r}
+precisionTic <- qvar(
+  # Paramètres du plan de sondage
+  data = ict_sample,
+  id = "firm_id",
+  sampling_weight = "w_sample",
+  strata = "strata",
+  # Paramètres sur les observations diffusées et leur poids
+  dissemination_dummy = "dissemination",
+  dissemination_weight = "w_sample",
+  # Argument indiquant qu'on souhaite définir un outil de calcul de précision 
+  define = TRUE
+)
+```
+
+2. (Chargé·e d'étude) Utilisation du *wrapper*  (sur les répondants)
+
+. . . 
+
+```{r}
+precisionTic(ict_survey, turnover)
+```
+
+
+
+## Démonstration : Ergonomie (1)
+
+Estimation de moyennes ou de ratio (linéarisation à la volée)
+
+```{r}
+precisionTic(ict_survey, mean(turnover))
+```
+. . . 
+```{r}
+precisionTic(ict_survey, ratio(turnover, employees))
+```
+. . . 
+
+Plusieurs estimations en un seul appel (avec labels optionnels)
+```{r}
+precisionTic(ict_survey,
+  "CA moyen" = mean(turnover),
+  "CA moyen par salarié" = ratio(turnover, employees)
+)
+```
+
+## Démonstration : Ergonomie (2)
+
+Estimation sur un ou plusieurs domaines
+```{r}
+precisionTic(ict_survey, mean(speed_quanti), where = employees >= 50)[, c(1:3, 5)]
+```
+
+. . . 
+
+```{r}
+precisionTic(ict_survey, mean(speed_quanti), by = division)[, c(1:4, 6)]
+```
+. . . 
+
+Domaines différents par estimateur
+```{r}
+precisionTic(ict_survey,
+  "CA moyen des 50 et plus" = mean(turnover, where = employees >= 50),
+  "CA moyen des 100 et plus" = mean(turnover, where = employees >= 100)
+)[, c(1, 3:4, 6)]
+```
+
+## Démonstration : Ergonomie (3)
+
+```{r, include=FALSE}
+library(dplyr)
+```
+
+\scriptsize
+
+Dichotomisation automatique
+
+```{r}
+precisionTic(ict_survey, mean(speed_quanti > 100))[, c(1:3, 5)]
+```
+
+. . .
+
+```{r}
+precisionTic(ict_survey, mean(speed_quali))[, c(1:4, 6)]
+```
+
+. . .
+
+Intégration avec `%>%` et dplyr
+
+```{r}
+library(dplyr)
+ict_survey %>%
+  precisionTic("Connexion supérieure à 100 Mbs" = mean(speed_quanti > 100)) %>%
+  select(label, est, lower, upper)
+```
+
+## Démonstration : Unités hors-champ
+
+Il est facile dans `qvar()` de tenir compte du fait que des unités ont été **détectées comme hors-champ par l'enquête** (présentes dans la base de sondage mais pas dans la suite de l'exploitation).
+
+```{r}
+precisionTic <-  qvar(
+  
+  # Paramètres du plan de sondage
+  data = ict_sample,
+  id = "firm_id",
+  sampling_weight = "w_sample",
+  strata = "strata",
+  
+  # Indicatrice d'appartenance au champ
+  scope_dummy = "scope",
+
+  # Paramètres sur les observations diffusées et leur poids
+  dissemination_dummy = "dissemination",
+  dissemination_weight = "w_sample",
+  
+  # Argument indiquant qu'on souhaite définir un outil de calcul de précision 
+  define = TRUE
+  
+)
+```
+
+## Démonstration : Correction de la non-réponse
+
+`qvar()` est en mesure de tenir compte d'une étape de correction de la non-réponse par **repondération au sein de groupes de réponse homogène**.
+ 
+```{r}
+precisionTic <- qvar(
+  
+  # Paramètres du plan de sondage
+  data = ict_sample,
+  id = "firm_id",
+  sampling_weight = "w_sample", 
+  strata = "strata",
+
+  # Indicatrice d'appartenance au champ
+  scope_dummy = "scope",
+  
+  # Paramètres de la correction de la non-réponse
+  nrc_dummy = "nrc",
+  nrc_weight = "w_nrc",
+  response_dummy = "resp",
+  hrg = "hrg",
+
+  # Paramètres sur les observations diffusées et leur poids
+  dissemination_dummy = "dissemination",
+  dissemination_weight = "w_nrc",
+  
+  # Argument indiquant qu'on souhaite définir un outil de calcul de précision 
+  define = TRUE
+  
+)
+```
+
+
+## Démonstration : Calage sur marges
+
+Enfin, `qvar()` peut également tenir compte de l'**impact d'un éventuel calage sur marges** sur la précision des estimateurs.
+ 
+```{r}
+precisionTic <- qvar(
+
+  # Paramètres du plan de sondage
+  data = ict_sample,
+  id = "firm_id",
+  sampling_weight = "w_sample", 
+  strata = "strata",
+
+  # Indicatrice d'appartenance au champ
+  scope_dummy = "scope",
+  
+  # Paramètres de la correction de la non-réponse
+  nrc_dummy = "nrc",
+  response_dummy = "resp",
+  hrg = "hrg",
+  nrc_weight = "w_nrc",
+  
+  # Paramètres du calage sur marges
+  calibration_dummy = "calib",
+  calibration_var = c(paste0("N_", 58:63), paste0("turnover_", 58:63)),
+  calibration_weight = "w_calib",
+
+  # Paramètres sur les observations diffusées et leur poids
+  dissemination_dummy = "dissemination",
+  dissemination_weight = "w_calib",
+  
+  # Argument indiquant qu'on souhaite définir un outil de calcul de précision 
+  define = TRUE
+
+)
+```
+
+## La fonction `qvar()` : à retenir
+
+`qvar()` facilite la production de programmes d'estimation de variance relativement ergonomiques **dans les cas les plus simples**.
+
+. . . 
+
+\ 
+
+Elle ne permet cependant pas de tenir compte des **plans de sondage complexes** (phases multiples, partage des poids, etc.), très fréquents dans les enquêtes ménages de l'Insee (échantillon-maître).
+
+. . . 
+
+\ 
+
+Pour ces cas plus complexes, le *package* gustave propose une **boîte à outils de fonctions** permettant au ou à la méthodologue de **construire un *wrapper* de variance &laquo;&nbsp;sur-mesure&nbsp;&raquo;**.
+
+# Le *package* gustave : une boîte à outils pour l'estimation de variance
+
+## Principes du *package* gustave (1)
+
+**G**ustave: a **U**ser-oriented **S**tatistical **T**oolkit for **A**nalytical **V**ariance **E**stimation
+
+\ 
+
+. . . 
+
+**Idée centrale** &laquo;&nbsp;Emballer&nbsp;&raquo; (*wrap*) la fonction d'estimation de variance complexe dans une autre fonction (appelée *wrapper*) plus simple d'utilisation :
+
+- **fonction d'estimation de la variance** : fonction spécifique à chaque enquête développée par le ou la méthodologue ;
+
+- ***wrapper* d'estimation de variance** : fonction générique qui prend en charge des opérations systématiques (calcul des statistiques, domaines), appelle la fonction de variance et affiche les résultats.
+
+## Principes du *package* gustave (2)
+
+Les fonctions fondamentales du *package* gustave sont de **deux ordres** :
+
+1. **Fonctions méthodologiques** : estimateurs de variance usuels (Sen-Yates-Grundy, Deville-Tillé, etc.), fonctions outils (calcul des résidus de calage, somme par groupe, etc.) &rarr; **faciliter l'écriture de la fonction de variance**
+
+2. **Fonctions techniques** : fonctions qui simplifient la production de programmes d'estimation de variance qui ne nécessitent pas d'expertise méthodologique particulière &rarr; **produire le *wrapper* de variance**
+
+. . . 
+
+\ 
+
+**Remarque** `qvar()` n'est qu'un **appel pré-paramétré** produisant des ***wrappers* de variance** utilisant une **fonction de variance** générique.
+
+## Démonstration : Précision de l'EEC
+
+L'enquête Emploi en continu (EEC) est la **déclinaison française des *Labour force surveys* (LFS) européennes**.
+
+\
+
+. . . 
+
+Le réglement IESS définit des **cibles en matière de précision** au niveau national et régional : de ce fait, l'élaboration d'outils d'estimation de variance est **intégrée à la chaîne de production trimestrielle de l'enquête**.
+
+\
+
+. . .
+
+Conceptuellement, le production du programme de calcul de précision pour un trimestre de l'EEC comporte **deux étapes** : 
+
+:::{.nonincremental}
+
+1. Ecriture de la fonction de variance
+2. Création du *wrapper* de variance
+
+:::
+
+## Démonstration : Fonction de variance (1)
+
+L'écriture de la fonction de variance spécifique à une enquête découle de l'**analyse de sa méthodologie**, notamment pour déterminer l'**information auxiliaire** nécessaire.
+
+. . . 
+
+La fonction de variance prend **en entrée les arguments suivants** :
+
+:::{.nonincremental}
+
+- `y` : variables d'intérêt sur lesquelles faire porter l'estimation de variance ;
+- `up` : information auxiliaire relative aux unités primaires (&laquo;&nbsp;bisecteurs&nbsp;&raquo;) ;
+- `log` : information auxiliaire relative aux logements ;
+- `ind` : information auxiliaire relative aux individus.
+
+:::
+
+. . . 
+
+**Remarque** La fonction de variance détaillée ici correspond à celle utilisée jusqu'au renouvellement de l'échantillon de l'EEC en 2020. 
+
+## Démonstration : Fonction de variance (2)
+
+Code complet de la fonction de variance
+
+```{r, eval=FALSE}
+varEec <- function(y, up, log, ind){
+
+  variance <- list()
+
+  # Etape 0 : Agrégation par logement
+  y <- sum_by(y, by = ind$idlog)
+
+  # Etape 1 : Prise en compte du calage
+  y <- add_zero(y, log$id[log$cal])
+  y <- res_cal(y, precalc = log$res_cal_precalc)
+
+  # Etape 2 : Prise en compte de la non-réponse
+  variance[["nr"]] <- colSums(
+    (1/log$pilog[log$cal]^2 - log$qlog[log$cal]) *
+      (1 - log$pinr[log$cal]) * (y/log$pinr[log$cal])^2
+  )
+  y <- add_zero(y / log$pinr[log$cal], log$id)
+
+  # Etape 3 : Sélection des logements dans les up
+  variance[["log"]] <- varDT(
+    y, w = 1/(log$piup^2) - log$qup,
+    precalc = log$varDT_precalc
+  )
+
+  # Etape 4 : Sélection des up
+  y <- sum_by(y, by = log$idup, w = 1/log$pilog_up)
+  y <- add_zero(y, up$id)
+  variance[["up"]] <- varDT(y, precalc = up$precalc)
+
+  colSums(do.call(rbind, variance))
+
+}
+```
+
+## Démonstration : Fonction de variance (3)
+
+Le code de la fonction de variance fait appel à de nombreuses fonctions outils du package gustave : `sum_by()`, `add_zero()`, `res_cal()`, `varDT()`.
+
+\ 
+
+. . . 
+
+Les fonctions `res_cal()` et `varDT()` comportent un argument spécifique, `precalc` permettant de **passer en entrée un objet précalculé** accélérant souvent grandement l'ensemble des calculs. 
+
+\ 
+
+. . . 
+
+Pour l'essentiel, il s'agit de la matrice $(X'X)^{-1}$ utilisée pour **calculer les résidus d'une régression linéaire** sur les variables d'équilibrage ou de calage dans ces deux fonctions.
+
+## Démonstration : *Wrapper* de variance
+
+\small À partir de la fonction de variance et de l'information auxiliaire nécessaire, la fonction `define_variance_wrapper()` crée un *wrapper* de variance simple d'utilisation.
+
+. . . 
+
+```{r,}
+#| eval: false
+# Création du wrapper de variance avec define_variance_wrapper()
+precisionEec <- define_variance_wrapper(
+  variance_function = varEec,
+  technical_data = list(up = up, log = log, ind = ind),
+  reference_id = technical_data$ind$id,
+  reference_weight = technical_data$ind$w,
+  default_id = quote(paste0(ident, noi))
+)
+
+# Utilisation du wrapper de variance (données du T4 2014)
+precisionEec(z, acteu %in% 2)
+```
+
+```{r}
+#| echo: false
+load("gustave_jms_exemple.RData")
+eec1
+```
+
+. . . 
+
+**Remarque** Toute l'information auxiliaire spécifiée au paramètre `technical_data` est intégrée *dans* le *wrapper* (il s'agit d'une [*closure*](http://adv-r.had.co.nz/Functional-profgramming.html#closures)).
+
+## Un *package* pensé pour être extensible (1)
+
+La fonction `define_variance_wrapper()` accepte **n'importe quelle fonction de variance en entrée** :
+
+- autant d'information auxiliaire que nécessaire ;
+- utilisation des fonctions d'autres *packages* pour coder la fonction de variance (utiliser `require()` dans la fonction de variance) ;
+- prise en compte de paramètres affectant l'estimation de variance (méthodologies alternatives, etc.).
+
+. . . 
+
+**Large éventail de méthodologies couvert** : méthodes d'échantillonage complexes (échantillon-maître des enquêtes ménages de l'Insee), partages des poids (EU-Silc).
+
+## Un *package* pensé pour être extensible (2)
+
+La fonction de variance peut exporter, en plus des variances estimées, des **résultats intermédiaires** de l'estimation de variance.
+
+\ 
+
+. . .
+
+Cette fonctionnalité facilite la **création de surcouches** à partir des *wrappers* de variance produits par le *package* gustave.
+
+\
+
+. . .
+
+**Exemple** Dans l'EEC, l'estimation de variance pour des indicateurs faisant intervenir plusieurs trimestres (évolution d'un trimestre à l'autre, moyennes annuelles, etc.) s'appuie sur la récupération des résultats intermédiaires des *wrappers* de variance de chaque trimestre concerné (estimation des covariances trimestrielles).
+
+
+## Un *package* pensé pour être extensible (3)
+
+Il est également possible de définir de nouvelles fonctions pour estimer la précision de **statistiques complexes** grâce à la fonction `define_statistic_wrapper()`.
+
+. . . 
+
+**Exemple** Définition de la linéarisée du gini à partir du *package* vardpoor
+
+```{r}
+#| eval: false
+gini <- define_statistic_wrapper(
+  statistic_function = function(y, weight){
+    require(vardpoor)
+    result <- lingini(Y = y, weight = weight)
+    list(point = result$value$Gini, lin = result$lin$lin_gini)
+  },
+  arg_type = list(data = "y", weight = "weight", param = NULL)
+)
+
+# Utilisation pour calculer la précision dans EU-Silc en 2014
+precisionSilc(r, gini(HX090))
+```
+
+\pause
+```{r, echo=FALSE}
+srcv2
+```
+
+## Le *package* gustave : Pour synthétiser
+
+Au-delà de la fonction &laquo;&nbsp;prête-à-estimer&nbsp;&raquo; `qvar()`, le *package* gustave est pensé comme une **boîte à outils pour le ou la méthodologue** en charge de l'estimation de variance.
+
+. . . 
+
+\ 
+
+Il rassemble des fonctions méthodologiques et techniques qui **facilitent la création de programmes d'estimation de variance simples d'utilisation et autonomes**.
+
+. . . 
+
+\
+
+Sa conception est pensée pour que ses fonctionnalités soient **le plus extensibles possibles**.
+
+# Considérations informatiques
+
+## Statut du *package* gustave
+
+gustave est **utilisé en production à l'Insee et au sein du Service statistique public français** (notamment à la DREES). Il est considéré comme **stable**.
+
+\ 
+
+. . . 
+
+Son code source est **hébergé sur le dépôt de codes de l'Insee** sur [github](https://github.com/InseeFr/gustave).
+
+\ 
+
+. . . 
+
+**Sa maintenance est opérée par la Division sondages de l'Insee**, Martin Chevalier (son créateur) intervenant **en appui**.
+
+\ 
+
+. . . 
+
+**Les suggestions de fonctionnalités et contributions sont les bienvenues**.
+
+## Dépendances
+
+gustave dépend des *packages* methods, utils, stats et Matrix, tous considérés comme *recommended* et donc **préinstallés avec R**.
+
+\ 
+
+. . . 
+
+Cette parcimonie dans les dépendances se traduit en pratique par **peu de montées de version techniques**.
+
+\ 
+
+. . . 
+
+Néanmoins, les évolutions récentes du *package* Matrix ont nécessité **plusieurs montées de version**, **cassant la compatibilité ascendante** des outils de calcul de précision créés avec des versions antérieures de gustave.
+
+\
+
+. . . 
+
+L'apport du *package* Matrix est tel qu'**une suppression de cette dépendance n'apparaît néanmoins pas opportune**.
+
+## Sources de complexité dans le développement
+
+La finalité de gustave étant de **simplifier** le travail du ou de la méthodologue et l'utilisation par le ou la non-spécialiste, **il incorpore tout un ensemble de fonctionnalités** en pratique complexes à développer et à maintenir : 
+
+- [évaluation non-standard](http://adv-r.had.co.nz/Computing-on-the-language.html) : casuistique pour s'assurer que les objets sont **évalués au bon niveau** ;
+- [*function factories* et *closures*](https://adv-r.hadley.nz/function-factories.html) : **complexité des objets créés** (fonctions embarquant avec elles deux environnements stockant des données, l'un étant le parent de l'autre) ;
+- nombreux **tests méthodologiques réalisés par `qvar()`** : `qvar()` comportant de nombreux tests vérifiant la cohérence méthodologique des paramètres saisis, tous ces tests doivent être **eux-mêmes systématiquement testés**.
+
+## Principes de développement
+
+\ 
+
+- Recherche de **stabilité** : pas d'ajout de dépendances trop lourde ni d'évolution trop brutale de l'interface utilisateur.
+
+\ 
+
+- Importance des **[tests unitaires](https://r-pkgs.org/testing-basics.html)** : les sources de complexité rendent l'impact d'une modification du code particulièrement difficile à anticiper.
+
+\ 
+
+- **Développement *open-source*** : suivi de version avec git, évolutions *via* des *Pull requests* systématiquement testées.

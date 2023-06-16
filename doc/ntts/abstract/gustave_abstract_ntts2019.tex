@@ -1,0 +1,277 @@
+\documentclass[12pt,a4paper]{article}
+%% ntts2019abstract..tex - https://ec.europa.eu/eurostat/cros/system/files/ntts2019abstract_tex.zip
+%% TEMPLATE FOR NTTS 2019 CONFERENCE
+%% This LaTex source file is (coarsely) following the corresponding DOT template document of
+%% the conference (https://ec.europa.eu/eurostat/cros/system/files/ntts2019abstract.dot)
+%% Prepared by J.Grazzini (Eurostat, unit B1)
+
+\def\thisfile{ntts2019abstract}
+
+%% WHAT IS YOUR PAPER ABOUT: PUT YOUR TITLE HERE
+\def\thetitle{
+%\colorbox{yellow}{\parbox{\textwidth}{ % delete this line when submitting
+\textbf{Gustave - An R package for variance estimation in surveys}
+%}}% delete this line when submitting
+}
+
+%% TELL US MORE... THROUGH KEYWORDS!
+\def\thekeywords{
+\textit{R, Variance estimation, Survey quality}
+}
+
+%% PLEASE KEEP AT LIST THESE SETTINGS
+\def\thepaperheight{29.9cm} 	% original: {11.99in}
+\def\thepaperwidth{21.08cm} 	% 		{8.3in}
+\def\theleft{2.79cm} 			% 		{1.1in}
+\def\theright{2.99cm} 			%		{1.18in}
+\def\thetop{1.7cm} 			% 		{0.51in}
+\def\thebottom{1.6cm} 		% 		{0.71in}
+\def\theheadheight{2.54cm} 	% 		(1in}
+
+\usepackage[
+   a4paper,
+   paperheight=\thepaperheight,
+   paperwidth=\thepaperwidth,
+   left=\theleft,
+   right=\theright,
+   top=\thetop,
+   bottom=\thebottom,
+   headheight=\theheadheight
+]{geometry} % in particular, do not change the dimensions of the document
+
+\usepackage{fancyhdr}
+
+%\cfoot{ {\fontsize{8pt}{9.6pt}\selectfont 6\par}}
+
+%% NO HEADING...
+%%\fancyhead[RE]{\headreport}
+%%\fancyhead[RO,LE]{\bfseries\thepage}
+%%\fancyhead[LO]{\nouppercase{\rightmark}} %{\markright} %{\sectionmark}
+
+\pagestyle{fancy}
+\fancyhf{}
+
+% you can use hyperref as set below once the colorboxes are gone...
+% \usepackage[pdfauthor={\theauthors}, pdftitle={\thetitle}]{hyperref}
+% otherwise simply stick to that one
+\usepackage{hyperref}
+
+\hypersetup{colorlinks=true,       % false: boxed links; true: colored links
+    % linkcolor=blue,          % color of internal links
+    citecolor=red,        % color of links to bibliography
+    filecolor=magenta,      % color of file links
+    urlcolor=cyan           % color of external links
+}
+%% or:
+% \usepackage[hidelinks]{hyperref} % make links black
+
+\usepackage{sectsty}
+\usepackage{setspace}
+
+\renewcommand{\headrulewidth}{0pt}
+\setlength{\topsep}{0pt}\setlength{\parindent}{0pt}
+
+\renewcommand{\arraystretch}{1.3}
+
+%% depths for Sections 
+% 1) Section
+% 1.1) SubSection
+% 1.1.1) SubSubSection
+% 1.1.1.1) Paragraph
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+
+% depths for nested lists created by \begin{enumerate}
+\usepackage{enumitem}
+\setlistdepth{9}
+\renewlist{enumerate}{enumerate}{9}
+	\setlist[enumerate,1]{label=\arabic*)}
+	\setlist[enumerate,2]{label=\alph*)}
+	\setlist[enumerate,3]{label=(\roman*)}
+	\setlist[enumerate,4]{label=(\arabic*)}
+	\setlist[enumerate,5]{label=(\Alph*)}
+	\setlist[enumerate,6]{label=(\Roman*)}
+	\setlist[enumerate,7]{label=\arabic*}
+	\setlist[enumerate,8]{label=\alph*}
+	\setlist[enumerate,9]{label=\roman*}
+\renewlist{itemize}{itemize}{9}
+	\setlist[itemize]{label=$\cdot$}
+	\setlist[itemize,1]{label=\textbullet}
+	\setlist[itemize,2]{label=$\circ$}
+	\setlist[itemize,3]{label=$\ast$}
+	\setlist[itemize,4]{label=$\dagger$}
+	\setlist[itemize,5]{label=$\triangleright$}
+	\setlist[itemize,6]{label=$\bigstar$}
+	\setlist[itemize,7]{label=$\blacklozenge$}
+	\setlist[itemize,8]{label=$\prime$}
+
+% that's for generating directly PDF documents using pdfLaTex instead of LaTex alone
+\newif\ifpdf\ifx\pdfoutput\undefined\pdffalse\else\pdfoutput=1\pdftrue\fi
+\newcommand{\pdfgraphics}{\ifpdf\DeclareGraphicsExtensions{.pdf,.png,.tif,.jpg}\else\fi}
+
+%% KEEP THIS FOR THE EXAMPLES BELOW TO RUN...OR RUN YOUR OWN
+% \usepackage[boxed]{algorithm2e}
+\usepackage{algorithm}
+%\usepackage{algorithmic}
+\usepackage[noend]{algpseudocode}
+\makeatletter\def\BState{\State\hskip-\ALG@thistlm}\makeatother
+
+%% DEAL WITH THE BIBLIOGRAPHY
+
+% that's what we use here for the bibliography
+\usepackage[numbers]{natbib}
+% see https://gking.harvard.edu/files/natnotes2.pdf
+\newcommand*{\doi}[1]{DOI: \href{https://doi.org/\detokenize{#1}}{\detokenize{#1}}} 
+\newcommand*{\arxiv}[1]{arXiv: \href{https://arxiv.org/abs/\detokenize{#1}}{\detokenize{#1}}} 
+
+%% If you are compiling using biblatex
+%\usepackage[
+%    backend=biber,
+%    style=authoryear,
+%    natbib=true,
+%    url=true, 
+%    doi=true,
+%    eprint=false, 
+%    sorting=ynt
+%]{biblatex}
+%\addbibresource{\thisfile.bib}
+
+%% THANKS!
+
+%% SUGGESTED PACKAGES - DO WTF YOU WANT HERE 
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{amsmath}
+\usepackage{latexsym}
+\usepackage{amsfonts}
+\usepackage[normalem]{ulem}
+\usepackage{array}
+\usepackage{amssymb}
+
+\ifpdf
+\usepackage[pdftex]{graphicx}
+\else
+\usepackage{graphicx}
+\fi
+
+%\graphicspath{
+%
+%}
+
+\usepackage{float}
+%\usepackage{subfloat}
+\usepackage{subfig}
+% \usepackage[list=true]{subcaption} % cannot be used conjointly with subfig
+\usepackage{wrapfig}
+\usepackage{wasysym}
+\usepackage[svgnames,table]{xcolor}
+\usepackage{longtable} % long tabulars
+\usepackage{adjustbox}
+\usepackage{alltt} % verbatim 
+\usepackage{changepage}
+\usepackage{hhline}
+\usepackage{multicol}
+\usepackage{tabto}
+\usepackage{multirow}
+\usepackage{hyperref}
+%\usepackage{ragged2e}
+%\usepackage{tikz}
+%\usepackage{makecell}
+%\usepackage[toc,page]{appendix}
+
+\urlstyle{same}
+
+
+ %% HEADER
+\title{
+\vspace{-5ex}
+\thetitle
+\vspace{-2ex}
+}
+\date{}
+
+
+%% YOUR DOCUMENT STARTS HERE
+
+\begin{document}
+\cfoot{\thepage} % keep pages numbered
+
+%% PLEASE KEEP THIS FORMATTING
+\sectionfont{\large\textsc}
+%\sectionfont{\large\MakeUppercase}
+%%
+
+\maketitle
+
+{\fontsize{10pt}{12.0pt}\selectfont \textbf{\uline{Keywords}:} \thekeywords\par}\par
+
+
+\section{ Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+\par Estimating the variance of survey estimates is an important but often difficult step in their evaluation and dissemination process. Precision estimates play a key role in European surveys quality reporting, as defined in European regulations, for instance the Integrated European Social Statistics frame regulation currently under negotiation. They help users in their analysis of disseminated aggregates, especially when computed on domains (industries for business statistics, regions for household statistics).\\
+
+\par Errors in surveys may have multiple sources and causes (see \cite{Biemer2010}), which are for the most part difficult to evaluate quantitatively. In survey data, sampling and nonresponse errors represent a significant part of the total error, that official handbooks (see \cite{EHQR2014} for instance) strongly recommend to take into account and estimate.\\
+
+\par In France, the precision estimations performed by the National Statistical Institute Insee for its surveys incorporate the following elements: 
+\begin{itemize}
+\item sampling design;
+\item unit nonresponse, usually treated by reweighting methods;
+\item influential units treatments;
+\item calibration.
+\end{itemize}
+Variance estimation uses analytical formulas, based on the works presented in \cite{Gros2016} for the Labour Force Survey and in \cite{Breidt2011} and \cite{Gros2015} for other household surveys, taking into account the real sampling design according to which the sample has been selected. These analytical formulas are implemented in taylor-made precision estimation programs, that used to be written in SAS but are now developped in R. \\
+
+\par Due to the complexity of sampling designs and survey data treatments, especially for household surveys, estimating variance, that is defining the precise analytical variance formula to be used and implementing it in a statistical software, is a demanding and time-consuming task, usually performed by members of the methodological staff. However, the computation of precision estimates should also be made available to data users such as subject matters experts, so that they could as easily as possible compute the variance of the variables they wish to comment and disseminate.\\ 
+
+\par The former organisation of variance computation in Insee was far from optimal: members of the methodological staff implemented variance computation for lists of parameters and variables defined by subject matter experts and delivered standard deviations and confidence intervals for these parameters and variables. Each time a precision estimate was needed for a new variable, the task was sent to the methodological staff who implemented the computation.\\
+
+\par The Gustave package has been conceived as a tool to facilitate precision estimates computation and to change their organisation. Its goal is to lessen the charge of the methodological staff and limit it to the more technical tasks for which their expertise is needed. We will here limlit our presentation on the general principles according to which Gustave is organised. The final paper will include an example of variance computation with Gustave on the French Labour Force Survey.
+
+
+
+\section{Gustave package organisation}
+\addcontentsline{toc}{section}{Gustave package organisation}
+
+\par The principles according to which Gustave has been developped are the following:
+\begin{itemize}
+\item The definition of the analytical variance formula for the estimate of a total is a difficult task as soon as the sampling design includes more than one degree or phase and complicated sampling techniques, such as balanced sampling.\\
+\item Certain aspects of variance estimation can however be automated, once the analytical formula for the variance of a total estimate is available. For instance, taking into account  calibration, estimation on population domains and parameters linearization.\\
+\item The computation of variance, once the analytical formula is defined and implemented in a dedicated software, should be easy and accessible without a specialized sampling theory expertise. The expertise needed should be the subject matter knowledge guiding the choice of the parameters and variables for which variance computation is relevant.\\
+\end{itemize}
+
+\par According to these, Gustave enables the users to develop variance estimation functions in R in three steps:\\
+\begin{enumerate}
+\item The first step is the definition of the basic variance estimation formula in R. This formula uses answers to the surveys and technical variables defining the sampling design and survey data treatments to compute with matrix algebra the precision of the estimate of a total. This step is taken over by a member of the methodological staff. Its implementation in R is facilitated by taylor-made functions incorporated in the package.\\
+\item The second step consists in the production of a R variance function. Gustave indeed contains a function, called the variance function wrapper, which is a kind of variance function factory. This wrapper takes as an input the formula defined at the first step and produces an R function, specific to each survey and enabling easy variance computations. This step is also implemented by members of the methodological staff.\\
+\item Finally, the R variance function is disseminated to subject matter experts, who perform variance computation for parameters and variances they deem relevant.\\
+\end{enumerate}
+
+\par The variance wrapper uses the variance formula and adds to it functionnalities implementing for instance variance computation on domains, with an easy to use syntax and also the automatic computation of linearized variables for basic parameters such as means or ratios. Other linearized variables for more complicated parameters, such as Gini coefficients and quantiles, can also be taken into account.\\
+
+\par As Gustave was designed in order to simplify and standardize as much as possible the implementation of variance estimation, a ready-to-use function of variance estimation \textit{qvar} is available in the package. This function works for surveys with stratified sample design and can take into account unit nonresponse treated by reweighting and calibration. \\
+
+\par The R variance functions produced by Gustave variance wrapper can be used on any computer as soon as it has access to a valid R session. Thanks to the fact that R functions incorporate their own environment and the data this environment contains, R variance functions indeed contain all technical data and survey data needed to implement variance estimates. R variance functions produced by Gustave are therefore resilient tools enabling future variance estimations for each survey. Their drawback is that, as they contain survey data, they can only be disseminated to authorized users, through the usual legal procedures.\\
+
+\par Gustave therefore enables an organisation in which tasks are optimally split between the methodological staff, taking care of the methodological aspects of variance computation, and the subject matter experts, taking care of the actual variance computation. 
+
+
+\section{Conclusions}
+\addcontentsline{toc}{section}{Conclusions}
+
+\par Gustave was made available to the general public in a stable version in the summer of 2018 on the CRAN (\url{https://cran.r-project.org/web/packages/gustave/index.html}). Its development versions are available to the public on its github page (\url{https://github.com/martinchevalier/gustave}). Future developments include the creation of a more integrated variance wrapper that can be used directly by subject matter experts for the production of their own R variance functions, in case the sampling design is a simple one degree stratified simple random sampling, which is common for business surveys.
+
+% \cite*{} actually, that's a dirty trick here... but just for generating the AUX file
+% (references in the preamble are not recognised)
+
+\bibliographystyle{unsrtnat}
+\renewcommand{\refname}{References}
+\addcontentsline{toc}{section}{References}
+
+%%\printbibliography % when using biblatex
+
+\bibliography{gustave_abstract_ntts2019.bib}
+
+\end{document}

@@ -1,0 +1,355 @@
+
+### \ 
+
+\vspace{-0.5cm} L'estimation de variance est une opération qui gagne en importance dans le \strong{processus de production d'une enquête}: 
+  
+  - outil pour évaluer la qualité de l'information collectée susceptible d'influer sur sa diffusion:
+  - indicateur utilisé dans les rapports qualité mais aussi dans le nouveau règlement européen IESS (*Integrated european social statistics*) en discussion.
+
+\pause \strong{Remarque} Cette présentation porte sur une composante parmi d'autres de l'imprécision associée à un processus d'enquête. 
+
+\pause Cette contribution présente:
+
+- la stratégie mise en \oe uvre à l'Insee pour mener à bien l'estimation de variance sur des enquêtes complexes;
+- le *package* R gustave développé au sein du Département des méthodes statistiques (DMS).
+
+
+### Plan de la présentation
+
+\large
+\tableofcontents[sectionstyle=show/show, subsectionstyle=hide/hide/hide]
+
+
+# Objectif : rendre le calcul de précision (plus) simple
+
+### \large Sources de complexité du calcul de précision
+
+\pause \strong{Plan de sondage}
+
+- \vspace{-0.2cm} algorithmes de tirage;
+- tirages à plusieurs degrés;
+- bases de sondage multiples.
+
+\pause \bigskip \strong{Méthodes d'estimation}
+
+- \vspace{-0.2cm} correction de la non-réponse;
+- calage sur marges.
+
+\pause \bigskip \strong{Estimateurs}
+
+- \vspace{-0.2cm} linéarisation: ratio, quantiles, indicateurs de pauvreté, etc.;
+- estimation sur des domaines.
+
+
+### Première solution: le logiciel Poulpe
+
+\pause Poulpe (\strong{P}rogramme \strong{O}ptimal et \strong{U}niversel pour la \strong{L}ivraison de la \strong{P}récision des \strong{E}nquêtes) est une macro SAS de calcul de précision présentée lors des 6$^\text{ème}$ JMS (1998): 
+  
+  - \vspace{-0.2cm} estimateurs de variance s'appuyant sur les probabilités d'inclusion simple;
+- modélisation générique du plan de sondage et des phases de redressement;
+- modules de linéarisation intégrés.
+
+\pause \bigskip La présente contribution \strong{s'appuie sur les travaux associés à Poulpe} avec quelques différences notables: 
+  
+  - \vspace{-0.2cm} aucune restriction sur le type d'estimateur de variance (échantillon-maître Octopusse);
+  - simplification de la mise en \oe uvre du calcul pour le non-spécialiste.
+  
+  
+  ### \large Nouvelle proposition (1): procéder en deux étapes
+  
+  Difficultés de l'estimation de variance en pratique: 
+  
+  - construire une modélisation méthodologiquement cohérente du plan de sondage et des redressements; 
+  - disposer des données nécessaires pour les prendre en compte.
+  
+  \pause \bigskip \strong{Proposition organisationnelle}: bien distinguer \strong{deux étapes}
+  
+  1. \pause \strong{Méthodologue}: analyse méthodologique, mobilisation de l'information auxiliaire, construction d'un \strong{programme d'estimation de variance} raisonnablement exact;
+
+2. \pause \strong{Responsable d'enquête, chargé(e) d'étude}: utilisation du programme d'estimation dans le cadre d'études ou pour répondre à des obligations réglementaires.
+
+
+
+### \large Nouvelle proposition (2): le *package* R gustave
+
+\strong{Conséquence} : les programmes d'estimation de variance doivent donc
+
+- être autonomes et aussi simples d'utilisation que possible;
+- prendre en compte l'ensemble des éléments relatifs au calcul de précision (linéarisations, domaines, etc.);
+- ne pas être trop complexes à développer ni à maintenir.
+
+\bigskip \pause \strong{Proposition technique}: *package* R \strong{G}ustave: a \strong{U}ser-oriented \strong{S}tatistical \strong{T}oolkit for \strong{A}nalytical \strong{V}ariance \strong{E}stimation
+
+- \pause \strong{Faciliter} la mise en \oe uvre du calcul de précision par tout un chacun... 
+
+- \pause ...en fournissant au ou à la méthodologue des \strong{outils dédiés}.
+
+# Exemple d'applications de gustave à l'Insee
+
+### Le *package* gustave à l'Insee
+
+Utilisé pour l'estimation de variance des enquêtes ménages périodiques: Enquête emploi en continu (EEC), dispositif Statistique sur les revenus et les conditions de vie (SRCV), Cadre de vie et sécurité (CVS), Loyers et charges.
+
+\pause \bigskip \strong{Exemple} Enquête emploi en continu
+
+- panel de logements initialisé en 2009, tirage équilibré;
+- correction de la non-réponse par calage en une étape;
+- indicateurs standards: ratios (taux de chômage, etc.) ventilés par domaine.
+
+\small \pause \bigskip {\itshape \strong{Nota bene} Les estimateurs ponctuels figurant sur les diapositives suivantes ne coïncident en général pas avec la diffusion officielle (champs de calcul différents, pas de désaisonnalisation, etc.).}
+
+
+### Les fichiers de calcul de précision
+
+Le *package* gustave permet de produire, pour chaque millésime d'une enquête (chaque trimestre pour l'EEC) un \strong{fichier de données R} qui contient : 
+                                                                              
+                                                                              - \vspace{-0.2cm} \pause les micro-données de l'enquête (table `z` pour l'EEC);
+                                                                                                                                       - \pause les programmes d'estimation de variance spécifiques à l'enquête (fonction `precisionEec()` pour l'EEC);
+                                                                              - \pause toute l'information auxiliaire nécessaire.
+                                                                              
+                                                                              \pause Pour mettre en \oe uvre l'estimation de variance, \strong{il suffit de charger ce fichier} (par exemple pour le T2 2014):
+                                                                                
+                                                                                \footnotesize
+                                                                              ```{r, eval=FALSE}
+                                                                              load("precisionEec142.RData")
+                                                                              ```
+                                                                              \normalsize
+                                                                              
+                                                                              \pause \small \bigskip \vspace{-0.4cm} \strong{Remarque} Ces fichiers de calcul de précision sont susceptibles de contenir des \strong{informations auxiliaires réidentifiantes}.
+                                                                              
+                                                                              
+                                                                              ```{r, include=FALSE}
+                                                                              load("gustave_jms_exemple.RData")
+                                                                              options(width = 60)
+                                                                              # Note : les calculs sont effectués sur un serveur sécurisé,
+                                                                              # seuls les résultats sont réutilisés ici pour la présentation
+                                                                              ```
+                                                                              
+                                                                              
+                                                                              
+                                                                              ### \large Code : Précision du taux de chômage au T2 2014
+                                                                              
+                                                                              \pause \strong{Nombre total de chômeurs} (`acteu %in% 2`)
+                                                                              
+                                                                              \pause \footnotesize
+                                                                              ```{r, eval=FALSE}
+                                                                              precisionEec(z, total(acteu %in% 2))
+                                                                              ```
+                                                                              
+                                                                              \vspace{-0.5cm}
+                                                                              ```{r, echo=FALSE}
+                                                                              eec1
+                                                                              ```
+                                                                              
+                                                                              
+                                                                              \pause \bigskip \normalsize \strong{Taux de chômage}
+                                                                              
+                                                                              \pause \footnotesize
+                                                                              ```{r, eval=FALSE}
+                                                                              precisionEec(z, ratio(acteu %in% 2, acteu %in% c(1, 2)))
+                                                                              ```
+                                                                              
+                                                                              \vspace{-0.5cm}
+                                                                              ```{r, echo=FALSE}
+                                                                              eec2
+                                                                              ```
+                                                                              
+                                                                              
+                                                                              ### \large Code : Précision du taux de chômage au T2 2014
+                                                                              
+                                                                              \strong{Taux de chômage des 50 ans et plus}
+                                                                              
+                                                                              \pause \footnotesize \vspace{-0.2cm} 
+                                                                              ```{r, eval=FALSE}
+                                                                              precisionEec(z, 
+                                                                                           ratio(acteu %in% 2, acteu %in% c(1, 2)),
+                                                                                           where = age >= 50
+                                                                              )
+                                                                              ```
+                                                                              
+                                                                              \vspace{-0.5cm}
+                                                                              ```{r, echo=FALSE}
+                                                                              eec3[, 2:5]
+                                                                              ```
+                                                                              
+                                                                              \pause \normalsize \strong{Taux de chômage par région}
+                                                                              
+                                                                              \pause \footnotesize \vspace{-0.2cm} 
+                                                                              ```{r, eval=FALSE}
+                                                                              precisionEec(z, 
+                                                                                           ratio(acteu %in% 2, acteu %in% c(1, 2)),
+                                                                                           by = reg
+                                                                              )
+                                                                              ```
+                                                                              
+                                                                              \vspace{-0.5cm}
+                                                                              ```{r, echo=FALSE}
+                                                                              eec4[1:3, 2:6]
+                                                                              ```
+                                                                              
+                                                                              # Principe de fonctionnement du *package* gustave
+                                                                              
+                                                                              ### \og Emballer \fg{} (*wrap*) la complexité
+                                                                              
+                                                                              L'objectif du *package* gustave est de \strong{préserver l'utilisateur final de la complexité} du processus d'estimation de la variance. 
+
+\pause \strong{Idée centrale} \og Emballer \fg{} la fonction d'estimation de variance complexe dans une autre fonction (appelée \og \textit{wrapper} \fg{}) plus simple d'utilisation: 
+
+- \pause \strong{fonction d'estimation de la variance}: fonction spécifique à chaque enquête développée par le ou la méthodologue; \pause $\rightarrow$ \strong{complexité méthodologique}
+
+- \pause \strong{\textit{wrapper} d'estimation de variance}: fonction générique qui prend en charge des opérations systématiques (linéarisations, domaines), appelle la fonction de variance et affiche les résultats. \pause $\rightarrow$ \strong{complexité informatique}
+  
+  ### Apports du *package* gustave
+  
+  La production d'un programme d'estimation de variance avec le *package* gustave suppose en général \strong{trois étapes pour le ou la méthodologue}: 
+  
+  1. \pause Élaborer la fonction de variance spécifique à l'enquête
+  
+  $\rightarrow$ gustave propose des \strong{fonctions optimisées} qui mettent en \oe uvre les estimateurs de variance standard.
+  
+  2. \bigskip \pause Définir le *wrapper* de variance
+  
+  $\rightarrow$ gustave \strong{simplifie la production} de *wrappers* de variance faciles à utiliser et intégrant toute l'information auxiliaire nécessaire.
+  
+  3. \bigskip \pause Définir des linéarisations *ad hoc* si nécessaire
+  
+  $\rightarrow$ gustave permet l'\strong{interaction} entre *wrappers* de variance et fonctions de linéarisation.
+  
+  
+  ### Diffusion et perspectives
+  
+  - Version 0.3.0 en ligne sur le CRAN
+  
+  - \bigskip Code source accessible sur github.com : [https://github.com/martinchevalier/gustave](https://github.com/martinchevalier/gustave)
+  
+  - \bigskip Maintenance assurée par la division Sondages de l'Insee
+  
+  - \bigskip \pause Fonctionnalités en développement: 
+  
+  * création d'une fonction \og prête-à-estimer \fg{} pour les cas les plus simples (SAS stratifié, repondération dans des GRH, calage) similaire à la macro SAS %everest;
+  * intégration dans le *package* de linéarisations plus complexes.
+  
+  # Estimation de variance dans les enquêtes de l'Insee {.unnumbered}
+  
+  ### En guise de conclusion
+  
+  Le Département des méthodes statistiques a mis en place une organisation pour \strong{industrialiser l'estimation de variance}:
+    
+    - processus systématisé et documenté;
+    - programmes simples d'utilisation et faciles à diffuser;
+    - fichiers d'estimation de variance résilients.
+    
+    \bigskip \pause Le développement du *package* gustave constitue un \strong{investissement important}: 
+    
+    - présenté en *workshop* européen;  
+    - utilisé pour vérifier le respect des objectifs de précision prévus par le réglement IESS;
+    - qui inscrit avec d'autres les travaux du DMS et de l'Insee dans l'univers du logiciel libre.
+    
+    
+    ### \ 
+    
+    \begin{center}
+    \large
+    \strong{Merci de votre attention!}  
+    
+    \normalsize \bigskip \bigskip Martin Chevalier \\ martin.chevalier@insee.fr \\\url{https://github.com/martinchevalier/gustave}
+    \end{center}
+    
+    <!-- # Fonctionnement du package gustave: exemple {.unnumbered} -->
+      
+      <!-- ### Enquête TIC (données simulées) -->
+      
+      <!-- \strong{Données d'exemple du \textit{package}} : données fictives inspirées de l'enquête Technologies de l'information et de la communication (TIC) -->
+        
+        <!-- \pause \bigskip Méthodologie (de l'exemple fictif): -->
+  
+  <!-- - sondage aléatoire simple stratifié; -->
+  <!-- - correction de la non-réponse dans des groupes de réponse homogène; -->
+  <!-- - calage sur marges. -->
+  
+  
+  <!-- ### Étape 1 : Élaborer la fonction de variance -->
+  
+  <!-- À partir de l'analyse du plan de sondage, le ou la méthodologue produit une \strong{fonction de variance} (ici `varianceTic()`): -->
+
+<!-- - à partir d'une matrice d'observations en entrée, produit un vecteur d'estimateurs de variance en sortie; -->
+  <!-- - peut utiliser n'importe quelle information auxiliaire (probabilités d'inclusion, variables de calage, etc.). -->
+  
+  <!-- \footnotesize -->
+  <!-- ```{r, include=FALSE} -->
+  <!-- library(gustave) -->
+  <!-- varianceTic <- function(y){ -->
+      
+      <!--   # Calage -->
+      <!--   y <- rescal(y, x = x) -->
+        
+        <!--   # Non-réponse -->
+        <!--   y <- add0(y, rownames = ict_sample$firm_id) -->
+          <!--   var_nr <- var_pois(y, pik = ict_sample$response_prob_est, w = ict_sample$w_sample) -->
+            
+            <!--   # Echantillonnage -->
+            <!--   y <- y / ict_sample$response_prob_est -->
+              <!--   var_sampling <- var_srs(y, pik = 1 / ict_sample$w_sample, strata = ict_sample$division) -->
+                
+                <!--   var_sampling + var_nr -->
+                
+                <!-- } -->
+    <!-- # With x the calibration variables matrix -->
+    <!-- library(gustave) -->
+    <!-- x <- as.matrix(ict_survey[ -->
+                                      <!--   order(ict_survey$firm_id), -->
+                                      <!--   c(paste0("N_", 58:63), paste0("turnover_", 58:63)) -->
+                                      <!-- ]) -->
+      
+      <!-- # Premier lancement pour virer la Note de Matrix -->
+      <!-- big_data <- as.matrix(ict_survey$big_data) -->
+        <!-- rownames(big_data) <- ict_survey$firm_id -->
+          <!-- varianceTic(big_data) -->
+          <!-- ``` -->
+          
+          <!-- \pause \vspace{0.2cm} -->
+          <!-- ```{r, collapse=TRUE} -->
+          <!-- # Test de varianceTic() sur la variable big_data -->
+          <!-- big_data <- as.matrix(ict_survey$big_data) -->
+            <!-- rownames(big_data) <- ict_survey$firm_id -->
+              <!-- varianceTic(big_data) -->
+              <!-- ``` -->
+              
+              <!-- ### Etape 2 : Définir le wrapper de variance -->
+              
+              <!-- \footnotesize -->
+              <!-- ```{r, collapse=TRUE} -->
+              <!-- # Définition du wrapper de variance -->
+              <!-- precisionTic <- define_variance_wrapper( -->
+                                                              <!--   variance_function = varianceTic, -->
+                                                              <!--   reference_id = ict_survey$firm_id, -->
+                                                              <!--   default = list(id = "firm_id", weight = "w_calib"), -->
+                                                              <!--   objects_to_include = c("x", "ict_sample") -->
+                                                              <!-- ) -->
+                <!-- ``` -->
+                
+                <!-- \pause  -->
+                <!-- ```{r, collapse=TRUE} -->
+                <!-- # Test du wrapper de variance -->
+                <!-- precisionTic(ict_survey, total(big_data)) -->
+                <!-- ``` -->
+                
+                <!-- ### Etape 3 : Définir des linéarisations *ad hoc* -->
+                
+                <!-- Par défaut le *package* gustave incorpore les linéarisations les plus classiques (celles proposées dans Poulpe).  -->
+                
+                <!-- \pause Il est néanmoins possible de définir des linéarisations supplémentaires: -->
+                
+                <!-- \footnotesize \pause -->
+                <!-- ```{r} -->
+                <!-- arpr <- define_linearization_wrapper( -->
+                                                             <!--   linearization_function = function(y, weight, percentage = 60, order_quant = 50L){ -->
+                                                                 <!--     require(vardpoor) -->
+                                                                 <!--     r <- linarpr(Y = y, weight = weight, percentage = percentage, order_quant = order_quant) -->
+                                                                   <!--     return(list(lin = list(r$lin$lin_arpr), metadata = list(est = r$val$arpr))) -->
+                                                                   <!--   },  -->
+                                                             <!--   arg_type = list(data = "y", weight = "weight", param = c("percentage", "order_quant")) -->
+                                                             <!-- ) -->
+                  <!-- ``` -->
+                  
+                  <!-- \pause \normalsize \strong{Remarque} Comme pour l'estimation de variance, on distingue la *fonction* de linéarisation (méthodologique) du *wrapper* de linéarisation (interaction avec le *wrapper* de variance). -->

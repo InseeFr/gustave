@@ -1,0 +1,112 @@
+
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{textcomp} 
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{booktabs,multirow}
+\usepackage{setspace}
+\usepackage{float}
+\usepackage{pgfpages}
+\usepackage{colortbl}
+\usepackage{epstopdf}
+\usepackage{framed}
+
+
+
+\definecolor{shadecolor}{RGB}{248,248,248}
+\definecolor{grayInsee}{HTML}{5a5758}
+\definecolor{redInsee}{HTML}{ed1443}
+
+%Everything about the notes and formatting of the notepage
+\setbeamertemplate{note page}{%
+	Notes personnelles
+	\insertnote%
+}
+
+
+\setbeamertemplate{navigation symbols}{}
+\usetheme{default} %Malmoe not bad
+\setbeamertemplate{footline}[frame number]
+
+
+%\setbeamerfont{frametitle}{size=\normalsize}
+%\setbeamerfont{framesubtitle}{size=\Large}
+%\setbeamercolor{frametitle}{fg=grayInsee}
+%\setbeamercolor{framesubtitle}{fg=redInsee}
+\setbeamercolor{title}{fg=grayInsee}
+\setbeamercolor{section in toc}{fg=grayInsee}
+\setbeamercolor{subsection in toc}{fg=grayInsee}
+\setbeamertemplate{frametitle}{%
+	\large \textcolor{grayInsee}{\secname}
+	\\ \vspace{0.1cm} \Large \textcolor{redInsee}{\insertframetitle}
+}
+%\setbeamertemplate{frametitle}{%
+%	\large \textcolor{grayInsee}{
+%		\ifx\intertsubsection\emptyset
+%			\secname \\ \vspace{0.1cm} 
+%		\else 
+%			\subsecname \\ \vspace{0.1cm}
+%		\fi
+%	}
+%	\Large \textcolor{redInsee}{\insertframetitle}
+%}
+\setbeamercolor{local structure}{fg=redInsee}
+
+\AtBeginSection[]
+{\ifnum \thesection>1
+  \begin{frame}
+  \vfill
+  \begin{center}
+  \LARGE
+  \textcolor{grayInsee}{\insertsectionhead}
+  \end{center}
+  \vfill
+  \end{frame}
+\else
+\fi
+}
+
+\AtBeginSubsection[]{}
+
+
+\institute{\small EU-SILC Best Practices Workshop \\ Prague, 14-15 september 2017}
+
+\author{\includegraphics[height = 2.5cm]{Logo_Insee.png}\\ ~ \\ \normalsize Martin \textsc{Chevalier}}
+
+\date{}
+
+\renewenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+
+\newcommand{\aparte}[2]{
+	{\small\textsf{\textbf{#1} #2}}
+}
+
+%\usepackage{enumitem}
+%\setlist{nolistsep}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,calc, positioning}
+\tikzstyle{input} = [draw, rectangle,rounded corners, text width=2.5cm, fill=green!20, node distance=0.5cm, minimum height=2em, text centered]
+\tikzstyle{output} = [draw, ellipse,fill=red!20, node distance=0.5cm, minimum height=2em, text centered]
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=1.5cm, text centered, minimum height=2em, node distance = 0.5cm]
+\tikzstyle{line} = [draw, -latex', shorten >=2pt, shorten <=2pt]
+\tikzset{
+  invisible/.style={opacity=0},
+  visible on/.style={alt={#1{}{invisible}}},
+  alt/.code args={<#1>#2#3}{%
+    \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} % \pgfkeysalso doesn't change the path
+  },
+}
+
+% \usepackage{pgfpages}
+% \mode<handout>{
+% %\setbeamercolor{background canvas}{bg=black!20}
+% \pgfpagesuselayout{4 on 1}[border shrink=2mm]
+% }
+
+\newcommand{\strong}[1]{%
+  \textbf{\textcolor{redInsee}{#1}}%
+}
