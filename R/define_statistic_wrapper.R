@@ -284,6 +284,7 @@ define_statistic_wrapper <- function(statistic_function,
 
 standard_display <- function(point, var, metadata, alpha){
   # TODO: If installed, use tibble to add more explicit column labels
+  metadata <- metadata[c("label", "call", "mod", "by", "n")]
   output_df <- as.data.frame(metadata[!sapply(metadata, is.null)], stringsAsFactors = FALSE)
   if(length(var) != length(point)) stop(
     "The number of estimated variances does not match the number of point estimates. A specific display function could be needed.", 

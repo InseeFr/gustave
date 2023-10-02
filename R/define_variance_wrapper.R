@@ -353,18 +353,19 @@ define_variance_wrapper <- function(variance_function,
     # Step 3.4: Reintroduce the "var" output of variance_function within data_as_list
     data_as_list <- lapply(seq_along(data_as_list), function(i){
       slice <- data_as_list[[i]]
-      slice$var <- data_as_Matrix$var[data_as_Matrix$slice_number == i]
+      for(n in setdiff(names(data_as_Matrix), c("lin", "slice_number")))
+        slice[[n]] <- data_as_Matrix[[n]][data_as_Matrix$slice_number == i]
       slice
     })
-    
-      
+
     # Step 4: Display the results (if requested)
     if(!display) return(invisible(list(
       data_as_list = data_as_list, data_as_Matrix = data_as_Matrix
     )))
-    list_output_df <- lapply(data_as_list, function(i) with(i, display_function(
-      point = point, var = var, metadata = metadata[c("label", "call", "mod", "by", "n")], alpha = alpha
-    )))
+    list_output_df <- lapply(data_as_list, function(i) do.call(
+      i$display_function,
+      c(i[intersect(names(i), names(formals(i$display_function)))], alpha = alpha)
+    ))
     rbind_output_df(list_output_df)
   
   }
