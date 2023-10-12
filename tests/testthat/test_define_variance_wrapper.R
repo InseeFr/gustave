@@ -283,3 +283,37 @@ test_that("estimated values do match reference values", {
   expect_equal(variance_wrapper(ict_survey, big_data_NA, by = speed_quali_NA)$variance, c(0, 1, 0, 15, 14), tolerance = 1e-0)
 })
 
+test_that("additional outputs are indeed passed on to a custom display function", {
+  # In response to issue #13 by Dmitrilbr
+  
+  # Data and setup
+  data <- data.frame(variable = rep(1, 1000), weight = rep(1, 1000), id =seq(from = 1, to = 1000))
+  Any_statistic_wrapper <- define_statistic_wrapper(
+    statistic_function = function(Var_int, weight){
+      return(list(lin = Var_int, point = 5))
+    },
+    arg_type = list(data = c('Var_int'),  weight = 'weight'),
+    display_function = function(point, var, additional_output, metadata, alpha){
+      data.frame(variance = var, estimation = point, additional_output = additional_output)
+    }
+  )
+  Compute_Var <- function(y){
+    return(list(var = 1, additional_output = 2))
+  }
+  Var_computation <- define_variance_wrapper(
+    variance_function = Compute_Var,
+    reference_id = data$id,
+    reference_weight = data$weight,
+    default_id = 'id', 
+    objects_to_include = "Any_statistic_wrapper"
+  )
+
+  # Desired output
+  output_df = data.frame(variance = 1, estimation = 5, additional_output = 2)
+
+  # Test  
+  expect_identical(
+    Var_computation(data, Any_statistic_wrapper(variable)),
+    output_df
+  )
+})

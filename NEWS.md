@@ -1,3 +1,7 @@
+# 0.4.5
+
+- Bugfix: additional outputs are indeed passed on to a custom display function (Issue #13 raised by @Dmitrilbr, Bugfix in PR #14)
+
 # 0.4.4
 
 - Adaptation to the upcoming Matrix 1.5
