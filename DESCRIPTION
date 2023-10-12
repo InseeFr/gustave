@@ -3,12 +3,12 @@ Type: Package
 Title: A User-Oriented Statistical Toolkit for Analytical Variance Estimation
 Depends: R(>= 3.2.5)
 Imports: methods, utils, stats, Matrix
-Suggests: testthat, covr, sampling, magrittr, tibble, dplyr, data.table
+Suggests: testthat, sampling, magrittr, tibble, dplyr, data.table
 Version: 1.0.0
 Authors@R: c(
   person("Martin", "Chevalier", role = c("aut", "cre", "cph"), email = "mc@slmc.fr"),
   person("Khaled", "Larbi", role = c("aut"), email = "")
-)
+  )
 URL: https://github.com/InseeFr/gustave
 BugReports: https://github.com/InseeFr/gustave/issues
 Description: Provides a toolkit for analytical variance estimation in survey sampling. Apart from the implementation of standard variance estimators, its main feature is to help the sampling expert produce easy-to-use variance estimation "wrappers", where systematic operations (linearization, domain estimation) are handled in a consistent and transparent way.
