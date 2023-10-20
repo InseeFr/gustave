@@ -6,9 +6,9 @@ Imports: methods, utils, stats, Matrix
 Suggests: testthat, sampling, magrittr, tibble, dplyr, data.table
 Version: 1.0.0
 Authors@R: c(
-  person("Martin", "Chevalier", role = c("aut", "cre"), email = "mc@slmc.fr"),
-  person("Khaled", "Larbi", role = c("aut"), email = "khaled.larbi@insee.fr"),
-  person("Insee", role = c("cph", "fnd"))
+  person("Martin", "Chevalier", role = "aut", email = "mc@slmc.fr", comment = "Creator"),
+  person("Khaled", "Larbi", role =  "cre", email = "khaled.larbi@insee.fr"),
+  person("Institut national de la statistique et des études économiques", role = "cph")
   )
 URL: https://github.com/InseeFr/gustave
 BugReports: https://github.com/InseeFr/gustave/issues
