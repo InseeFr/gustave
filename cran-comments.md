@@ -1,19 +1,13 @@
 # Round 1
 
 ## Test environments
-* Linux Mint : R-release
-* win-builder: R-oldrelease, R-release and R-devel
+* Linux: R-oldrelease, R-release and R-devel
+* Windows: R-oldrelease, R-release and R-devel
+* MacOS: R-release
 
 ## R CMD check results
 
-1 NOTE on R-oldrelease : 
-Possibly mis-spelled words in DESCRIPTION: 
-  Analytical (3:48)
-  analytical (14:37)
-  
-Analytical is nonetheless spelled correctly : https://www.oxfordlearnersdictionaries.com/definition/english/analytical
-
-There were no ERRORs nor WARNINGs.
+*1 NOTE : new maintainer, Khaled Larbi (khaled.larbi@insee.fr). E-mail sent to CRAN-submissions@R-project.org on XXX. 
 
 ## Reverse dependencies
 
