@@ -7,7 +7,16 @@
 
 ## R CMD check results
 
-*1 NOTE : new maintainer, Khaled Larbi (khaled.larbi@insee.fr). E-mail sent to CRAN-submissions@R-project.org from mc@slmc.fr mon XXX. 
+*1 NOTE : 
+
+Maintainer: ‘Khaled Larbi <khaled.larbi@insee.fr>’
+
+New maintainer:
+  Khaled Larbi <khaled.larbi@insee.fr>
+Old maintainer(s):
+  Martin Chevalier <mc@slmc.fr>
+
+E-mail sent from mc@slmc.fr to CRAN-submissions@R-project.org on XXX. 
 
 ## Reverse dependencies
 
