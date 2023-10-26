@@ -1,3 +1,8 @@
+# 1.0.0
+
+- The package is considered stable enough to be used in production
+- New maintainer
+
 # 0.4.5
 
 - Bugfix: additional outputs are indeed passed on to a custom display function (Issue #13 raised by @Dmitrilbr, Bugfix in PR #14)

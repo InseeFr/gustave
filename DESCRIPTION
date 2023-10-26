@@ -3,13 +3,15 @@ Type: Package
 Title: A User-Oriented Statistical Toolkit for Analytical Variance Estimation
 Depends: R(>= 3.2.5)
 Imports: methods, utils, stats, Matrix
-Suggests: testthat, covr, sampling, magrittr, tibble, dplyr, data.table
-Version: 0.4.5
-Authors@R: person("Martin", "Chevalier", role = c("aut", "cre", "cph"), email = "mc@slmc.fr")
-Author: Martin Chevalier [aut, cre, cph]
-Maintainer: Martin Chevalier <mc@slmc.fr>  
-URL: https://github.com/martinchevalier/gustave
-BugReports: https://github.com/martinchevalier/gustave/issues
+Suggests: testthat, sampling, magrittr, tibble, dplyr, data.table
+Version: 1.0.0
+Authors@R: c(
+  person("Martin", "Chevalier", role = "aut", email = "mc@slmc.fr", comment = "Creator"),
+  person("Khaled", "Larbi", role =  "cre", email = "khaled.larbi@insee.fr"),
+  person("Institut national de la statistique et des études économiques", role = "cph")
+  )
+URL: https://github.com/InseeFr/gustave
+BugReports: https://github.com/InseeFr/gustave/issues
 Description: Provides a toolkit for analytical variance estimation in survey sampling. Apart from the implementation of standard variance estimators, its main feature is to help the sampling expert produce easy-to-use variance estimation "wrappers", where systematic operations (linearization, domain estimation) are handled in a consistent and transparent way.
 License: GPL-3
 Collate: 'data.R' 'utils.R' 'define_variance_wrapper.R' 'variance_function.R' 'define_statistic_wrapper.R' 'standard_statistic_wrapper.R' 'qvar.R'

@@ -13,3 +13,4 @@
 ^R-CMD-check.sh$
 ^doc$
 ^.github$
+^\.github$

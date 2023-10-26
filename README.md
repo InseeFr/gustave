@@ -1,4 +1,4 @@
-gustave [![R-CMD-check](https://github.com/martinchevalier/gustave/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/martinchevalier/gustave/actions/workflows/R-CMD-check.yaml) [![CRAN_Status](http://www.r-pkg.org/badges/version/gustave)](https://cran.r-project.org/package=gustave) [![Mentioned in Awesome Official Statistics ](https://awesome.re/mentioned-badge.svg)](https://github.com/SNStatComp/awesome-official-statistics-software) 
+gustave [![R-CMD-check](https://github.com/InseeFr/gustave/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/InseeFr/gustave/actions/workflows/R-CMD-check.yaml) [![CRAN_Status](http://www.r-pkg.org/badges/version/gustave)](https://cran.r-project.org/package=gustave) [![Mentioned in Awesome Official Statistics ](https://awesome.re/mentioned-badge.svg)](https://github.com/SNStatComp/awesome-official-statistics-software) 
 =======
 
 Gustave (Gustave: a User-oriented Statistical Toolkit for Analytical Variance Estimation) is an R package that provides a **toolkit for analytical variance estimation in survey sampling**. 
@@ -163,6 +163,6 @@ The variance estimation *wrapper* is much easier-to-use than a standard variance
 
 ## Colophon
 
-This software is an [R](https://cran.r-project.org/) package developed with the [RStudio IDE](https://www.rstudio.com/) and the [devtools](https://CRAN.R-project.org/package=devtools), [roxygen2](https://CRAN.R-project.org/package=roxygen2) and [testthat](https://CRAN.R-project.org/package=testthat) packages. Much help was found in [R packages](https://r-pkgs.org/) and [Advanced R](https://adv-r.hadley.nz/) both written by [Hadley Wickham](https://hadley.nz/).
+This software is an [R](https://cran.r-project.org/) package developed with the [RStudio IDE](https://www.posit.co/) and the [devtools](https://CRAN.R-project.org/package=devtools), [roxygen2](https://CRAN.R-project.org/package=roxygen2) and [testthat](https://CRAN.R-project.org/package=testthat) packages. Much help was found in [R packages](https://r-pkgs.org/) and [Advanced R](https://adv-r.hadley.nz/) both written by [Hadley Wickham](https://hadley.nz/).
 
 From the methodological point of view, this package is related to the [Poulpe SAS macro (in French)](http://jms-insee.fr/jms1998_programme/#1513415199356-a8a1bdde-becd) developed at the French statistical institute. From the implementation point of view, some inspiration was found in the [ggplot2](https://CRAN.R-project.org/package=ggplot2) package. The idea of developing an R package on this specific topic was stimulated by the [icarus](https://CRAN.R-project.org/package=icarus) package and its author.
