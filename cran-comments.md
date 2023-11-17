@@ -16,7 +16,7 @@ New maintainer:
 Old maintainer(s):
   Martin Chevalier <mc@slmc.fr>
 
-E-mail sent from mc@slmc.fr to CRAN-submissions@R-project.org on November 17th 2023. 
+E-mail sent from mc@slmc.fr to CRAN@R-project.org on November 17th 2023. 
 
 ## Reverse dependencies
 
