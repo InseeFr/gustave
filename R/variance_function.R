@@ -366,10 +366,10 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
 
 #' @rdname varDT
 #' @export
-var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
+var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL, id = NULL){
   if(is.null(precalc) && !is.null(strata) && any(tapply(pik, strata, stats::sd) > 1e-6, na.rm = TRUE))
     stop("First-order inclusion probabilities are not equal (within strata if any).")
-  varDT(y = y, pik = pik, x = NULL, strata = strata, w = w, precalc = precalc)
+  varDT(y = y, pik = pik, x = NULL, strata = strata, w = w, precalc = precalc, id = id)
 }
 
 
@@ -383,7 +383,10 @@ var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
 #'   is to be estimated.
 #' @param pik A numerical vector of first-order inclusion probabilities.
 #' @param w An optional numerical vector of row weights (see Details).
-#' 
+#' @param id A vector of identifiers of the units used in the calculation.
+#'   Useful when \code{precalc = TRUE} in order to assess whether the ordering of the
+#'   \code{y} data matrix matches the one used at the pre-calculation step.
+#'   
 #' @details \code{w} is a row weight used at the final summation step. It is useful
 #'   when \code{var_pois} is used on the second stage of a two-stage sampling
 #'   design applying the Rao (1975) formula.
@@ -397,8 +400,21 @@ var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL){
 #'   \emph{Sankhya}, C n°37
 
 #' @export
-var_pois <- function(y, pik, w = rep(1, length(pik))){
-  colSums(w * (1 - pik) * (y / pik)^2)
+var_pois <- function(y = NULL, pik, w = rep(1, length(pik)), precalc = NULL, id = NULL){
+  if(!is.null(precalc)){
+    list2env(precalc, envir = environment())
+  } 
+  if(is.null(y)){
+    diago <- (1-pik)/pik^2
+    names(diago) <- names(pik)
+    return(list(pik = pik, diago = diago, id = id))
+  }else{
+    if(!is.null(precalc) && !is.null(id) && !is.null(rownames(y)) && !identical(as.character(id), rownames(y))) stop(
+      "The names of the data matrix (y argument) do not match the reference id (id argument)."
+    )
+    var <- colSums(w * (1 - pik) * (y / pik)^2)
+    return(var)
+  }
 }
 
 
@@ -412,7 +428,10 @@ var_pois <- function(y, pik, w = rep(1, length(pik))){
 #' @param pikl A numerical matrix of second-order inclusion probabilities.
 #' @param precalc A list of pre-calculated results (analogous to the one used by 
 #'   \code{\link{varDT}}).
-#' 
+#' @param id A vector of identifiers of the units used in the calculation.
+#'   Useful when \code{precalc = TRUE} in order to assess whether the ordering of the
+#'   \code{y} data matrix matches the one used at the pre-calculation step.
+#'   
 #' @details \code{varSYG} aims at being an efficient implementation of the 
 #'   Sen-Yates-Grundy variance estimator for sampling designs with fixed sample 
 #'   size. It should be especially useful when several variance estimations are
@@ -455,7 +474,7 @@ var_pois <- function(y, pik, w = rep(1, length(pik))){
 
 #' @export
 
-varSYG <- function (y = NULL, pikl, precalc = NULL){
+varSYG <- function (y = NULL, pikl, precalc = NULL, id = NULL){
   if(is.null(precalc)){
     pik = diag(pikl)
     delta <- 1 - pik %*% t(pik)/pikl
@@ -463,8 +482,11 @@ varSYG <- function (y = NULL, pikl, precalc = NULL){
   if(is.null(y)){
     diago <- -(1/pik^2) * rowSums(delta - diag(x = diag(delta)))
     names(diago) <- row.names(pikl)
-    return(list(pikl = pikl, pik = pik, delta = delta, diago = diago))
+    return(list(pikl = pikl, pik = pik, delta = delta, diago = diago, id = id))
   }else{
+    if(!is.null(precalc) && !is.null(id) && !is.null(rownames(y)) && !identical(as.character(id), rownames(y))) stop(
+      "The names of the data matrix (y argument) do not match the reference id (id argument)."
+    )
     var <- colSums((y/pik) * (delta %*% (y/pik)) - delta %*% (y/pik)^2)
     return(var)
   }

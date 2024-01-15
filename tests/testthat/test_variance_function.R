@@ -41,6 +41,26 @@ test_that("varSYG works", {
   expect_equal(varSYG(y, pikl = pikl), varSYG(y = y, precalc = precalcSYG))
 })
 
+test_that("varSYG works with id", {
+  precalcSYG <- varSYG(y = NULL, pikl = pikl, id = paste0("id_",1:n))
+  y0 <- matrix(y, ncol = 1)
+  rownames(y0) <- paste0("id_",1:n)
+  y0_permute <- y0[nrow(y0):1, ,drop = FALSE]
+  expect_error(varSYG(y = y0_permute, precalc = precalcSYG), "The names of the data matrix*.")
+  expect_equal(varSYG(y0, pikl = pikl), varSYG(y = y0, precalc = precalcSYG))
+})
+
+test_that("var_pois works", {
+  precalc_pois <- var_pois(y = NULL, diag(pikl), id = paste0("id_",1:n))
+  y0 <- matrix(y, ncol = 1)
+  rownames(y0) <- paste0("id_",1:n)
+  y0_permute <- y0[nrow(y0):1, ,drop = FALSE]
+  var_comp <- sum((y0[, 1]/diag(pikl))^2 * (1-diag(pikl)))
+  expect_equal(var_pois(y = y0, precalc = precalc_pois), var_comp)
+  expect_error(var_pois(y = y0_permute, precalc = precalc_pois), "The names of the data matrix*.")
+  expect_named(var_pois(y = NULL, precalc = precalc_pois), c("pik", "diago", "id"))
+})
+
 test_that("varSYG and varDT yield the same results in the SRS case", {
   expect_equal(varDT(y, pik = diag(pikl)), varSYG(y, pikl = pikl))
 })
@@ -94,3 +114,5 @@ test_that("non-matching id raise an error", {
   )
 
 })
+
+
