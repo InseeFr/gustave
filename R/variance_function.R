@@ -160,6 +160,9 @@ res_cal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
 #' @param id A vector of identifiers of the units used in the calculation.
 #'   Useful when \code{precalc = TRUE} in order to assess whether the ordering of the
 #'   \code{y} data matrix matches the one used at the pre-calculation step.
+#' @param keep_exh A logical vector of size 1. If \code{TRUE}, diagonal terms of the quadratic form
+#' are returned with a 0 for each exhaustive units and probabilities for exhaustive units are remained in
+#' \code{pik}, otherwise, those terms are discarded.
 #'   
 #' @details \code{varDT} aims at being the workhorse of most variance estimation conducted
 #'   with the \code{gustave} package. It may be used to estimate the variance
@@ -297,10 +300,11 @@ res_cal <- function(y = NULL, x, w = NULL, by = NULL, precalc = NULL, id = NULL)
 #'
 #' @export
 
-varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NULL, id = NULL){
-
+varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NULL, 
+                  id = NULL, keep_exh = FALSE){
+  
   if(is.null(precalc)){
-
+    
     if(any(pik <= 0 | pik > 1)) stop("All pik must be in ]0;1]")
     
     exh <- pik == 1
@@ -310,7 +314,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
     pik <- pik[!exh]
     
     x <- if(!is.null(x)) coerce_to_TsparseMatrix(x)[!exh, , drop = FALSE] else pik
-
+    
     # Stratification
     if(!is.null(strata)){
       strata <- droplevels(as.factor(strata[!exh]))
@@ -323,7 +327,7 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
       colby <- rep("1", NCOL(x))
       rowby <- rep("1", NROW(x))
     }
-
+    
     # Determine A, ck and inv terms while removing colinear variables
     n <- as.vector(tapply(rowby, rowby, length)[rowby])
     A <- t(x) %*% Diagonal(x = 1 / pik)
@@ -340,36 +344,54 @@ varDT <- function(y = NULL, pik, x = NULL, strata = NULL, w = NULL, precalc = NU
       }else break
     }
     inv <- solve(u)
-
+    
   }else list2env(precalc, envir = environment())
-
+  
   if(is.null(y)){
     # Diagonal term of the variance estimator
     diago <- ck * (1 - colSums(A * (inv %*% A)) * ck)/pik^2
     names(diago) <- names(pik)
+    
     if(!is.null(w)) stop("w is not to be included in the precalculated data.")
-    return(list(id = id, pik = pik, exh = exh, A = A, ck = ck, inv = inv, diago = diago))
+    
+    if(keep_exh){
+      pik_full <- rep(0, length(exh))
+      pik_full[which(!exh)] <- pik
+      pik <- pik_full
+      
+      diago_full <- rep(0, length(exh))
+      diago_full[which(!exh)] <- diago
+      diago <- diago_full
+    }
+    
+    precalc <- list(id = id, pik = pik, exh = exh, A = A, ck = ck, 
+                    inv = inv, diago = diago, keep_exh = keep_exh)
+    
+    return(precalc)
   }else{
     y <- coerce_to_TsparseMatrix(y)
     if(!is.null(precalc) && !is.null(id) && !is.null(rownames(y)) && !identical(as.character(id), rownames(y))) stop(
       "The names of the data matrix (y argument) do not match the reference id (id argument)."
     )
+    if(keep_exh){
+      pik <- pik[which(!exh)]
+    }
     if(is.null(w)) w <- rep(1, length(pik))
     z <- Diagonal(x = 1 / pik) %*% y[!exh, , drop = FALSE]
     zhat <- t(A) %*% inv %*% (A %*% Matrix::Diagonal(x = ck) %*% z)
     return(Matrix::colSums(ck * w * (z - zhat)^2))
   }
-
+  
 }
 
 
 
 #' @rdname varDT
 #' @export
-var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL, id = NULL){
+var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL, id = NULL, keep_exh = FALSE){
   if(is.null(precalc) && !is.null(strata) && any(tapply(pik, strata, stats::sd) > 1e-6, na.rm = TRUE))
     stop("First-order inclusion probabilities are not equal (within strata if any).")
-  varDT(y = y, pik = pik, x = NULL, strata = strata, w = w, precalc = precalc, id = id)
+  varDT(y = y, pik = pik, x = NULL, strata = strata, w = w, precalc = precalc, id = id, keep_exh = FALSE)
 }
 
 

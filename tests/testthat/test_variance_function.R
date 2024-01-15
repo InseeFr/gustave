@@ -34,6 +34,16 @@ test_that("varDT works", {
   expect_equal(varDT(y, pik = diag(pikl)), varDT(y, precalc = precalcDT))
 })
 
+test_that("varDT with exhaustive", {
+  pik <- c(1,rep(c(0.2,0.5),4),1)
+  precalcDT <- varDT(y = NULL, pik = pik, keep_exh = TRUE)
+  precalcDT_exh <- varDT(y = NULL, pik = pik[2:9])
+  expect_equal(precalcDT$pik[2:9], precalcDT_exh$pik)
+  expect_equal(precalcDT$diago[2:9], precalcDT_exh$diago)
+  expect_equal(varDT(y, pik = pik), varDT(y[2:9], pik = pik[2:9]))
+  expect_equal(varDT(y, precalc = precalcDT), varDT(y[2:9], precalc = precalcDT_exh))
+})
+
 test_that("varSYG works", {
   precalcSYG <- varSYG(y = NULL, pikl = pikl)
   expect_error(varSYG(y, pikl = pikl), regexp = NA)
