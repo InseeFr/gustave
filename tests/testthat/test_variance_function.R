@@ -51,6 +51,17 @@ test_that("varSYG works", {
   expect_equal(varSYG(y, pikl = pikl), varSYG(y = y, precalc = precalcSYG))
 })
 
+test_that("varSYG works with w", {
+  w <- rep(3,n)
+  
+  precalcSYG <- varSYG(y = NULL, pikl = pikl)
+  precalcSYG_w <- varSYG(y = NULL, pikl = pikl, w = w)
+  expect_error(varSYG(y, pikl = pikl), regexp = NA)
+  expect_error(varSYG(y = y, precalc = precalcSYG), regexp = NA)
+  expect_equal(varSYG(y = y, precalc = precalcSYG_w), 
+               varSYG(y = y*sqrt(w), precalc = precalcSYG))
+})
+
 test_that("varSYG works with id", {
   precalcSYG <- varSYG(y = NULL, pikl = pikl, id = paste0("id_",1:n))
   y0 <- matrix(y, ncol = 1)
@@ -180,3 +191,4 @@ test_that("var_Wolter works", {
   
   testthat::expect_equal(var_srs_part + var_wolter_part, var_from_wolter_fn)
 })
+

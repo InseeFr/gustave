@@ -448,6 +448,7 @@ var_pois <- function(y = NULL, pik, w = rep(1, length(pik)), precalc = NULL, id 
 #' @param y A (sparse) numerical matrix of the variable(s) whose variance of their total
 #'   is to be estimated.
 #' @param pikl A numerical matrix of second-order inclusion probabilities.
+#' @param w An optional numerical vector of row weights (see Details).
 #' @param precalc A list of pre-calculated results (analogous to the one used by 
 #'   \code{\link{varDT}}).
 #' @param id A vector of identifiers of the units used in the calculation.
@@ -496,7 +497,7 @@ var_pois <- function(y = NULL, pik, w = rep(1, length(pik)), precalc = NULL, id 
 
 #' @export
 
-varSYG <- function (y = NULL, pikl, precalc = NULL, id = NULL){
+varSYG <- function (y = NULL, pikl, w = rep(1, length(pik)), precalc = NULL, id = NULL){
   if(is.null(precalc)){
     pik = diag(pikl)
     delta <- 1 - pik %*% t(pik)/pikl
@@ -504,12 +505,12 @@ varSYG <- function (y = NULL, pikl, precalc = NULL, id = NULL){
   if(is.null(y)){
     diago <- -(1/pik^2) * rowSums(delta - diag(x = diag(delta)))
     names(diago) <- row.names(pikl)
-    return(list(pikl = pikl, pik = pik, delta = delta, diago = diago, id = id))
+    return(list(pikl = pikl, pik = pik, delta = delta, diago = diago, id = id, w = w))
   }else{
     if(!is.null(precalc) && !is.null(id) && !is.null(rownames(y)) && !identical(as.character(id), rownames(y))) stop(
       "The names of the data matrix (y argument) do not match the reference id (id argument)."
     )
-    var <- colSums((y/pik) * (delta %*% (y/pik)) - delta %*% (y/pik)^2)
+    var <- colSums(w*((y/pik) * (delta %*% (y/pik)) - delta %*% (y/pik)^2))
     return(var)
   }
 }
