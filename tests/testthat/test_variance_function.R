@@ -126,3 +126,57 @@ test_that("non-matching id raise an error", {
 })
 
 
+test_that("var_Wolter works", {
+  #Units collapsed
+  n_units_coll <- 50L
+  strat_before_coll <- paste0("coll_",1:n_units_coll)
+  #Collapse all n_units_coll into 3 collapses stratum (A, B and C)
+  strat_after_coll <- sample(c("A","B","C"), n_units_coll, replace = TRUE)
+  
+  #Units non collapsed
+  n_units_non_coll <- 200L
+  strat_before_non_coll <- rep(as.character(1:5), 40)
+  strat_after_non_coll <- rep(NA, n_units_non_coll)
+  
+  old_strata <- c(strat_before_coll, strat_before_non_coll)
+  new_strata <- c(strat_after_coll, strat_after_non_coll)
+  pik_per_srs <- setNames(c(0.2,0.4,0.2,0.4,0.4), as.character(1:5))
+  pik_per_new <- setNames(c(0.1,0.5,0.6), c("A","B","C"))
+  
+  
+  pik <- c(pik_per_new[strat_after_coll], pik_per_srs[strat_before_non_coll])
+  id <- paste0("id",1:(n_units_coll + n_units_non_coll))
+  names(old_strata) <- id
+  names(new_strata) <- id
+  names(pik) <- id
+  precalc_var <- var_wolter(y = NULL,
+                            old_strata = old_strata, 
+                            new_strata = new_strata,
+                            pik = pik,
+                            id = id)
+  
+  
+  
+  y <- as.matrix(rnorm(length(pik)), ncol = 1)
+  rownames(y) <- id
+  
+  var_from_wolter_fn <- var_wolter(y = y, precalc = precalc_var, id)
+  
+  
+  #Manually
+  y_collapse <- y[!is.na(new_strata)]
+  y_tilde <- y_collapse/(pik[!is.na(new_strata)])
+  tot_h <- sum_by(y_tilde, old_strata[!is.na(new_strata)])
+  tot_p <- sum_by(y_tilde, new_strata[!is.na(new_strata)])
+  hp <- table(new_strata)
+  hp <- setNames(hp, names(hp))
+  
+  links <- unique(cbind(old_strata[!is.na(new_strata)],new_strata[!is.na(new_strata)]))
+  links <- setNames(links[,2], links[,1])
+  
+  var_wolter_part <- sum(((tot_p[links]/hp[links] - tot_h[names(links)])^2)*(1/((1 - 1/hp[links]))))
+  var_srs_part <- var_srs(y[is.na(new_strata)], pik[is.na(new_strata)], old_strata[is.na(new_strata)])
+  
+  
+  testthat::expect_equal(var_srs_part + var_wolter_part, var_from_wolter_fn)
+})

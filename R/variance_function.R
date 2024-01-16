@@ -515,3 +515,190 @@ varSYG <- function (y = NULL, pikl, precalc = NULL, id = NULL){
 }
 
 # TODO: Add a varHT() estimator 
+
+#' Variance estimation with Wolter's estimator.
+#' 
+#' Wolter's estimator provides a variance estimator of the Horvitz-Thompson total estimator 
+#' under a stratified SRSWOR scheme while a single unit is drawn in some stratum.
+#' This estimator is conservative under some assumption : it leads to an upper bound
+#' of the classical variance estimator under a SRSWOR scheme.
+#'
+#' @param y A (sparse) numerical matrix of the variable(s) whose variance of their total
+#'   is to be estimated. 
+#' @param old_strata A character vector that contains for each unit the name of the stratum 
+#' before collapsing.
+#' @param new_strata A character vector that contains for each unit :
+#' \itemize{\item the name of the collapsed stratum.
+#' \item \code{NA} if the unit is not collapsed.}
+#' @param pik A numerical vector of first-order inclusion probabilities.
+#' @param w An optional numerical vector of row weights (see Details).
+#' @param precalc A list of pre-calculated results (see Details).
+#' @param id A vector of identifiers of the units used in the calculation.
+#'   Useful when \code{precalc = TRUE} in order to assess whether the ordering of the
+#'   \code{y} data matrix matches the one used at the pre-calculation step.
+#'
+#' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
+#'   numerical vector of size the number of columns of y. \item if \code{y} is
+#'   \code{NULL} (pre-calculation step) : a list containing pre-calculated data 
+#'   (analogous to the one used by \code{\link{varDT}}).}
+#'   
+#' @details \code{var_wolter} provides an estimator of the variance after collapsing units. 
+#' Each collapse unit must contain at least one unit. 
+#' 
+#' Moreover, in order to be consistent with \code{\link{varDT}}, \code{var_wolter}
+#'   has a \code{precalc} argument allowing for the re-use of intermediary
+#'   results calculated once and for all in a pre-calculation step (see 
+#'   \code{\link{varDT}} for details).
+#'   
+#' @export
+#' 
+#' @author Khaled Larbi
+#'
+#' @references Wolter K (2008), "Introduction to Variance Estimation", \emph{Springer}
+#'
+#' @examples
+#' #Units collapsed
+#' n_units_coll <- 50L
+#' strat_before_coll <- paste0("coll_",1:n_units_coll)
+#' #Collapse all n_units_coll into 3 collapses stratum (A, B and C)
+#' strat_after_coll <- sample(c("A","B","C"), n_units_coll, replace = TRUE)
+#' 
+#' #Units non collapsed
+#' n_units_non_coll <- 200L
+#' strat_before_non_coll <- rep(as.character(1:5), 40)
+#' strat_after_non_coll <- rep(NA, n_units_non_coll)
+#' 
+#' old_strata <- c(strat_before_coll, strat_before_non_coll)
+#' new_strata <- c(strat_after_coll, strat_after_non_coll)
+#' pik_per_srs <- setNames(c(0.2,0.4,0.2,0.4,0.4), as.character(1:5))
+#' pik_per_new <- setNames(c(0.1,0.5,0.6), c("A","B","C"))
+#' 
+#' 
+#' pik <- c(pik_per_new[strat_after_coll], pik_per_srs[strat_before_non_coll])
+#' id <- paste0("id",1:(n_units_coll + n_units_non_coll))
+#' names(old_strata) <- id
+#' names(new_strata) <- id
+#' names(pik) <- id
+#' precalc_var <- var_wolter(y = NULL,
+#'                           old_strata = old_strata, 
+#'                           new_strata = new_strata,
+#'                           pik = pik,
+#'                           id = id)
+#' 
+#' 
+#' 
+#' y <- as.matrix(rnorm(length(pik)), ncol = 1)
+#' rownames(y) <- id
+#' 
+#' var_from_wolter_fn <- var_wolter(y = y, precalc = precalc_var, id)
+
+var_wolter <- function(y = NULL, old_strata, new_strata, pik, psu_id = NULL, 
+                       w = NULL,  precalc = NULL, id = NULL){
+  if(is.null(precalc)){
+    if(is.null(w)){
+      w <- rep(1, length(pik))
+      w <- stats::setNames(w,names(pik))
+    } else {
+      if(any(w < 0)){
+        warning("Some weights are non-positive.")
+      }
+    }
+    
+    
+    #In order to compute variance estimation based on Wolter's formula
+    #We need to seperate pseudo strata (union of strata) and strata that remains 
+    #the same after collapse.
+    if(is.null(names(old_strata)) | is.null(names(new_strata))){
+      stop("old_strata and new_strata must be named vectors.")
+    }
+    
+    if(is.null(names(pik))){
+      names(pik) <- names(old_strata)
+    }
+    
+    if(!identical(names(old_strata), names(new_strata))){
+      stop("old_strata and new_strata must be named vectors with same names.")
+    }
+    
+    #SRSWOR part :
+    srs_names <- names(new_strata)[is.na(new_strata)]
+    part_srs <- var_srs(y = NULL, pik = pik[srs_names],
+                        strata = old_strata[srs_names],
+                        id = srs_names)
+    diag_srs <- part_srs$diago
+    
+    #Wolter part :
+    #wolter_names is a vector that contains all units that have been collapsed
+    wolter_names <- names(new_strata)[!is.na(new_strata)]
+    #n_old_strata_tot : number of sampled units in each old strata
+    n_old_strata_tot <- table(old_strata)
+    n_old_strata_tot <- stats::setNames(as.vector(n_old_strata_tot), names(n_old_strata_tot))
+    #n_old_strata_wolter : number of sampled units in each old strata that have been collapsed
+    n_old_strata_wolter <- n_old_strata_tot[unique(old_strata[wolter_names])]
+    
+    #Compute population size from probabilities and sample sizes.
+    repr_old_strat <- names(old_strata[!duplicated(old_strata)])
+    pik_old_strat <- pik[repr_old_strat]
+    pik_old_strat <- stats::setNames(pik_old_strat, old_strata[names(pik_old_strat)]) #TO CHANGE : dep to names(pik)
+    
+    
+    #Number of original strata by collapsed strata
+    Hp <- table(unique(cbind(old_strata[wolter_names], new_strata[wolter_names]))[,2])
+    Hp <- stats::setNames(as.vector(Hp), names(Hp))
+    
+    #We assumed that each pseudo-stratum is obtained by collapsing at least two strata.
+    if(any(Hp <= 1)){
+      stop("Each collapsed stratum must be the union of at least two strata.")
+    }
+    
+    #Computation of diagonal terms of the associated quadratic form.
+    diag_wolter <- (pik_old_strat[old_strata[wolter_names]])^(-2)
+    diag_wolter <- stats::setNames(diag_wolter, wolter_names)
+    pik_wolter <- pik[wolter_names] 
+    
+    #Concatenate diag 
+    diago <- c(diag_srs, diag_wolter)
+    diago <- diago[id]
+  } else {
+    list2env(precalc, envir = environment())
+  }
+  
+  if(is.null(y)){
+    return(list("part_srs" = part_srs, "Hp" = Hp, 
+                "pik" = pik, "id" = id, "psu_id" = psu_id,
+                "old_strata" = old_strata, "new_strata" = new_strata, 
+                "diago" = diago))
+  } else {
+    y <- setNames(as.vector(y), rownames(y))
+    
+    if(is.null(names(y))){
+      warning("y is a unnamed matrix : old_strata names vector is used instead.")
+      names(y) <- names(old_strata)
+    }
+    
+    if(!is.null(precalc) && !is.null(id) && !is.null(rownames(y)) && !identical(as.character(id), rownames(y))) stop(
+      "The names of the data matrix (y argument) do not match the reference id (id argument)."
+    )
+    
+    #Variance from Wolter
+    wolter_names <- names(new_strata)[!is.na(new_strata)]
+    if(!is.null(w)){
+      y_wolter <- y[wolter_names]*sqrt(w[wolter_names])
+    } else {
+      y_wolter <- y[wolter_names]
+    }
+    
+    tot_old_strat <- sum_by(y_wolter/pik[wolter_names], old_strata[wolter_names])
+    tot_new_strat <- sum_by(y_wolter/pik[wolter_names], new_strata[wolter_names])
+    tot_old <- tot_old_strat[old_strata[wolter_names]]
+    mean_new <- tot_new_strat[new_strata[wolter_names]]/Hp[new_strata[wolter_names]]
+    
+    part_var_wolter <- sum((Hp[new_strata[wolter_names]]/(Hp[new_strata[wolter_names]] - 1))*(tot_old - mean_new)^2)
+    
+    #Variance from SRSWOR
+    y_srs <- y[setdiff(names(y), wolter_names)]
+    part_var_srs <- var_srs(y_srs, precalc = part_srs, id = names(y_srs), w = w[setdiff(names(y), wolter_names)])
+    
+    return(sum(part_var_wolter,part_var_srs, na.rm = TRUE))
+  }
+}
