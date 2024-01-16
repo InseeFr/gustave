@@ -408,7 +408,8 @@ var_srs <- function(y, pik, strata = NULL, w = NULL, precalc = NULL, id = NULL, 
 #' @param id A vector of identifiers of the units used in the calculation.
 #'   Useful when \code{precalc = TRUE} in order to assess whether the ordering of the
 #'   \code{y} data matrix matches the one used at the pre-calculation step.
-#'   
+#' @param precalc A list of pre-calculated results (see Details).
+#' 
 #' @details \code{w} is a row weight used at the final summation step. It is useful
 #'   when \code{var_pois} is used on the second stage of a two-stage sampling
 #'   design applying the Rao (1975) formula.
@@ -531,6 +532,8 @@ varSYG <- function (y = NULL, pikl, w = rep(1, length(pik)), precalc = NULL, id 
 #' @param new_strata A character vector that contains for each unit :
 #' \itemize{\item the name of the collapsed stratum.
 #' \item \code{NA} if the unit is not collapsed.}
+#' @param psu_id An optionnal character vector that contains for each unit, 
+#'  the name of the psu to which it belongs. Usefull when using \code{var_Rao_multiple}.
 #' @param pik A numerical vector of first-order inclusion probabilities.
 #' @param w An optional numerical vector of row weights (see Details).
 #' @param precalc A list of pre-calculated results (see Details).
@@ -571,8 +574,8 @@ varSYG <- function (y = NULL, pikl, w = rep(1, length(pik)), precalc = NULL, id 
 #' 
 #' old_strata <- c(strat_before_coll, strat_before_non_coll)
 #' new_strata <- c(strat_after_coll, strat_after_non_coll)
-#' pik_per_srs <- setNames(c(0.2,0.4,0.2,0.4,0.4), as.character(1:5))
-#' pik_per_new <- setNames(c(0.1,0.5,0.6), c("A","B","C"))
+#' pik_per_srs <- stats::setNames(c(0.2,0.4,0.2,0.4,0.4), as.character(1:5))
+#' pik_per_new <- stats::setNames(c(0.1,0.5,0.6), c("A","B","C"))
 #' 
 #' 
 #' pik <- c(pik_per_new[strat_after_coll], pik_per_srs[strat_before_non_coll])
@@ -670,7 +673,7 @@ var_wolter <- function(y = NULL, old_strata, new_strata, pik, psu_id = NULL,
                 "old_strata" = old_strata, "new_strata" = new_strata, 
                 "diago" = diago))
   } else {
-    y <- setNames(as.vector(y), rownames(y))
+    y <- stats::setNames(as.vector(y), rownames(y))
     
     if(is.null(names(y))){
       warning("y is a unnamed matrix : old_strata names vector is used instead.")
@@ -702,4 +705,422 @@ var_wolter <- function(y = NULL, old_strata, new_strata, pik, psu_id = NULL,
     
     return(sum(part_var_wolter,part_var_srs, na.rm = TRUE))
   }
+}
+
+
+#' Rao variance estimator for a survey design with two stages.
+#' 
+#' @description \code{var_Rao} computes the Rao
+#' variance estimator (Rao, 1975).
+#'
+#' @param y A (sparse) row-named numerical matrix of the variable(s) whose variance of their total
+#'   is to be estimated.
+#' @param description_psu A list with two named elements that describes how to take into account the variance from psu :
+#' \itemize{\item `var_fn` : a variance function named.
+#' \item `precalc` : a precalc object returned by a variance function from `gustave`.}
+#' @param description_ssu A named list of list that describes how to take into account the variance from ssu.
+#' `description_ssu` can be 
+#' \itemize{\item a named list of \eqn{n_{PSU}} lists : each of \eqn{n_{PSU}}$ lists contains two named
+#' element - a variance function `var_fn` and a precalc `precalc`.
+#' \item }
+#' @param precalc A list of pre-calculated results (analogous to the one used by 
+#'   \code{\link{varDT}}).
+#' @param id A vector of identifiers of the units used in the calculation.
+#'
+#' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
+#'   numerical vector of size the number of columns of y. \item if \code{y} is
+#'   \code{NULL} (pre-calculation step) : a list containing pre-calculated data 
+#'   (analogous to the one used by \code{\link{varDT}}).}
+#' 
+#' @references Caron N. (1998), "Le logiciel Poulpe : aspects méthodologiques", \emph{Actes 
+#'   des Journées de méthodologie statistique} \url{http://jms-insee.fr/jms1998s03_1/}
+#'   Deville, J.-C. (1993), \emph{Estimation de la variance pour les enquêtes en
+#'   deux phases}, Manuscript, INSEE, Paris.
+#'   
+#'   Rao, J.N.K (1975), "Unbiased variance estimation for multistage designs",
+#'   \emph{Sankhya}, C n°37
+#'   
+#' @export
+#'
+#' @author Khaled Larbi
+#' 
+#' @examples
+#' #Define PSU and SSU samples
+#' n_psu <- 10L
+#' n_per_psu <- sample(5:10, 10, replace = TRUE)
+#' psu_by_ssu <- rep(paste0("id_psu",1:10), n_per_psu)
+#' id_ssu <- paste0("id_ssu", 1: sum(n_per_psu))
+#' pi_ssu <- runif(sum(n_per_psu), 0.2, 0.8)
+#' 
+#' #Define descrip1 that describes PSU's variance estimator
+#' #(SRS variance estimator)
+#' precalc1 <- var_srs(y = NULL,
+#'                     pik = rep(0.1, n_psu),
+#'                     id = paste0("id_psu", 1:n_psu))
+#' descrip1 <- list("var_fn" = "var_srs",
+#'                  "precalc" = precalc1)
+#' 
+#' #Define descrip1 that describes PSU's variance estimator
+#' #(SRS variance estimator)
+#' 
+#' 
+#' precalc2 <- lapply(X = unique(psu_by_ssu), FUN = function(psu_name){
+#'   ind <- which(psu_by_ssu == psu_name);
+#'   return(list("var_fn" = "var_pois",
+#'               "precalc" = var_pois(y = NULL, pik = pi_ssu[ind], id = id_ssu[ind])))
+#' })
+#' names(precalc2) <- unique(psu_by_ssu)
+#' descrip2 <- precalc2
+#'
+#' res1 <- var_Rao(y = NULL, descrip1, descrip2, NULL)
+#' y <- as.matrix(rnorm(sum(n_per_psu)), ncol = 1)
+#'
+#' var_Rao(y, precalc = res1)
+
+var_Rao <- function(y = NULL, 
+                    description_psu, 
+                    description_ssu,
+                    precalc = NULL, 
+                    id = NULL){
+  if(is.null(precalc)){
+    #Checks : 
+    if(any(sort(names(description_psu)) != c("precalc","var_fn"))){
+      stop("`description_psu` must be a list with two named elements : var_fn and precalc.")
+    }
+    
+    if(is.null(description_psu$precalc$id)){
+      stop("precalc in description_psu must contain a id attribute : please, fullfill it
+           while defining the precalc.")
+    }
+    
+    if(length(description_ssu) > 1 & is.null(names(description_ssu))){
+      stop("description_ssu must be a named list of list.")
+    }
+    
+    if(length(description_ssu) > 1 & any(sort(unique(names(description_ssu))) !=
+                                         sort(unique(description_psu$precalc$id)))){
+      stop("Element names of description_ssu must be the same as description_psu$precalc$id.")
+    }
+    
+    desc_not_format <- lapply(X = description_ssu, FUN = function(desc){
+      return(any(sort(names(desc)) != c("precalc","var_fn")))
+    })
+    
+    desc_not_format <- stats::setNames(Reduce(f = c, desc_not_format), names(desc_not_format))
+    
+    if(any(desc_not_format)){
+      stop("Some description in description_ssu are not 
+           a named list with two elements : var_fn and precalc :", names(desc_not_format)[desc_not_format])
+    }
+    
+    id_missings <- lapply(X = description_ssu, FUN = function(desc){
+      return(is.null(desc$precalc$id))
+    })
+    
+    id_missings <- stats::setNames(Reduce(f = c, id_missings), names(id_missings))
+    
+    if(any(id_missings)){
+      stop("Id's are missing in some precalc from description_ssu elements", 
+           names(id_missings)[id_missings])
+    }
+    
+    #Check if all elements of description_ssu have a var_fn
+    var_ssu_fn <- lapply(X = description_ssu, FUN = function(x){x[["var_fn"]]})
+    if(any(is.null(var_ssu_fn))){
+      psu_without_fn <- names(description_ssu)[which(is.null(var_ssu_fn))]
+      stop("Some var_fn are missing in `description_ssu` : ", psu_without_fn)
+    }
+    
+    precalc_ssu <- lapply(X = description_ssu, FUN = function(x){x[["precalc"]]})
+    if((is.null(names(var_ssu_fn)) | is.null(names(description_ssu))) & length(precalc_ssu) > 1){
+      stop("var_ssu_fn and precalc_ssu must be named using PSU names.")
+    }
+    
+    #Store ssu id
+    ssu_id <- lapply(X = precalc_ssu, FUN = function(x){x[["id"]]})
+    
+    #This condition corresponds at every case except when var_wolter is used for ssu
+    #(var_wolter is defined once for all ssu)
+    if(length(precalc_ssu) != 1 | length(unique(description_psu$precalc$id)) == 1){
+      psu_id <- rep(names(precalc_ssu), sapply(X = ssu_id, FUN = length))
+    } else {
+      psu_id <- description_ssu[[1]]$precalc$psu_id #for var_wolter, one can fullfill an argument psu_id 
+      #in order to store, for each ssu, the psu it belongs to.
+    }
+    #links is a matrix that contains id from psu and ssu
+    #This matrix is based on the names of each element in the 
+    #description_ssu object and the id vecteur from each 
+    #precalc_ssu. 
+    ssu_id <- Reduce(c, ssu_id)
+    links <- cbind(psu_id, ssu_id)
+    
+    #Store psu and ssu conditionnal inclusion probabilities.
+    #psu_pi : a named vector that contains for each psu, the inclusion probability 
+    #ssu_pi : a named vector that contains for each ssu, the inclu probability given the psu has been drawn. 
+    psu_pi <- stats::setNames(description_psu$precalc$pik,description_psu$precalc$id)
+    ssu_pi <- lapply(X = precalc_ssu, FUN = function(prec){stats::setNames(prec$pik, prec$id)})
+    ssu_pi <- Reduce(c, ssu_pi)
+    psu_pi <- psu_pi[psu_id]
+    
+    #links_pi is a matrix that contains pi (conditionnal probabilities) from psu and ssu
+    links_pi <- cbind(psu_pi, ssu_pi)
+    
+    #Check
+    if(!is.null(precalc_ssu) & (!all(links[,1] %in% names(description_ssu))
+                                & length(precalc_ssu) != 1)){
+      stop("Some precalculated results are missing in description_ssu")
+    }
+    
+    #Computation of diagonal terms. 
+    q_ssu <- lapply(X = precalc_ssu, 
+                    FUN = function(x){stats::setNames(x$diago, x$id)})
+    q_ssu <- Reduce(f = c, x = q_ssu)
+    q_ssu <- q_ssu[links[,2]]
+    
+    q_psu <- stats::setNames(description_psu$precalc$diago, description_psu$precalc$id)
+    q_psu <- q_psu[links[,1]]
+    
+    diago <- (q_psu/(links_pi[,2]^2)) + ((1/links_pi[,1]^2) - q_psu)*q_ssu
+    diago <- stats::setNames(diago, links[,2])
+    
+    #Store id's (usefull when var_rao is used another time and var_psu is var_rao)
+    id <- links[,2]
+  } else {
+    list2env(precalc, envir = environment())
+  }
+  
+  if(is.null(y)){
+    return(list("id" = id, "description_psu" = description_psu, 
+                "description_ssu" = description_ssu,
+                "q_psu" = q_psu, "q_ssu" = q_ssu,
+                "pik" = stats::setNames(links_pi[,1] * links_pi[,2], links[,2]),
+                "links_pi" = links_pi, "links" = links,
+                "diago" = diago))
+  } else {
+    #Prepare variance function names for psu and ssu variance estimators.
+    var_psu_fn <- description_psu$var_fn
+    var_ssu_fn <- lapply(X = description_ssu, FUN = function(x){x[["var_fn"]]})
+    var_ssu_fn <- stats::setNames(Reduce(c, var_ssu_fn), names(var_ssu_fn))
+    
+    #Prepare precalc's for psu and ssu variance estimators.
+    precalc_psu <- description_psu$precalc
+    precalc_ssu <- lapply(X = description_ssu, FUN = function(x){x[["precalc"]]})
+    
+    #Check that y is a row-named matrix.
+    #If not, then, we assume that y is sorted in the same way as `id` and a warning is handled.
+    #If id is a permutation of rownames(y), then y is sorted.
+    #If id is not equal to rownames(y), then a error is handled. 
+    if(is.null(rownames(y))){
+      warning("y must be a row-named matrix : rownames are assumed to be those from the id argument.")
+      rownames(y) <- id
+    } else {
+      if(any(sort(rownames(y)) != sort(id))){
+        stop("id arguments and y rownames must contain the same elements.")
+      } else {
+        if(any(rownames(y) != id)){
+          #Reorder row from y.
+          warning("y's rows have been sorted to match with the id parameter")
+          y <- y[id,,drop = FALSE]
+        }
+      }
+    }
+    #Variance computation 
+    
+    #Compute estimated total in each psu.
+    y_psu <- sum_by(y = y, by = links[,1], w = 1/links_pi[,2])
+    
+    #Apply Psu variance estimator to y_psu
+    var_psu_computed <- do.call(what = var_psu_fn,
+                                args = list("y" = y_psu[precalc_psu$id,,drop = FALSE],
+                                            "precalc" = precalc_psu))
+    
+    #Duplicate to make y_psu size equal to number of ssu.
+    y_psu <- y_psu[links[,1], , drop = FALSE]
+    
+    
+    #Apply SSU variance estimators in each SSU
+    #Two cases : one can provide a list that contains n_PSU precalc
+    #or a single precalc for all SSU sampling (using when using Wolter's estimator) 
+    # unique_psu <- unique(link_psu_ssu[, c("psu", "pi_psu", "ssu")])
+    # unique_psu <- unique(link_psu_ssu[, c("psu", "pi_psu", "ssu")])
+    pi_psu <- stats::setNames(links_pi[,1], links[,2])
+    pond_var_ssu <- (1/(pi_psu^2) - q_psu[links[,1]])
+    
+    if(var_psu_fn == "var_Rao"){
+      #If var_wolter is used for taking into account SSU variance then
+      #weights used in Rao formula for each SSU variance are
+      #clipped down by 0.
+      if(all(precalc_psu$var_ssu_fn == "var_wolter")){
+        pond_var_ssu <- pond_var_ssu * as.integer(pond_var_ssu > 0)
+      }
+    }
+    
+    #This condition corresponds at every case except when var_wolter is used for ssu
+    #(var_wolter is defined once for all ssu)
+    if(length(precalc_ssu) != 1 | length(unique(links[,1])) == 1){
+      var_ssu_computed <- lapply(X = names(precalc_ssu), FUN = function(psu){
+        ssu_names_from_psu <- links[links[,1] == psu,2]
+        y_ssu <- y[ssu_names_from_psu,,drop = FALSE]
+        precalc_ssu_with_w <- precalc_ssu[[psu]]
+        precalc_ssu_with_w$w <- pond_var_ssu[rownames(y_ssu)]
+        do.call(what = var_ssu_fn[psu],
+                args = list("y" = y_ssu,
+                            "precalc" = precalc_ssu_with_w))
+      })
+      var_ssu_computed <- stats::setNames(Reduce(f = c, var_ssu_computed), names(precalc_ssu))
+    } else {
+      y_ssu <- y[precalc_ssu[[1]]$id, ,drop = FALSE]
+      precalc_ssu_with_w <- precalc_ssu[[1]]
+      precalc_ssu_with_w$w <- pond_var_ssu[rownames(y_ssu)]
+      var_ssu_computed <- do.call(what = var_ssu_fn[1], 
+                                  args = list("y" = y_ssu,
+                                              "precalc" = precalc_ssu_with_w))
+    }
+    
+    var_tot <- var_psu_computed + sum(var_ssu_computed)
+    return(var_tot)
+  }
+}
+
+
+
+
+
+#' Variance estimator for multiple stage sampling
+#' 
+#' @aliases var_Rao_multiple var_Ro
+#' 
+#'
+#' @param y A (sparse) numerical matrix of the variable(s) whose variance of their total
+#'   is to be estimated.
+#' @param ... Arguments named \code{descriptionX} where \code{X} is an integer
+#' that describe each stage of the sample.
+#' For each stage \code{s}, one needs to provide a list that contains two named elements :
+#' \itemize{\item \code{var_fn_s} which corresponds to a gustave variance function.
+#' \item\code{precalc_s} which is the precalc associated to \code{var_fn_s}. \code{id} 
+#' argument must be fulfilled for each precalc in order to be able to follow units across stages.}
+#' @param precalc  A list of pre-calculated results provided by \code{var_Rao_multiple}.
+#' @param id A vector of identifiers of the units from the last stage used in the calculation.
+#'
+#'
+#' @return \itemize{ \item if \code{y} is not \code{NULL} (calculation step) : a
+#'   numerical vector of size the number of columns of y. \item if \code{y} is
+#'   \code{NULL} (pre-calculation step) : a list containing pre-calculated data 
+#'   (analogous to the one used by \code{\link{varDT}}).  Note that \code{pik}
+#'   corresponds to the probability that a unit is inside the final sample (which is obtained
+#'   by chaining weights).}
+#' @export
+#' 
+#' @details \code{var_Rao_multiple} computes total variance estimates for multi-stage sampling designs. 
+#' It is based on Rao's formula (which allows variance estimation for a two-stage design), used recursively.
+# This estimator is based on three assumptions: 
+#' 
+#' \itemize{\item the existence of an unbiased estimator of the first-degree variance which is a quadratic form, and of the second-degree variance (given the first degree).
+#' \item the draws of secondary units within primary units are independent from one primary unit to another.
+#' \item the total within a primary unit can be estimated unbiasedly.}
+#'
+#'  \code{var_Rao} is an intermediate function : even for a two-degree design, use 
+#'  \code{var_Rao_multiple}
+#'  
+#' @author Khaled Larbi
+#' 
+#'@references Caron N. (1998), "Le logiciel Poulpe : aspects méthodologiques", \emph{Actes 
+#'   des Journées de méthodologie statistique} \url{http://jms-insee.fr/jms1998s03_1/}
+#'   Deville, J.-C. (1993), \emph{Estimation de la variance pour les enquêtes en
+#'   deux phases}, Manuscript, INSEE, Paris.
+#'   
+#'   Deville, J.-C., Tillé, Y. (2005), "Variance approximation under balanced
+#'   sampling", \emph{Journal of Statistical Planning and Inference}, 128, issue
+#'   2 569-591
+#'   
+#'   Rao, J.N.K (1975), "Unbiased variance estimation for multistage designs",
+#'   \emph{Sankhya}, C n°37
+#'   
+#' @examples 
+#'### Example from the Labour force survey (LFS) in `define_variance_wrapper`
+#' 
+#' # The (simulated) Labour force survey (LFS) has the following characteristics:
+#' # - first sampling stage: balanced sampling of 4 areas (each corresponding to 
+#' #   about 120 dwellings) on first-order probability of inclusion (proportional to 
+#' #   the number of dwellings in the area) and total annual income in the area.
+#' # - second sampling stage: in each sampled area, simple random sampling of 20 
+#' #   dwellings
+#' # - neither non-response nor calibration
+#' 
+#' #Estimator based on `var_Rao_multiple`
+#' precalc1 <- varDT(
+#'   y = NULL, 
+#'   pik = lfs_samp_area$pik_area, 
+#'   x = as.matrix(lfs_samp_area[c("pik_area", "income")]),
+#'   id = lfs_samp_area$id_area
+#' )
+#' 
+#' desc_first_stage <- list("var_fn" = "varDT",
+#'                          "precalc" = precalc1)
+#' 
+#' desc_second_stage <- lapply(X = split(lfs_samp_dwel, lfs_samp_dwel$id_area),
+#'                             FUN = function(x){list("var_fn" = "var_srs",
+#'                                                    "precalc" = var_srs(y = NULL, 
+#'                                                    pik = x$pik_dwel, id = x$id_dwel))})
+#' 
+#' precalc_lfs <- var_Rao_multiple(y = NULL, 
+#'                                 description1 = desc_first_stage,
+#'                                 description2 = desc_second_stage)
+#' 
+#' 
+#' #Estimator computed manually
+#' lfs_samp_dwel$q_area <- with(precalc1, setNames(diago, id))[lfs_samp_dwel$id_area]
+#' 
+#' var_lfs <- function(y, ind, dwel, area){
+#'   variance <- list()
+#'   
+#'   # Variance associated with the sampling of the dwellings
+#'   y <- sum_by(y, ind$id_dwel)
+#'   variance[["dwel"]] <- var_srs(
+#'     y = y, pik = dwel$pik_dwel, strata = dwel$id_area, 
+#'     w = (1 / dwel$pik_area^2 - dwel$q_area)
+#'   )
+#'   
+#'   # Variance associated with the sampling of the areas
+#'   y <- sum_by(y = y, by = dwel$id_area, w = 1 / dwel$pik_dwel) 
+#'   variance[["area"]] <- varDT(y = y, precalc = area)
+#'   
+#'   Reduce(`+`, variance)
+#'   
+#' }
+#' 
+#' #Estimations
+#' y <- matrix(as.numeric(lfs_samp_ind$unemp), ncol = 1, dimnames = list(lfs_samp_ind$id_ind))
+#' y_dw <- sum_by(y = as.numeric(lfs_samp_ind$unemp), by = lfs_samp_ind$id_dwel)
+#' var_lfs1 <- var_Rao_multiple(y = matrix(y_dw, ncol = 1, dimnames = list(names(y_dw), NULL)), 
+#'                              precalc = precalc_lfs)
+#' var_lfs2 <- var_lfs(y = y,
+#'                     ind = lfs_samp_ind,
+#'                     dwel = lfs_samp_dwel,
+#'                     area = precalc1) 
+var_Rao_multiple <- function(y = NULL, ..., precalc = NULL, id = NULL) {
+  extra_args <- list(...)
+  descriptions_args <- (grepl(pattern = "description\\d{1,}", x = names(extra_args)))
+  nb_stages <- sum(descriptions_args)
+  #add warnings 
+  if (is.null(precalc)) {
+    description_psu <- extra_args[["description1"]]
+    for (s in 1:(nb_stages - 1)) {
+      q_rao <- var_Rao(y = NULL, 
+                       description_psu = description_psu,
+                       description_ssu = extra_args[[paste0("description",s+1)]])
+      description_psu <- list("var_fn" = "var_Rao",
+                              "precalc" = q_rao)
+    }
+  } else {
+    list2env(precalc, envir = environment())
+  }
+  
+  if (is.null(y)) {
+    return(list(q_rao = q_rao))
+  } else {
+    var_fin <- var_Rao(y = y, precalc = q_rao)
+    return(var_fin)
+  }
+  
 }

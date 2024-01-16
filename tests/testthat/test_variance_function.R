@@ -192,3 +192,458 @@ test_that("var_Wolter works", {
   testthat::expect_equal(var_srs_part + var_wolter_part, var_from_wolter_fn)
 })
 
+
+
+
+test_that("var_Rao works well - SRS/Poisson",{
+  #Define PSU and SSU sample
+  n_psu <- 10
+  n_per_psu <- sample(5:10, n_psu, replace = TRUE)
+  id_psu <- paste0("id_psu", 1:n_psu)
+  #psu_by_ssu is a ssu size sample that contains for each ssu, 
+  #the label of the psu to which it belongs.
+  psu_by_ssu <- rep(paste0("id_psu",1:n_psu), n_per_psu)
+  id_ssu <- paste0("id_ssu", 1:sum(n_per_psu))
+  pi_psu <- stats::setNames(sample(c(0.1,0.2,0.5,0.6), replace = TRUE, n_psu), id_psu)
+  pi_ssu <- stats::setNames(runif(sum(n_per_psu), 0.2, 0.8), id_ssu)
+  
+  #Compute descriptions
+  precalc1 <- var_srs(y = NULL,
+                      pik = pi_psu,
+                      id = id_psu)
+  descrip1 <- list("var_fn" = "var_srs",
+                   "precalc" = precalc1)
+  
+  precalc2 <- lapply(X = unique(psu_by_ssu), FUN = function(psu_name){
+    ind <- which(psu_by_ssu == psu_name);
+    return(list("var_fn" = "var_pois",
+                "precalc" = var_pois(y = NULL, pik = pi_ssu[ind], id = id_ssu[ind])))
+  })
+  names(precalc2) <- unique(psu_by_ssu)
+  descrip2 <- precalc2
+  
+  #Compute the resulting variance manually
+  y <- as.matrix(rnorm(sum(n_per_psu)), ncol = 1)
+  rownames(y) <- id_ssu
+  
+  y_ssu <- y[id_ssu,]
+  y_ssu <- matrix(y_ssu, ncol = 1, dimnames = list(names(y_ssu),NULL))
+  y_psu <- sum_by(y_ssu, psu_by_ssu, 1/pi_ssu)
+  y_psu <- matrix(y_psu, ncol = 1, dimnames = list(rownames(y_psu),NULL))
+  
+  
+  var_psu <- var_srs(y = y_psu, pik = pi_psu[rownames(y_psu)], id = rownames(y_psu))
+  
+  q_psu <- var_srs(y = NULL, pik = pi_psu[rownames(y_psu)], id = rownames(y_psu))$diago
+  pond <- stats::setNames((1/(pi_psu^2) - q_psu[names(pi_psu)]), names(pi_psu))
+  pond <- pond[psu_by_ssu]
+  var_ssu <- var_pois(y = y_ssu, pik = pi_ssu[rownames(y_ssu)], w = pond)
+  
+  var_manually <- var_psu + var_ssu
+  
+  
+  
+  #Tests
+  res1 <- var_Rao(y = NULL, 
+                  description_psu = descrip1, 
+                  description_ssu = descrip2, 
+                  id = id_ssu)
+  
+  var_with_Rao <- var_Rao(y, precalc = res1)
+  
+  expect_equal(var_with_Rao, var_manually)
+})
+
+test_that("var_Rao works well with permutation/unnamed y - SRS/Poisson",{
+  #Define PSU and SSU sample
+  n_psu <- 10
+  n_per_psu <- sample(5:10, n_psu, replace = TRUE)
+  id_psu <- paste0("id_psu", 1:n_psu)
+  #psu_by_ssu is a ssu size sample that contains for each ssu, 
+  #the label of the psu to which it belongs.
+  psu_by_ssu <- rep(paste0("id_psu",1:n_psu), n_per_psu)
+  id_ssu <- paste0("id_ssu", 1:sum(n_per_psu))
+  pi_psu <- stats::setNames(sample(c(0.1,0.2,0.5,0.6), replace = TRUE, n_psu), id_psu)
+  pi_ssu <- stats::setNames(runif(sum(n_per_psu), 0.2, 0.8), id_ssu)
+  
+  #Compute descriptions
+  precalc1 <- var_srs(y = NULL,
+                      pik = pi_psu,
+                      id = id_psu)
+  descrip1 <- list("var_fn" = "var_srs",
+                   "precalc" = precalc1)
+  
+  precalc2 <- lapply(X = unique(psu_by_ssu), FUN = function(psu_name){
+    ind <- which(psu_by_ssu == psu_name);
+    return(list("var_fn" = "var_pois",
+                "precalc" = var_pois(y = NULL, pik = pi_ssu[ind], id = id_ssu[ind])))
+  })
+  names(precalc2) <- unique(psu_by_ssu)
+  descrip2 <- precalc2
+  names(precalc2)
+  
+  descrip2_permuted <- precalc2[sample(names(precalc2), length(precalc2))]
+  #Compute the resulting variance manually
+  y <- as.matrix(rnorm(sum(n_per_psu)), ncol = 1)
+  rownames(y) <- id_ssu
+  
+  y_ssu <- y[id_ssu,]
+  y_ssu <- matrix(y_ssu, ncol = 1, dimnames = list(names(y_ssu),NULL))
+  y_psu <- sum_by(y_ssu, psu_by_ssu, 1/pi_ssu)
+  y_psu <- matrix(y_psu, ncol = 1, dimnames = list(rownames(y_psu),NULL))
+  
+  
+  var_psu <- var_srs(y = y_psu, pik = pi_psu[rownames(y_psu)], id = rownames(y_psu))
+  
+  q_psu <- var_srs(y = NULL, pik = pi_psu[rownames(y_psu)], id = rownames(y_psu))$diago
+  pond <- stats::setNames((1/(pi_psu^2) - q_psu[names(pi_psu)]), names(pi_psu))
+  pond <- pond[psu_by_ssu]
+  var_ssu <- var_pois(y = y_ssu, pik = pi_ssu[rownames(y_ssu)], w = pond)
+  
+  var_manually <- var_psu + var_ssu
+  
+  
+  
+  #Tests
+  res1 <- var_Rao(y = NULL, 
+                  description_psu = descrip1, 
+                  description_ssu = descrip2, 
+                  id = id_ssu)
+  
+  res1_permuted <- var_Rao(y = NULL, 
+                           description_psu = descrip1, 
+                           description_ssu = descrip2_permuted, 
+                           id = id_ssu)
+  
+  
+  #Define others y
+  y_unnamed <- y
+  rownames(y_unnamed) <- NULL
+  y_permuted <- y
+  y_permuted <- y_permuted[sample(1:length(y_permuted), length(y_permuted)),,drop = FALSE]
+  y_permuted_und <- y_permuted
+  rownames(y_permuted_und) <- NULL
+  
+  var_with_Rao <- var_Rao(y, precalc = res1)
+  expect_warning(var_with_Rao_prec_permuted <- var_Rao(y, precalc = res1_permuted),
+                 "y's rows have been sorted*.")  
+  expect_warning(var_with_Rao_y_permuted <- var_Rao(y_permuted, precalc = res1),
+                 "y's rows have been sorted*.")  
+  expect_warning(var_with_Rao_both_permuted <- var_Rao(y_permuted, precalc = res1_permuted),
+                 "y's rows have been sorted*.") 
+  expect_warning(var_with_Rao_y_permuted_und <- var_Rao(y_permuted_und, precalc = res1),
+                 "y must be a row-named matrix : *.") 
+  expect_warning(var_with_Rao_y_permuted_und <- var_Rao(y_permuted_und, precalc = res1_permuted),
+                 "y must be a row-named matrix : *.") 
+  
+  expect_equal(var_with_Rao, var_manually)
+  expect_equal(var_with_Rao_prec_permuted, var_with_Rao)
+  expect_equal(var_with_Rao_y_permuted, var_with_Rao)
+  expect_equal(var_with_Rao_both_permuted, var_with_Rao)
+  
+  
+  expect_warning(var_with_Rao_unnamed <- var_Rao(y_unnamed, precalc = res1),
+                 regexp = 'y must be a row-named matrix:*.')
+})
+
+test_that("var_Rao errors", {
+  n_psu <- 10L
+  n_per_psu <- sample(5:10, 10, replace = TRUE)
+  id_psu <- paste0("id_psu", 1:n_psu)
+  psu_by_ssu <- rep(paste0("id_psu",1:10), n_per_psu)
+  
+  
+  id_ssu <- paste0("id_ssu", 1:sum(n_per_psu))
+  pi_psu <- stats::setNames(sample(c(0.1,0.2,0.5,0.6), replace = TRUE, n_psu), id_psu)
+  pi_ssu <- stats::setNames(runif(sum(n_per_psu), 0.2, 0.8), id_ssu)
+  
+  
+  precalc1 <- var_srs(y = NULL,
+                      pik = pi_psu,
+                      id = id_psu)
+  descrip1 <- list("var_fn" = "var_srs",
+                   "precalc" = precalc1)
+  descrip1_unnamed <- descrip1
+  names(descrip1_unnamed) <- NULL
+  
+  precalc1_witout_id <-  var_srs(y = NULL,
+                                 pik = pi_psu)
+  descrip1_without_id <- list("var_fn" = "var_srs",
+                              "precalc" = var_srs(y = NULL,
+                                                  pik = pi_psu))
+  
+  
+  
+  precalc2 <- lapply(X = unique(psu_by_ssu), FUN = function(psu_name){
+    ind <- which(psu_by_ssu == psu_name);
+    return(list("var_fn" = "var_pois",
+                "precalc" = var_pois(y = NULL, pik = pi_ssu[ind], id = id_ssu[ind])))
+  })
+  names(precalc2) <- unique(psu_by_ssu)
+  
+  precalc2_without_id <- lapply(X = unique(psu_by_ssu), FUN = function(psu_name){
+    ind <- which(psu_by_ssu == psu_name);
+    return(list("var_fn" = "var_pois",
+                "precalc" = var_pois(y = NULL, pik = pi_ssu[ind])))
+  })
+  names(precalc2_without_id) <- unique(psu_by_ssu)
+  
+  precalc2_unnamed <- precalc2
+  names(precalc2_unnamed) <- NULL
+  
+  precalc2_without_inner_name <- lapply(X = unique(psu_by_ssu), FUN = function(psu_name){
+    ind <- which(psu_by_ssu == psu_name);
+    return(list("var_pois",
+                var_pois(y = NULL, pik = pi_ssu[ind], id = id_ssu[ind])))
+  })
+  names(precalc2_without_inner_name) <- unique(psu_by_ssu)
+  
+  
+  
+  descrip2_without_id <- precalc2_without_id
+  descrip2 <- precalc2
+  descrip2_unnamed <- precalc2_unnamed
+  descrip2_inner_unnamed <- precalc2_without_inner_name
+  descrip2_renamed <- descrip2
+  names(descrip2_renamed) <- paste0("new_name",names(descrip2_renamed))
+  #diff between description_psu$precalc$id
+  #and description_ssu
+  
+  expect_error(res1_witout_id2 <- var_Rao(y = NULL, 
+                                          description_psu = descrip1, 
+                                          description_ssu = descrip2_without_id, 
+                                          id = id_ssu),
+               regexp = "Id's are missing in some precalc from description_ssu*.")
+  
+  expect_error(res1_witout_id1 <- var_Rao(y = NULL, 
+                                          description_psu = descrip1_without_id, 
+                                          description_ssu = descrip2, 
+                                          id = id_ssu),
+               regexp = "precalc in description_psu must contain a id attribute : please, fullfill it*.")
+  
+  expect_error(res1_unnamed_2 <- var_Rao(y = NULL, 
+                                         description_psu = descrip1, 
+                                         description_ssu = descrip2_unnamed, 
+                                         id = id_ssu),
+               regexp = "description_ssu must be a named list of list*.")
+  
+  expect_error(res1_inner_unnamed_2 <- var_Rao(y = NULL, 
+                                               description_psu = descrip1, 
+                                               description_ssu = descrip2_inner_unnamed, 
+                                               id = id_ssu),
+               regexp = "Id's are missing in some precalc from description_ssu*.")
+  
+  expect_error(res1_unnamed_1 <- var_Rao(y = NULL, 
+                                         description_psu = descrip1_unnamed, 
+                                         description_ssu = descrip2, 
+                                         id = id_ssu),
+               regexp = "precalc in description_psu*.")
+  
+  expect_error(res1_diff_name <- var_Rao(y = NULL, 
+                                         description_psu = descrip1, 
+                                         description_ssu = descrip2_renamed, 
+                                         id = id_ssu),
+               regexp = "Element names of description_ssu must be the same*.")
+})
+
+test_that("var_Rao works well - Poisson/SYG",{
+  #
+  #SSU sampling : a SRSWOR with N = 100 and a 
+  #sampling fraction in \{0.1,0.2,0.5,0.6\}
+  #Define PSU and SSU sample
+  n_psu <- 10
+  n_per_psu <- sample(5:10, n_psu, replace = TRUE)
+  id_psu <- paste0("id_psu", 1:n_psu)
+  #psu_by_ssu is a ssu size sample that contains for each ssu, 
+  #the label of the psu to which it belongs.
+  psu_by_ssu <- rep(paste0("id_psu",1:n_psu), n_per_psu)
+  id_ssu <- paste0("id_ssu", 1:sum(n_per_psu))
+  pi_psu <- stats::setNames(runif(length(id_psu), 0.2, 0.8), id_psu)
+  pi_ssu <- stats::setNames(sample(c(0.1,0.2,0.5,0.6), replace = TRUE, length(id_psu)), id_psu)
+  pi_ssu <- pi_ssu[psu_by_ssu]
+  
+  #Compute descriptions
+  precalc1 <- var_pois(y = NULL,
+                       pik = pi_psu,
+                       id = id_psu)
+  descrip1 <- list("var_fn" = "var_pois",
+                   "precalc" = precalc1)
+  
+  precalc2 <- lapply(X = unique(psu_by_ssu), FUN = function(psu_name){
+    ind <- which(psu_by_ssu == psu_name);
+    n <- length(ind)
+    N_in_each_psu <- n/unique(pi_ssu[ind])
+    mat_pij <- matrix((n*(n-1))/(N_in_each_psu*(N_in_each_psu-1)), nrow = n, ncol = n)
+    diag(mat_pij) <- n/N_in_each_psu
+    return(list("var_fn" = "varSYG",
+                "precalc" = varSYG(y = NULL, pikl = mat_pij, id = id_ssu[ind])))
+  })
+  names(precalc2) <- unique(psu_by_ssu)
+  descrip2 <- precalc2
+  
+  #Compute the resulting variance manually
+  y <- as.matrix(rnorm(sum(n_per_psu)), ncol = 1)
+  rownames(y) <- id_ssu
+  
+  y_ssu <- y[id_ssu,]
+  y_ssu <- matrix(y_ssu, ncol = 1, dimnames = list(names(y_ssu),NULL))
+  y_psu <- sum_by(y_ssu, psu_by_ssu, 1/pi_ssu)
+  y_psu <- matrix(y_psu, ncol = 1, dimnames = list(rownames(y_psu),NULL))
+  
+  
+  var_psu <- var_pois(y = y_psu, pik = pi_psu[rownames(y_psu)], id = rownames(y_psu))
+  
+  q_psu <- var_pois(y = NULL, pik = pi_psu[rownames(y_psu)], id = rownames(y_psu))$diago
+  pond <- stats::setNames((1/(pi_psu^2) - q_psu[names(pi_psu)]), names(pi_psu))
+  
+  
+  pikls <- lapply(X = unique(psu_by_ssu), FUN = function(psu_name){
+    ind <- which(psu_by_ssu == psu_name);
+    n <- length(ind)
+    N_in_each_psu <- n/unique(pi_ssu[ind])
+    mat_pij <- matrix((n*(n-1))/(N_in_each_psu*(N_in_each_psu-1)), nrow = n, ncol = n)
+    diag(mat_pij) <- n/N_in_each_psu
+    return(mat_pij)
+  })
+  names(pikls) <- unique(psu_by_ssu)
+  
+  var_ssu <- sapply(X = unique(psu_by_ssu),
+                    FUN = function(psu_name){
+                      ind <- which(psu_by_ssu == psu_name);
+                      varSYG(y = y_ssu[ind, , drop = FALSE], 
+                             pikl = pikls[[psu_name]],
+                             w = pond[psu_name])}
+  )
+  
+  var_manually <- var_psu + sum(var_ssu)
+  
+  
+  
+  #Tests
+  res1 <- var_Rao(y = NULL, 
+                  description_psu = descrip1, 
+                  description_ssu = descrip2, 
+                  id = id_ssu)
+  
+  var_with_Rao <- var_Rao(y, precalc = res1)
+  
+  expect_equal(var_with_Rao, var_manually)
+})
+
+test_that("var_Rao works well - DT/SRS/Poisson",{
+  #PSU sampling : DT on x
+  #SSU sampling : a SRSWOR with N = 100 and a 
+  #sampling fraction in \{0.1,0.2,0.5,0.6\}
+  #TSU sampling : a Poisson scheme
+  #Define PSU and SSU sample
+  n_psu <- 10
+  nb_bal_var <- 5
+  n_per_psu <- sample(5:10, n_psu, replace = TRUE)
+  id_psu <- paste0("id_psu", 1:n_psu)
+  x_bal <- matrix(rnorm(n_psu*nb_bal_var), ncol = nb_bal_var)
+  rownames(x_bal) <- id_psu
+  #psu_by_ssu is a ssu size sample that contains for each ssu, 
+  #the label of the psu to which it belongs.
+  psu_by_ssu <- rep(paste0("id_psu",1:n_psu), n_per_psu)
+  
+  id_ssu <- paste0("id_ssu", 1:sum(n_per_psu))
+  psu_by_ssu <- setNames(psu_by_ssu, id_ssu)
+  pi_psu <- stats::setNames(runif(length(id_psu), 0.2, 0.8), id_psu)
+  pi_ssu <- stats::setNames(sample(c(0.1,0.2,0.5,0.6), replace = TRUE, length(id_psu)), id_psu)
+  pi_ssu <- pi_ssu[psu_by_ssu]
+  pi_ssu <- setNames(pi_ssu, id_ssu)
+  
+  n_per_ssu <- sample(3:10, length(id_ssu), replace = TRUE)
+  ssu_by_tsu <- rep(id_ssu, n_per_ssu)
+  id_tsu <- paste0("id_tsu", 1:sum(n_per_ssu))
+  ssu_by_tsu <- setNames(ssu_by_tsu, id_tsu)
+  pi_tsu <- stats::setNames(runif(length(id_tsu), 0.2, 0.8), id_tsu)
+  
+  
+  #Compute descriptions
+  precalc1 <- varDT(y = NULL,
+                    pik = pi_psu,
+                    x = x_bal,
+                    id = id_psu)
+  descrip1 <- list("var_fn" = "varDT",
+                   "precalc" = precalc1)
+  
+  precalc2 <- lapply(X = unique(psu_by_ssu), FUN = function(psu_name){
+    ind <- which(psu_by_ssu == psu_name);
+    return(list("var_fn" = "var_srs",
+                "precalc" = var_srs(y = NULL,
+                                    pik = pi_ssu[ind],
+                                    id = id_ssu[ind])))
+  })
+  names(precalc2) <- unique(psu_by_ssu)
+  descrip2 <- precalc2
+  
+  # precalc2 <- lapply(X = unique(psu_by_ssu), FUN = function(psu_name){
+  #   ind <- which(psu_by_ssu == psu_name);
+  #   return(list("var_fn" = "var_pois",
+  #               "precalc" = var_pois(y = NULL,
+  #                                    pik = rep(1,length(ind)),
+  #                                    id = id_ssu[ind])))
+  # })
+  # names(precalc2) <- unique(psu_by_ssu)
+  # descrip2 <- precalc2
+  
+  precalc3 <- lapply(X = unique(ssu_by_tsu), FUN = function(ssu_name){
+    ind <- which(ssu_by_tsu == ssu_name);
+    return(list("var_fn" = "var_pois",
+                "precalc" = var_pois(y = NULL,
+                                     pik = pi_tsu[ind],
+                                     id = id_tsu[ind])))
+  })
+  names(precalc3) <- unique(ssu_by_tsu)
+  descrip3 <- precalc3
+  
+  
+  #Compute the resulting variance manually
+  y <- as.matrix(rnorm(sum(n_per_ssu)), ncol = 1)
+  rownames(y) <- id_tsu
+  
+  y_ssu <- sum_by(y, ssu_by_tsu, 1/pi_tsu)
+  y_ssu <- y_ssu[id_ssu,,drop = FALSE]
+  y_psu <- sum_by(y_ssu, psu_by_ssu, 1/(pi_ssu))
+  y_psu <- matrix(y_psu, ncol = 1, dimnames = list(rownames(y_psu),NULL))
+  
+  
+  var_psu <- varDT(y = NULL, 
+                   pik = pi_psu[rownames(y_psu)], 
+                   x = x_bal[rownames(y_psu), ,drop = FALSE],
+                   id = rownames(y_psu))
+  
+  q_psu <- var_psu$diago
+  var_psu <- varDT(y = y_psu, precalc = var_psu)
+  pond_psu <- stats::setNames((1/(pi_psu^2) - q_psu[names(pi_psu)]), names(pi_psu))
+  
+  
+  var_ssu <- var_srs(y = y_ssu,
+                     pik = pi_ssu[rownames(y_ssu)], 
+                     strata = psu_by_ssu[rownames(y_ssu)],
+                     w = pond_psu[psu_by_ssu[rownames(y_ssu)]])
+  
+  qu <- setNames(q_psu[psu_by_ssu], names(psu_by_ssu)) #ici ^pb
+  pi_u <- setNames(pi_psu[psu_by_ssu], names(psu_by_ssu))
+  pi_i <- pi_ssu[names(psu_by_ssu)]
+  nu <- setNames(setNames(n_per_psu, id_psu)[psu_by_ssu], names(psu_by_ssu))
+  qu_upus <- qu/(pi_i^2) + ((1/(pi_u^2)) - qu)*(1-pi_i)*(nu/(nu))/(pi_i^2)
+  pond_psu_ssu <- (1/(setNames(pi_psu[psu_by_ssu], id_ssu)[names(qu_upus)]*pi_ssu[names(qu_upus)])^2) - 
+    qu_upus 
+  var_tsu <- var_pois(y = y,
+                      pik = pi_tsu[rownames(y)], 
+                      w = pond_psu_ssu[ssu_by_tsu[rownames(y)]])
+  
+  var_tot <- var_psu + var_ssu + var_tsu
+  
+  #Tests
+  res1 <- var_Rao_multiple(y = NULL,
+                           description1 = descrip1,
+                           description2 = descrip2,
+                           description3 = descrip3)
+  
+  var_with_Rao <- var_Rao_multiple(y, precalc = res1)
+  
+  expect_equal(var_with_Rao, var_tot)
+})
