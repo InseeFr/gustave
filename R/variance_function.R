@@ -967,7 +967,8 @@ var_Rao <- function(y = NULL,
                 args = list("y" = y_ssu,
                             "precalc" = precalc_ssu_with_w))
       })
-      var_ssu_computed <- stats::setNames(Reduce(f = c, var_ssu_computed), names(precalc_ssu))
+      var_ssu_computed <- do.call(what = rbind, args = var_ssu_computed)
+      rownames(var_ssu_computed) <- names(precalc_ssu)
     } else {
       y_ssu <- y[precalc_ssu[[1]]$id, ,drop = FALSE]
       precalc_ssu_with_w <- precalc_ssu[[1]]
@@ -976,8 +977,7 @@ var_Rao <- function(y = NULL,
                                   args = list("y" = y_ssu,
                                               "precalc" = precalc_ssu_with_w))
     }
-    
-    var_tot <- var_psu_computed + sum(var_ssu_computed)
+    var_tot <- var_psu_computed + colSums(var_ssu_computed)
     return(var_tot)
   }
 }
