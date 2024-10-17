@@ -133,3 +133,39 @@ test_that("a statistical wrapper producing more than one linearized variables is
     regexp = "The number of estimated variances does not match the number of point estimates. A specific display function could be needed."
   )
 })
+
+
+
+
+# Define a new statistic_wrapper based on auto_statistic_function
+
+arg_ratio <- list(data = c("y","x") , weight = c("w"))
+
+ratio_autostat <- define_statistic_wrapper(
+  statistic_function = auto_statistic_function(fn = function(y,x){y/x}, arg_type = arg_ratio),
+  arg_type = arg_ratio)
+ratio_autostat_NA <- define_statistic_wrapper(
+  statistic_function = auto_statistic_function(fn = function(y,x){NA}, arg_type = arg_ratio),
+  arg_type = arg_ratio)
+ratio_autostat_character <- define_statistic_wrapper(
+  statistic_function = auto_statistic_function(fn = function(y,x){"blablabla"}, arg_type = arg_ratio),
+  arg_type = arg_ratio)
+
+variance_wrapper <- define_variance_wrapper(
+  variance_function = function(y) abs(colSums(y)), 
+  reference_id = ict_survey$firm_id,
+  reference_weight = ict_survey$w_calib,
+  default_id = "firm_id",
+  objects_to_include = c("ratio_autostat", "ratio_autostat_NA", "ratio_autostat_character")
+)
+
+
+#test_that("standard and non-standard evaluation yields the same results", {
+
+test_that("auto-linearization and classic linearization lead to same results", {
+  skip_if_not_installed("torch")
+  expect_equal(
+    variance_wrapper(ict_survey, ratio(speed_quanti, employees))$variance,
+    variance_wrapper(ict_survey, ratio_autostat(speed_quanti, employees))$variance
+  )
+})
