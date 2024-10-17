@@ -301,3 +301,118 @@ standard_display <- function(point, var, metadata, alpha){
 standard_display <- change_enclosing(standard_display, globalenv())
 
 
+
+
+#' Define a function that computes statistics without the need to provide linearized variables.
+#' @description Define a function that computes statistics without the need to provide linearized variables.
+#' The estimated linearized variables are computed using autodifferentiation based
+#' on \code{torch}.
+#'
+#' @param fn A function describing the total function to be estimated. All arguments from \code{fn} must be in \code{arg_type}. 
+#' @param arg_type A list that specifies the arguments for the created function, 
+#' including \code{data}, \code{weight}, and optionally \code{param}.
+#'
+#' @return A function that computes the estimated totals, applies 
+#' the \code{fn} function, and returns a list with two elements:
+#' \describe{
+#'   \item{point}{The point estimate, as a numeric value.}
+#'   \item{lin}{The linearized variable, defined as the dot product between the gradient 
+#'   and the data.}
+#' }
+#' 
+#' @details \code{fn} describes the function applied to the estimated totals. This function takes weighted totals as input, 
+#' so weights do not need to be provided in \code{fn}.
+#' @export
+#'
+#' @examples
+#' ratio_autolin <- define_statistic_wrapper(
+#'   statistic_function = auto_statistic_function(function(x, y) {return(x / y)}, arg_type),
+#'   arg_type = arg_type
+#' )
+
+auto_statistic_function <- function(fn, arg_type){
+  # The auto_statistic_function creates a function that meets the criteria of the statistic_function
+  # argument in gustave::define_statistic_wrapper. It is based on the fn function,
+  # which describes the total function the user wishes to estimate.
+  # 
+  # From this fn function, we create a fn_tensored function that takes the elements specified
+  # in arg_type as arguments. This fn_tensored function computes the estimated totals, applies
+  # the fn function, and calculates the gradient of the fn function with respect to the data 
+  # (variables specified in arg_type$data).
+  
+  #Check if `torch` is installed.
+  if (!requireNamespace("torch", quietly = TRUE)) {
+    stop("The 'torch' package is required for this function.
+         Please install it using install.packages('torch').")
+  }
+  #Ajout d'un test sur l'installation de torch.
+  
+  if(!identical(setdiff(sort(unname(unlist(arg_type))), arg_type$weight),
+                sort((methods::formalArgs(fn))))){
+    stop("Argument names from `fn` must be in `arg_type`.")
+  }
+  
+  #Define an empty function
+  fn_tensored <- function() NULL
+  #Change formal arguments
+  formals(fn_tensored) <- stats::setNames(vector("list", length(unlist(arg_type))), unlist(arg_type))
+  #Change function body
+  body(fn_tensored) <- quote({
+    data_list <- mget(arg_type$data)
+    #Compute total estimation for each variable in arg_type$data
+    tot <- lapply(X = data_list, FUN = function(x){sum(x*get(arg_type$weight))})
+    
+    #Check if some totals are not numerical value (missing, NULL, ...)
+    tot_not_numerical <- (sapply(X = tot, FUN = function(x){!is.numeric(x)}))
+    
+    if(sum(tot_not_numerical) > 1){
+      var_not_numerical <- paste(arg_type$data[tot_not_numerical], collapse = " ")
+      stop(paste0("Some variables provide a non-numerical weighted total : ", var_not_numerical))
+    }
+    #Transform it into (torch) tensors with requires_grad at TRUE:
+    #That allows us to get the gradient of the point estimation
+    #with respect to those variables
+    tot_tensored <- lapply(X = tot, FUN = function(x){torch::torch_tensor(data = x,
+                                                                          requires_grad = TRUE)})
+    #Get arguments for point estimation.
+    #In some case, arg_type$param = NULL then mget(arg_type$param) raises an error.
+    #In order to avoid error, we add a condition on is.null(arg_type$param)
+    args_for_point_estimation <- tot_tensored
+    
+    if(!is.null(arg_type$param)){
+      args_for_point_estimation <- c(args_for_point_estimation,
+                                     mget(arg_type$param))
+    }
+    
+    #Compute point estimation.
+    point <- do.call(what = fn, 
+                     args = args_for_point_estimation)
+    
+    if("torch_tensor" %in% class(point)){
+      if(is.na(point) | is.null(point)){
+        stop("Results from `fn` must be a numerical vector of size 1.")
+      }
+    }
+    
+    #Compute the gradient of `fn` with respect to `data` inputs
+    torch::autograd_backward(point)
+    #Get gradients as matrix
+    jac <- do.call(what = rbind,
+                   args = lapply(X = tot_tensored, FUN = function(x){as.numeric(x$grad)}))
+    #Get data as matrix
+    data <- do.call(what = rbind,
+                    args = data_list)
+    #(Estimated) Linearization variable for unit i is defined as <grad, data_i>
+    #where <,> denotes for the canonical dot product and data_i is the i-th row
+    #corresponding to data from the i-th unit. 
+    lin <- t(data) %*% jac
+    #A list with two named elements `point` and `lin` is returned 
+    #as required for the `statistic_function` argument of `gustave::define_statistic_wrapper`.
+    n <- min(sapply(X = data_list, FUN = function(variable){sum(!is.na(variable))}))
+    res <- list(point = as.numeric(point), lin = lin, n = n)
+    return(res)
+  })
+  #Return result
+  return(fn_tensored)
+}
+
