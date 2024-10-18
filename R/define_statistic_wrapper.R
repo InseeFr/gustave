@@ -304,24 +304,25 @@ standard_display <- change_enclosing(standard_display, globalenv())
 
 
 #' Define a function that computes statistics without the need to provide linearized variables.
-#' @description Define a function that computes statistics without the need to provide linearized variables.
-#' The estimated linearized variables are computed using autodifferentiation based
+#' @description Creates a function that computes statistics without the need to provide linearized variables.
+#' The estimated linearized variables are computed via autodifferentiation based
 #' on \code{torch}.
 #'
-#' @param fn A function describing the total function to be estimated. All arguments from \code{fn} must be in \code{arg_type}. 
-#' @param arg_type A list that specifies the arguments for the created function, 
+#' @param fn A function describing totals function to be estimated. All arguments from \code{fn} must be in \code{arg_type}. 
+#' @param arg_type A list specifying the arguments for the created function, 
 #' including \code{data}, \code{weight}, and optionally \code{param}.
 #'
 #' @return A function that computes the estimated totals, applies 
-#' the \code{fn} function, and returns a list with two elements:
+#' the \code{fn} function, and returns a list with three elements:
 #' \describe{
 #'   \item{point}{The point estimate, as a numeric value.}
 #'   \item{lin}{The linearized variable, defined as the dot product between the gradient 
 #'   and the data.}
+#'   \item{n}{Number of non-missing values used to estimate totals.}
 #' }
 #' 
 #' @details \code{fn} describes the function applied to the estimated totals. This function takes weighted totals as input, 
-#' so weights do not need to be provided in \code{fn}.
+#' so weights do not need to be provided to \code{fn}.
 #' @export
 #'
 #' @examples
@@ -343,15 +344,33 @@ auto_statistic_function <- function(fn, arg_type){
   #Check if `torch` is installed.
   if (!requireNamespace("torch", quietly = TRUE)) {
     stop("The 'torch' package is required for this function.
-         Please install it using install.packages('torch').")
+         Please install it using install.packages('torch') and check that 
+         torch files have been download using torch::install_torch().")
   }
-  #Ajout d'un test sur l'installation de torch.
   
+  #Check if `fn` is a function
+  if(!is.function(fn)){
+    stop("`fn` must be a function.")
+  }
+  
+  #Check if `arg_type` is a list
+  if(!is.list(arg_type)){
+    stop("`arg_type` must be a list.")
+  }
+  
+  #Check that all arguments from `fn` (except weights) are defined in `arg_type`
   if(!identical(setdiff(sort(unname(unlist(arg_type))), arg_type$weight),
                 sort((methods::formalArgs(fn))))){
     stop("Argument names from `fn` must be in `arg_type`.")
+  } else {
+    # Reorder to ensure that the resulting function from `auto_statistic_function`
+    # has arguments in the same order as `fn`, even if the elements in `arg_type` are sorted differently.
+    formalargs <- (methods::formalArgs(fn))
+    arg_type$data <- intersect(formalargs, arg_type$data)
+    arg_type$param <- intersect(formalargs, arg_type$param)
   }
   
+
   #Define an empty function
   fn_tensored <- function() NULL
   #Change formal arguments
@@ -388,11 +407,12 @@ auto_statistic_function <- function(fn, arg_type){
     point <- do.call(what = fn, 
                      args = args_for_point_estimation)
     
-    if("torch_tensor" %in% class(point)){
-      if(is.na(point) | is.null(point)){
+    if(is.vector(point) || is.list(point)){
+      if(!is.numeric(point)){
         stop("Results from `fn` must be a numerical vector of size 1.")
       }
-    }
+    } 
+    
     
     #Compute the gradient of `fn` with respect to `data` inputs
     torch::autograd_backward(point)

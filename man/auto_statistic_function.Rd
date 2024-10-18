@@ -7,28 +7,29 @@
 auto_statistic_function(fn, arg_type)
 }
 \arguments{
-\item{fn}{A function describing the total function to be estimated. All arguments from \code{fn} must be in \code{arg_type}.}
+\item{fn}{A function describing totals function to be estimated. All arguments from \code{fn} must be in \code{arg_type}.}
 
-\item{arg_type}{A list that specifies the arguments for the created function, 
+\item{arg_type}{A list specifying the arguments for the created function, 
 including \code{data}, \code{weight}, and optionally \code{param}.}
 }
 \value{
 A function that computes the estimated totals, applies 
-the \code{fn} function, and returns a list with two elements:
+the \code{fn} function, and returns a list with three elements:
 \describe{
   \item{point}{The point estimate, as a numeric value.}
   \item{lin}{The linearized variable, defined as the dot product between the gradient 
   and the data.}
+  \item{n}{Number of non-missing values used to estimate totals.}
 }
 }
 \description{
-Define a function that computes statistics without the need to provide linearized variables.
-The estimated linearized variables are computed using autodifferentiation based
+Creates a function that computes statistics without the need to provide linearized variables.
+The estimated linearized variables are computed via autodifferentiation based
 on \code{torch}.
 }
 \details{
 \code{fn} describes the function applied to the estimated totals. This function takes weighted totals as input, 
-so weights do not need to be provided in \code{fn}.
+so weights do not need to be provided to \code{fn}.
 }
 \examples{
 ratio_autolin <- define_statistic_wrapper(
