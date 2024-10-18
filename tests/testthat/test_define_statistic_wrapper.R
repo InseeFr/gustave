@@ -140,13 +140,36 @@ test_that("a statistical wrapper producing more than one linearized variables is
 # Define a new statistic_wrapper based on auto_statistic_function
 
 arg_ratio <- list(data = c("y","x") , weight = c("w"))
+arg_dor <- list(data = c("num1","denom1","num2", "denom2") , weight = c("w"))
+arg_dor_permuted <- list(data = c("num2", "denom1", "denom2", "num1") , weight = c("w"))
 
 ratio_autostat <- define_statistic_wrapper(
   statistic_function = auto_statistic_function(fn = function(y,x){y/x}, arg_type = arg_ratio),
   arg_type = arg_ratio)
+
+dor_autostat <- define_statistic_wrapper(
+  statistic_function = auto_statistic_function(fn = function(num1, denom1, num2, denom2){num1/denom1 - num2/denom2}, 
+                                               arg_type = arg_dor),
+  arg_type = arg_dor)
+
+dor_autostat_permuted <- define_statistic_wrapper(
+  statistic_function = auto_statistic_function(fn = function(num1, denom1, num2, denom2){num1/denom1 - num2/denom2}, 
+                                               arg_type = arg_dor_permuted),
+  arg_type = arg_dor_permuted)
+
+ror_autostat <- define_statistic_wrapper(
+  statistic_function = auto_statistic_function(fn = function(num1, denom1, num2, denom2){(num1/denom1)/(num2/denom2)}, 
+                                               arg_type = arg_dor),
+  arg_type = arg_dor)
+
+ratio_autostat <- define_statistic_wrapper(
+  statistic_function = auto_statistic_function(fn = function(y,x){y/x}, arg_type = arg_ratio),
+  arg_type = arg_ratio)
+
 ratio_autostat_NA <- define_statistic_wrapper(
   statistic_function = auto_statistic_function(fn = function(y,x){NA}, arg_type = arg_ratio),
   arg_type = arg_ratio)
+
 ratio_autostat_character <- define_statistic_wrapper(
   statistic_function = auto_statistic_function(fn = function(y,x){"blablabla"}, arg_type = arg_ratio),
   arg_type = arg_ratio)
@@ -156,16 +179,64 @@ variance_wrapper <- define_variance_wrapper(
   reference_id = ict_survey$firm_id,
   reference_weight = ict_survey$w_calib,
   default_id = "firm_id",
-  objects_to_include = c("ratio_autostat", "ratio_autostat_NA", "ratio_autostat_character")
+  objects_to_include = c("ratio_autostat", "ratio_autostat_NA",
+                         "ratio_autostat_character", "ror_autostat",
+                         "ratio_autostat", "dor_autostat", "dor_autostat_permuted")
 )
 
 
-#test_that("standard and non-standard evaluation yields the same results", {
 
 test_that("auto-linearization and classic linearization lead to same results", {
   skip_if_not_installed("torch")
   expect_equal(
     variance_wrapper(ict_survey, ratio(speed_quanti, employees))$variance,
     variance_wrapper(ict_survey, ratio_autostat(speed_quanti, employees))$variance
+  )
+  
+  expect_equal(
+    variance_wrapper(ict_survey, diff_of_ratio(turnover, speed_quanti, turnover, employees))$variance,
+    variance_wrapper(ict_survey, dor_autostat(turnover, speed_quanti, turnover, employees))$variance,
+    tolerance = 1e-5
+  )
+  
+  expect_equal(
+    variance_wrapper(ict_survey, ratio_of_ratio(turnover, speed_quanti, turnover, employees))$variance,
+    variance_wrapper(ict_survey, ror_autostat(turnover, speed_quanti, turnover, employees))$variance
+  )
+})
+
+
+test_that("Auto-linearization leads to the same results even if arg_type is not sorted in the same order as the arguments of fn.", {
+  skip_if_not_installed("torch")
+  expect_equal(
+    variance_wrapper(ict_survey, dor_autostat_permuted(turnover, speed_quanti, turnover, employees))$variance,
+    variance_wrapper(ict_survey, dor_autostat(turnover, speed_quanti, turnover, employees))$variance,
+    tolerance = 1e-5
+  )
+})
+
+
+test_that("Auto-linearization raises an error when `fn` does not return a numerical vector of size 1", {
+  skip_if_not_installed("torch")
+  expect_error(
+    variance_wrapper(ict_survey, ratio_autostat_NA(speed_quanti, employees)),
+    regexp = "Results from `fn` must be a numerical vector of size 1."
+  )
+  expect_error(
+    variance_wrapper(ict_survey, ratio_autostat_character(speed_quanti, employees)),
+    regexp = "Results from `fn` must be a numerical vector of size 1."
+  )
+})
+
+
+test_that("Auto-linearization raises an error when `fn` is not a function or `arg_type` is not a list", {
+  skip_if_not_installed("torch")
+  expect_error(
+    auto_statistic_function(fn = "toto", arg_type = arg_ratio),
+    regexp = "`fn` must be a function."
+  )
+  expect_error(
+    auto_statistic_function(fn = function(y,x){y/x}, arg_type = "toto"),
+    regexp = "`arg_type` must be a list."
   )
 })
