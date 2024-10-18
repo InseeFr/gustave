@@ -18,13 +18,13 @@ test_that("standard and non-standard evaluation yields the same results", {
     variance_wrapper(ict_survey, mean(speed_quanti)),
     variance_wrapper(ict_survey, mean("speed_quanti"))
   )
-
+  
   assign(x = "var", value = "speed_quanti", envir = globalenv())
   expect_identical(
     variance_wrapper(ict_survey, mean(speed_quanti)),
     variance_wrapper(ict_survey, mean(var))
   )
-
+  
   assign(x = "var", value = c("speed_quanti", "speed_quali"), envir = globalenv())
   expect_identical(
     variance_wrapper(ict_survey, mean(speed_quanti), mean(speed_quali)),
@@ -35,7 +35,7 @@ test_that("standard and non-standard evaluation yields the same results", {
     variance_wrapper(ict_survey, mean(speed_quanti))[ - 1],
     variance_wrapper(ict_survey, mean(speed_quanti2))[ - 1]
   )
-
+  
   assign(x = "num", value = "turnover", envir = globalenv())
   assign(x = "denom", value = "employees", envir = globalenv())
   expect_identical(
@@ -48,7 +48,7 @@ test_that("standard and non-standard evaluation yields the same results", {
     variance_wrapper(ict_survey, ratio(turnover, employees), ratio(employees, turnover)),
     variance_wrapper(ict_survey, ratio(num, denom))
   )
-
+  
   expect_identical(
     variance_wrapper(ict_survey, total(speed_quanti), by = division),
     variance_wrapper(ict_survey, total(speed_quanti, by = division))
@@ -72,7 +72,7 @@ test_that("standard and non-standard evaluation yields the same results", {
     variance_wrapper(ict_survey, total(speed_quanti), where = "domain")[, -1]
   )
   rm(ict_survey)
-
+  
 })
 
 test_that("non-standard evaluation works when a character vector with same name exists outside of data", {
@@ -143,51 +143,34 @@ arg_ratio <- list(data = c("y","x") , weight = c("w"))
 arg_dor <- list(data = c("num1","denom1","num2", "denom2") , weight = c("w"))
 arg_dor_permuted <- list(data = c("num2", "denom1", "denom2", "num1") , weight = c("w"))
 
-ratio_autostat <- define_statistic_wrapper(
-  statistic_function = auto_statistic_function(fn = function(y,x){y/x}, arg_type = arg_ratio),
-  arg_type = arg_ratio)
-
-dor_autostat <- define_statistic_wrapper(
-  statistic_function = auto_statistic_function(fn = function(num1, denom1, num2, denom2){num1/denom1 - num2/denom2}, 
-                                               arg_type = arg_dor),
-  arg_type = arg_dor)
-
-dor_autostat_permuted <- define_statistic_wrapper(
-  statistic_function = auto_statistic_function(fn = function(num1, denom1, num2, denom2){num1/denom1 - num2/denom2}, 
-                                               arg_type = arg_dor_permuted),
-  arg_type = arg_dor_permuted)
-
-ror_autostat <- define_statistic_wrapper(
-  statistic_function = auto_statistic_function(fn = function(num1, denom1, num2, denom2){(num1/denom1)/(num2/denom2)}, 
-                                               arg_type = arg_dor),
-  arg_type = arg_dor)
-
-ratio_autostat <- define_statistic_wrapper(
-  statistic_function = auto_statistic_function(fn = function(y,x){y/x}, arg_type = arg_ratio),
-  arg_type = arg_ratio)
-
-ratio_autostat_NA <- define_statistic_wrapper(
-  statistic_function = auto_statistic_function(fn = function(y,x){NA}, arg_type = arg_ratio),
-  arg_type = arg_ratio)
-
-ratio_autostat_character <- define_statistic_wrapper(
-  statistic_function = auto_statistic_function(fn = function(y,x){"blablabla"}, arg_type = arg_ratio),
-  arg_type = arg_ratio)
-
-variance_wrapper <- define_variance_wrapper(
-  variance_function = function(y) abs(colSums(y)), 
-  reference_id = ict_survey$firm_id,
-  reference_weight = ict_survey$w_calib,
-  default_id = "firm_id",
-  objects_to_include = c("ratio_autostat", "ratio_autostat_NA",
-                         "ratio_autostat_character", "ror_autostat",
-                         "ratio_autostat", "dor_autostat", "dor_autostat_permuted")
-)
-
-
 
 test_that("auto-linearization and classic linearization lead to same results", {
   skip_if_not_installed("torch")
+  
+  dor_autostat <- define_statistic_wrapper(
+    statistic_function = auto_statistic_function(fn = function(num1, denom1, num2, denom2){num1/denom1 - num2/denom2}, 
+                                                 arg_type = arg_dor),
+    arg_type = arg_dor)
+  
+  ror_autostat <- define_statistic_wrapper(
+    statistic_function = auto_statistic_function(fn = function(num1, denom1, num2, denom2){(num1/denom1)/(num2/denom2)}, 
+                                                 arg_type = arg_dor),
+    arg_type = arg_dor)
+  
+  ratio_autostat <- define_statistic_wrapper(
+    statistic_function = auto_statistic_function(fn = function(y,x){y/x}, arg_type = arg_ratio),
+    arg_type = arg_ratio)
+  
+  
+  variance_wrapper <- define_variance_wrapper(
+    variance_function = function(y) abs(colSums(y)), 
+    reference_id = ict_survey$firm_id,
+    reference_weight = ict_survey$w_calib,
+    default_id = "firm_id",
+    objects_to_include = c("ratio_autostat", "ror_autostat", "dor_autostat")
+  )
+  
+  
   expect_equal(
     variance_wrapper(ict_survey, ratio(speed_quanti, employees))$variance,
     variance_wrapper(ict_survey, ratio_autostat(speed_quanti, employees))$variance
@@ -206,8 +189,32 @@ test_that("auto-linearization and classic linearization lead to same results", {
 })
 
 
+
+
+
 test_that("Auto-linearization leads to the same results even if arg_type is not sorted in the same order as the arguments of fn.", {
   skip_if_not_installed("torch")
+  
+  dor_autostat <- define_statistic_wrapper(
+    statistic_function = auto_statistic_function(fn = function(num1, denom1, num2, denom2){num1/denom1 - num2/denom2}, 
+                                                 arg_type = arg_dor),
+    arg_type = arg_dor)
+  
+  dor_autostat_permuted <- define_statistic_wrapper(
+    statistic_function = auto_statistic_function(fn = function(num1, denom1, num2, denom2){num1/denom1 - num2/denom2}, 
+                                                 arg_type = arg_dor_permuted),
+    arg_type = arg_dor_permuted)
+  
+  
+  variance_wrapper <- define_variance_wrapper(
+    variance_function = function(y) abs(colSums(y)), 
+    reference_id = ict_survey$firm_id,
+    reference_weight = ict_survey$w_calib,
+    default_id = "firm_id",
+    objects_to_include = c("dor_autostat", "dor_autostat_permuted")
+  )
+  
+  
   expect_equal(
     variance_wrapper(ict_survey, dor_autostat_permuted(turnover, speed_quanti, turnover, employees))$variance,
     variance_wrapper(ict_survey, dor_autostat(turnover, speed_quanti, turnover, employees))$variance,
@@ -218,6 +225,23 @@ test_that("Auto-linearization leads to the same results even if arg_type is not 
 
 test_that("Auto-linearization raises an error when `fn` does not return a numerical vector of size 1", {
   skip_if_not_installed("torch")
+  
+  ratio_autostat_NA <- define_statistic_wrapper(
+    statistic_function = auto_statistic_function(fn = function(y,x){NA}, arg_type = arg_ratio),
+    arg_type = arg_ratio)
+  
+  ratio_autostat_character <- define_statistic_wrapper(
+    statistic_function = auto_statistic_function(fn = function(y,x){"blablabla"}, arg_type = arg_ratio),
+    arg_type = arg_ratio)
+  
+  variance_wrapper <- define_variance_wrapper(
+    variance_function = function(y) abs(colSums(y)), 
+    reference_id = ict_survey$firm_id,
+    reference_weight = ict_survey$w_calib,
+    default_id = "firm_id",
+    objects_to_include = c("ratio_autostat_NA", "ratio_autostat_character")
+  )
+  
   expect_error(
     variance_wrapper(ict_survey, ratio_autostat_NA(speed_quanti, employees)),
     regexp = "Results from `fn` must be a numerical vector of size 1."
@@ -231,6 +255,7 @@ test_that("Auto-linearization raises an error when `fn` does not return a numeri
 
 test_that("Auto-linearization raises an error when `fn` is not a function or `arg_type` is not a list", {
   skip_if_not_installed("torch")
+  
   expect_error(
     auto_statistic_function(fn = "toto", arg_type = arg_ratio),
     regexp = "`fn` must be a function."
